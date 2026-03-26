@@ -7,7 +7,9 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-POLY=("$REPO_ROOT/PALP/poly.x" -N)
+POLY_BIN="${POLY_BIN:-$REPO_ROOT/PALP/poly.x}"
+BASELINE_BIN="${BASELINE_BIN:-$REPO_ROOT/PALP/poly.x.baseline}"
+POLY=("$POLY_BIN" -N)
 INPUT="${1:-$REPO_ROOT/samples/sample-100k.txt}"
 RUNS=3
 JOBS=32
@@ -65,6 +67,55 @@ for i in $(seq 1 "$RUNS"); do
         ::: "$CHUNKS_DIR"/chunk_*; } 2>&1 )
     echo "$RESULT" | grep -E "^real|^user|^sys" || echo "$RESULT"
 done
+
+# ---- correctness check ----
+# Compare optimized output against baseline binary (if available).
+# The baseline produces the old multi-line format (header + padded rows);
+# the optimized binary produces compact [[row],[row],...] lines.
+# normalize_matrix converts the old format to the compact one for comparison.
+normalize_matrix() {
+    awk '
+    /^[0-9]+ [0-9]+/ {
+        # header line: "d nv  ..." — read d rows that follow
+        split($0, hdr)
+        d = hdr[1]; nv = hdr[2]
+        printf "["
+        for (r = 0; r < d; r++) {
+            getline
+            if (r) printf ","
+            printf "["
+            n = split($0, vals)
+            for (c = 1; c <= n; c++) {
+                if (c > 1) printf ","
+                printf "%s", vals[c]+0
+            }
+            printf "]"
+        }
+        print "]"
+    }
+    '
+}
+
+if [[ -x "$BASELINE_BIN" ]]; then
+    echo ""
+    echo "--- Correctness check (vs baseline) ---"
+    BASELINE_OUT="$TMPDIR/baseline.txt"
+    OPTIMIZED_OUT="$TMPDIR/optimized.txt"
+    "$BASELINE_BIN" -N "$INPUT" "$BASELINE_OUT" 2>/dev/null
+    "${POLY[@]}" "$INPUT" "$OPTIMIZED_OUT" 2>/dev/null
+
+    if diff <(normalize_matrix < "$BASELINE_OUT") "$OPTIMIZED_OUT" > /dev/null 2>&1; then
+        echo "PASS: optimized output matches baseline"
+    else
+        echo "FAIL: output differs from baseline"
+        diff <(normalize_matrix < "$BASELINE_OUT") "$OPTIMIZED_OUT" | head -20
+        exit 1
+    fi
+else
+    echo ""
+    echo "--- Correctness check skipped (no baseline at $BASELINE_BIN) ---"
+    echo "To enable: set BASELINE_BIN=/path/to/original/poly.x"
+fi
 
 echo ""
 echo "Done."
