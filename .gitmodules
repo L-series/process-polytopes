@@ -1,0 +1,3 @@
+[submodule "PALP"]
+	path = PALP
+	url = https://github.com/L-series/PALP.git
