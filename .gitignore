@@ -1,1 +1,25 @@
-samples/.env
+# Build artifacts
+src/classify/build/
+src/sort/build/
+*.o
+*.a
+*.x
+*.gcda
+*.gcno
+gmon.out
+
+# Results (large binary files)
+results/
+
+# Data files
+samples/reflexive/*.parquet
+data/
+
+# Python
+__pycache__/
+*.pyc
+.env
+
+# Editor
+.vscode/
+*.swp
