@@ -1,26 +1,78 @@
 #!/usr/bin/env bash
-# validate.sh — Validate classifier results against PALP poly.x -N
+# validate.sh — Validate classifier results against PALP poly.x
 #
-# Takes N random CWS from the input parquet, runs them through both
-# the classifier pipeline (via PALP library) and the standalone poly.x,
-# and compares the normal forms.
+# Modes:
+#   ./validate.sh [N]                        Quick: N random CWS via poly.x (default 50)
+#   ./validate.sh --full [N]                 Full:  N (or all) CWS via poly.x.baseline
+#                                                   distributed, deduped, vs classifier.
+#   ./validate.sh --full [N] --workers W     Set parallel workers (default 32)
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 POLY_BIN="$REPO_ROOT/PALP/poly.x"
-N_TESTS="${1:-50}"
+POLY_BASELINE="$REPO_ROOT/PALP/poly.x.baseline"
+CLASSIFIER="$REPO_ROOT/src/classify/build/classifier"
+SAMPLE_PARQUET="$REPO_ROOT/samples/reflexive/ws-5d-reflexive-0000.parquet"
 
-echo "=== Validation: classifier vs poly.x -N ==="
-echo "Testing $N_TESTS random CWS..."
-echo ""
+# ─── Parse arguments ────────────────────────────────────────────────────
+MODE="quick"
+N_TESTS=50
+N_WORKERS=32
 
-# Extract random CWS from parquet
-python3 -c "
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --full)
+            MODE="full"
+            # Optional next arg: row limit (number)
+            if [[ ${2:-} =~ ^[0-9]+$ ]]; then
+                N_TESTS="$2"; shift
+            else
+                N_TESTS=0   # 0 = all rows
+            fi
+            ;;
+        --workers)
+            N_WORKERS="${2:?--workers requires a number}"; shift
+            ;;
+        -h|--help)
+            echo "Usage: $0 [N]                       Quick test with N random CWS (default 50)"
+            echo "       $0 --full [N]                Full test with N (or all) CWS"
+            echo "       $0 --full [N] --workers W    Parallel workers (default 32)"
+            exit 0
+            ;;
+        *)
+            if [[ "$1" =~ ^[0-9]+$ ]]; then
+                N_TESTS="$1"
+            else
+                echo "Unknown option: $1" >&2; exit 1
+            fi
+            ;;
+    esac
+    shift
+done
+
+# ─── Sanity checks ──────────────────────────────────────────────────────
+for bin in "$POLY_BIN" "$CLASSIFIER"; do
+    [[ -x "$bin" ]] || { echo "Missing: $bin" >&2; exit 1; }
+done
+[[ -f "$SAMPLE_PARQUET" ]] || { echo "Missing: $SAMPLE_PARQUET" >&2; exit 1; }
+if [[ "$MODE" == "full" ]]; then
+    [[ -x "$POLY_BASELINE" ]] || { echo "Missing: $POLY_BASELINE" >&2; exit 1; }
+fi
+
+# ═══════════════════════════════════════════════════════════════════════
+# QUICK MODE — N random CWS, compare poly.x vs classifier
+# ═══════════════════════════════════════════════════════════════════════
+run_quick() {
+    echo "=== Quick Validation: classifier vs poly.x -N ==="
+    echo "Testing $N_TESTS random CWS..."
+    echo ""
+
+    python3 -c "
 import pyarrow.parquet as pq
 import random
 random.seed(42)
 
-table = pq.read_table('$REPO_ROOT/samples/reflexive/ws-5d-reflexive-0000.parquet',
+table = pq.read_table('$SAMPLE_PARQUET',
     columns=['weight0','weight1','weight2','weight3','weight4','weight5'])
 n = table.num_rows
 indices = sorted(random.sample(range(n), min($N_TESTS, n)))
@@ -31,17 +83,13 @@ for i in indices:
     print(f'{d} {\" \".join(str(x) for x in w)}')
 " > /tmp/validate_cws.txt
 
-# Run through poly.x
-echo "Running poly.x -N on $N_TESTS CWS..."
-"$POLY_BIN" -N /tmp/validate_cws.txt /tmp/validate_palp_out.txt 2>/dev/null
+    echo "Running poly.x -N on $N_TESTS CWS..."
+    "$POLY_BIN" -N /tmp/validate_cws.txt /tmp/validate_palp_out.txt 2>/dev/null
+    local n_palp
+    n_palp=$(wc -l < /tmp/validate_palp_out.txt)
+    echo "  poly.x produced $n_palp normal forms"
 
-# Count lines in poly.x output (should match N_TESTS, one NF per line)
-n_palp=$(wc -l < /tmp/validate_palp_out.txt)
-echo "  poly.x produced $n_palp normal forms"
-
-# Run through classifier on same CWS
-# We need a small parquet file with just these CWS
-python3 -c "
+    python3 -c "
 import pyarrow as pa
 import pyarrow.parquet as pq
 
@@ -49,9 +97,7 @@ cws = []
 with open('/tmp/validate_cws.txt') as f:
     for line in f:
         parts = list(map(int, line.strip().split()))
-        d = parts[0]
-        w = parts[1:]
-        cws.append(w)
+        cws.append(parts[1:])
 
 table = pa.table({
     f'weight{i}': pa.array([c[i] for c in cws], type=pa.int32())
@@ -69,15 +115,14 @@ pq.write_table(table, '/tmp/validate_input.parquet')
 print(f'Created validation parquet with {len(cws)} rows')
 "
 
-mkdir -p /tmp/validate_classifier_out
-"$REPO_ROOT/src/classify/build/classifier" \
-    --input /tmp \
-    --output /tmp/validate_classifier_out \
-    --benchmark "$N_TESTS" \
-    --threads 1 2>/dev/null
+    mkdir -p /tmp/validate_classifier_out
+    "$CLASSIFIER" \
+        --input /tmp \
+        --output /tmp/validate_classifier_out \
+        --benchmark "$N_TESTS" \
+        --threads 1 2>/dev/null
 
-# Now compare: check that unique polytope count matches
-python3 -c "
+    python3 -c "
 import pyarrow.parquet as pq
 
 results = pq.read_table('/tmp/validate_classifier_out/unique_polytopes.parquet')
@@ -85,10 +130,7 @@ n_unique = results.num_rows
 total_count = sum(results.column('count').to_pylist())
 
 print(f'Classifier: {n_unique} unique polytopes from {total_count} CWS')
-print(f'poly.x:     {open(\"/tmp/validate_palp_out.txt\").read().count(chr(10))} normal forms')
-print()
 
-# Both should produce the same number of unique NFs
 palp_nfs = set()
 with open('/tmp/validate_palp_out.txt') as f:
     for line in f:
@@ -108,9 +150,255 @@ else:
     print(f'  Difference: {abs(len(palp_nfs) - n_unique)}')
 "
 
-# Cleanup
-rm -f /tmp/validate_cws.txt /tmp/validate_palp_out.txt /tmp/validate_input.parquet
-rm -rf /tmp/validate_classifier_out
+    rm -f /tmp/validate_cws.txt /tmp/validate_palp_out.txt /tmp/validate_input.parquet
+    rm -rf /tmp/validate_classifier_out
 
-echo ""
-echo "Done."
+    echo ""
+    echo "Done."
+}
+
+# ═══════════════════════════════════════════════════════════════════════
+# FULL MODE — parquet → text → poly.x.baseline (distributed) → dedup
+#             vs classifier on same data
+# ═══════════════════════════════════════════════════════════════════════
+run_full() {
+    local row_limit=$N_TESTS   # 0 = all rows
+    local workers=$N_WORKERS
+
+    VALIDATE_TMPDIR="/tmp/validate_full_$$"
+    local tmpdir="$VALIDATE_TMPDIR"
+    mkdir -p "$tmpdir"
+    trap 'rm -rf "$VALIDATE_TMPDIR" 2>/dev/null' EXIT
+
+    echo "════════════════════════════════════════════════════════════════"
+    echo "  Full Validation: classifier vs poly.x.baseline (distributed)"
+    echo "════════════════════════════════════════════════════════════════"
+    echo "  Parquet:    $SAMPLE_PARQUET"
+    echo "  Workers:    $workers"
+    if (( row_limit > 0 )); then
+        echo "  Row limit:  $row_limit"
+    else
+        echo "  Row limit:  ALL"
+    fi
+    echo ""
+
+    local wall_start=$SECONDS
+
+    # ── Step 1: Parquet → CWS text ──────────────────────────────────
+    echo "[1/6] Converting parquet to CWS text file..."
+    local t1=$SECONDS
+    python3 << PYEOF
+import pyarrow.parquet as pq
+import numpy as np
+
+limit = $row_limit if $row_limit > 0 else None
+
+pf = pq.ParquetFile('$SAMPLE_PARQUET')
+total_rows = pf.metadata.num_rows
+if limit is not None:
+    limit = min(limit, total_rows)
+else:
+    limit = total_rows
+
+# Read only the needed columns, stop early if row-limited
+written = 0
+with open('$tmpdir/all_cws.txt', 'w', buffering=1<<20) as f:
+    for batch in pf.iter_batches(columns=[f'weight{j}' for j in range(6)],
+                                  batch_size=min(limit, 1_000_000)):
+        remaining = limit - written
+        if remaining <= 0:
+            break
+        if batch.num_rows > remaining:
+            batch = batch.slice(0, remaining)
+        w = [batch.column(f'weight{j}').to_pylist() for j in range(6)]
+        for i in range(batch.num_rows):
+            w0, w1, w2, w3, w4, w5 = w[0][i], w[1][i], w[2][i], w[3][i], w[4][i], w[5][i]
+            d = w0 + w1 + w2 + w3 + w4 + w5
+            f.write(f'{d} {w0} {w1} {w2} {w3} {w4} {w5}\n')
+        written += batch.num_rows
+
+print(f'  Wrote {written:,} CWS ({written/1e6:.2f}M)')
+PYEOF
+    local total_cws
+    total_cws=$(wc -l < "$tmpdir/all_cws.txt")
+    echo "  Time: $((SECONDS - t1))s"
+    echo ""
+
+    # ── Step 2: Split into chunks ───────────────────────────────────
+    echo "[2/6] Splitting into $workers chunks..."
+    local lines_per_chunk=$(( (total_cws + workers - 1) / workers ))
+    split -l "$lines_per_chunk" -d -a 4 "$tmpdir/all_cws.txt" "$tmpdir/chunk_"
+    local n_chunks
+    n_chunks=$(find "$tmpdir" -maxdepth 1 -name 'chunk_*' | wc -l)
+    echo "  $n_chunks chunks × ~${lines_per_chunk} lines"
+    echo ""
+
+    # ── Step 3: Run poly.x.baseline on each chunk ──────────────────
+    echo "[3/6] Running poly.x.baseline -N on $n_chunks workers..."
+    local t3=$SECONDS
+
+    # AWK parser: extracts the 5×N normal-form matrix from poly.x
+    # verbose output and emits it as a single pipe-delimited line.
+    local AWK_PARSE='
+/Normal form/ {
+    nrows = $1; nf = ""
+    for (i = 0; i < nrows; i++) {
+        getline
+        gsub(/^ +/, ""); gsub(/ +$/, ""); gsub(/ +/, " ")
+        if (nf != "") nf = nf "|"
+        nf = nf $0
+    }
+    print nf
+}'
+
+    local pids=()
+    for chunk in "$tmpdir"/chunk_*; do
+        (
+            "$POLY_BASELINE" -N < "$chunk" 2>/dev/null \
+                | awk "$AWK_PARSE" \
+                | sort -u -S 256M \
+                > "${chunk}.nf"
+        ) &
+        pids+=($!)
+    done
+
+    # Wait with progress
+    local completed=0
+    for pid in "${pids[@]}"; do
+        wait "$pid"
+        completed=$((completed + 1))
+        printf "\r  Workers done: %d / %d" "$completed" "${#pids[@]}"
+    done
+    echo ""
+
+    local baseline_wall=$((SECONDS - t3))
+    local baseline_cps=0
+    (( baseline_wall > 0 )) && baseline_cps=$(( total_cws / baseline_wall ))
+    echo "  Wall time: ${baseline_wall}s  (~${baseline_cps} CWS/s)"
+    echo ""
+
+    # ── Step 4: Merge + deduplicate ─────────────────────────────────
+    echo "[4/6] Merging worker results and deduplicating..."
+    local t4=$SECONDS
+
+    # Each worker's .nf file is already sorted + locally unique.
+    # sort -m merges sorted files, -u removes cross-worker duplicates.
+    sort -u -m -S 1G "$tmpdir"/chunk_*.nf > "$tmpdir/baseline_unique.txt"
+
+    local baseline_total baseline_unique
+    baseline_total=$(cat "$tmpdir"/chunk_*.nf | wc -l)
+    baseline_unique=$(wc -l < "$tmpdir/baseline_unique.txt")
+    echo "  Locally deduped NFs (sum of workers): $baseline_total"
+    echo "  Globally unique NFs after merge:      $baseline_unique"
+    echo "  Merge time: $((SECONDS - t4))s"
+    echo ""
+
+    # ── Step 5: Run classifier ──────────────────────────────────────
+    echo "[5/6] Running classifier on the same data..."
+    local t5=$SECONDS
+
+    local classifier_input="$tmpdir/classifier_in"
+    mkdir -p "$classifier_input"
+
+    if (( row_limit > 0 )); then
+        # Build a trimmed parquet with exactly row_limit rows
+        python3 << PYEOF2
+import pyarrow.parquet as pq
+table = pq.read_table('$SAMPLE_PARQUET')
+table = table.slice(0, $row_limit)
+pq.write_table(table, '$classifier_input/ws-5d-reflexive-0000.parquet')
+print(f'  Trimmed parquet: {table.num_rows:,} rows')
+PYEOF2
+    else
+        # Symlink the full file
+        ln -sf "$SAMPLE_PARQUET" "$classifier_input/ws-5d-reflexive-0000.parquet"
+        echo "  Using full parquet (symlink)"
+    fi
+
+    local classifier_out="$tmpdir/classifier_out"
+    mkdir -p "$classifier_out"
+
+    "$CLASSIFIER" \
+        --input "$classifier_input" \
+        --output "$classifier_out" \
+        --threads "$workers" 2>&1 | sed 's/^/  /'
+
+    local classifier_wall=$((SECONDS - t5))
+    echo "  Classifier wall time: ${classifier_wall}s"
+    echo ""
+
+    # ── Step 6: Compare ─────────────────────────────────────────────
+    echo "[6/6] Comparing results..."
+    echo ""
+
+    python3 - "$tmpdir" << 'PYCOMPARE'
+import pyarrow.parquet as pq
+import sys, os
+
+tmpdir = sys.argv[1]
+classifier_pq = os.path.join(tmpdir, "classifier_out", "unique_polytopes.parquet")
+baseline_file = os.path.join(tmpdir, "baseline_unique.txt")
+cws_file      = os.path.join(tmpdir, "all_cws.txt")
+
+classifier = pq.read_table(classifier_pq)
+classifier_unique = classifier.num_rows
+classifier_total  = sum(classifier.column('count').to_pylist())
+
+with open(baseline_file) as f:
+    baseline_unique = sum(1 for _ in f)
+
+with open(cws_file) as f:
+    total_cws = sum(1 for _ in f)
+
+W = 55
+print(f"  ┌{'─' * W}┐")
+print(f"  │{'VALIDATION RESULTS':^{W}}│")
+print(f"  ├{'─' * W}┤")
+print(f"  │  Total CWS processed         {total_cws:>18,}       │")
+print(f"  │{'':^{W}}│")
+print(f"  │  poly.x.baseline unique NFs  {baseline_unique:>18,}       │")
+print(f"  │  classifier unique polytopes {classifier_unique:>18,}       │")
+print(f"  │  classifier total CWS sum    {classifier_total:>18,}       │")
+print(f"  │{'':^{W}}│")
+
+exit_code = 0
+
+if baseline_unique == classifier_unique:
+    print(f"  │  ✅  PASS — unique counts match!{' ' * (W - 34)}│")
+else:
+    diff = abs(baseline_unique - classifier_unique)
+    msg = f"  ❌  FAIL — unique counts differ by {diff:,}!"
+    print(f"  │{msg:<{W}}│")
+    exit_code = 1
+
+if classifier_total == total_cws:
+    print(f"  │  ✅  PASS — CWS totals match!{' ' * (W - 31)}│")
+else:
+    diff = abs(total_cws - classifier_total)
+    msg = f"  ❌  FAIL — CWS totals differ by {diff:,}!"
+    print(f"  │{msg:<{W}}│")
+    exit_code = 1
+
+dedup_rate = 100.0 * (1.0 - baseline_unique / total_cws) if total_cws else 0
+print(f"  │{'':^{W}}│")
+print(f"  │  Deduplication rate:          {dedup_rate:>17.1f}%       │")
+print(f"  └{'─' * W}┘")
+
+sys.exit(exit_code)
+PYCOMPARE
+    local compare_status=$?
+
+    echo ""
+    local total_wall=$((SECONDS - wall_start))
+    echo "  Total wall time: ${total_wall}s  ($((total_wall / 60))m $((total_wall % 60))s)"
+    echo ""
+
+    return $compare_status
+}
+
+# ─── Dispatch ──────────────────────────────────────────────────────────
+if [[ "$MODE" == "full" ]]; then
+    run_full
+else
+    run_quick
+fi
