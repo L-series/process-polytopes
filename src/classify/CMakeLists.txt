@@ -32,6 +32,7 @@ set(PALP_DEFINES
     -DPOLY_Dmax=5
     -DPALP_FAST_ASSERT
     -DPALP_THREADSAFE
+    -DCEQ_Nmax=2048    # candidate eq list; default 64 is too small for some 5D polytopes
 )
 
 add_library(palp STATIC ${PALP_SOURCES})
@@ -61,6 +62,7 @@ target_compile_options(classifier PRIVATE
     -DPOLY_Dmax=5
     -DPALP_FAST_ASSERT
     -DPALP_THREADSAFE
+    -DCEQ_Nmax=2048
 )
 
 target_include_directories(classifier PRIVATE

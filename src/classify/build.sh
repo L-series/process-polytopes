@@ -32,7 +32,7 @@ do_pgo_build() {
         "$PALP_DIR/Polynf.c"
         "$PALP_DIR/LG.c"
     )
-    local PALP_DEFINES="-DPOLY_Dmax=5 -DPALP_FAST_ASSERT -DPALP_THREADSAFE"
+    local PALP_DEFINES="-DPOLY_Dmax=5 -DPALP_FAST_ASSERT -DPALP_THREADSAFE -DCEQ_Nmax=2048"
     local COMMON_CFLAGS="-O3 -march=native -flto -funroll-loops -fomit-frame-pointer"
     local SAMPLE_INPUT="$REPO_ROOT/samples/reflexive"
     local PROFILE_ROWS=500000
@@ -99,11 +99,62 @@ do_pgo_build() {
     ls -lh "$BUILD_DIR/classifier"
 }
 
+do_asan_build() {
+    local PALP_SOURCES=(
+        "$PALP_DIR/Coord.c"
+        "$PALP_DIR/Rat.c"
+        "$PALP_DIR/Vertex.c"
+        "$PALP_DIR/Polynf.c"
+        "$PALP_DIR/LG.c"
+    )
+    local PALP_DEFINES="-DPOLY_Dmax=5 -DPALP_FAST_ASSERT -DPALP_THREADSAFE -DCEQ_Nmax=2048"
+    # -O1 keeps the code comprehensible; -g gives source-level backtraces.
+    # No -flto: ASAN and LTO do not mix reliably.
+    local ASAN_FLAGS="-fsanitize=address -fno-omit-frame-pointer -g -O1"
+    local ASAN_DIR="$SCRIPT_DIR/build-asan"
+
+    mkdir -p "$ASAN_DIR"
+
+    echo "=== ASAN build ==="
+    local objs=()
+    for src in "${PALP_SOURCES[@]}"; do
+        local base obj
+        base=$(basename "$src" .c)
+        obj="$ASAN_DIR/${base}.o"
+        gcc -c $ASAN_FLAGS $PALP_DEFINES -w -o "$obj" "$src"
+        objs+=("$obj")
+    done
+    gcc -c $ASAN_FLAGS -w -o "$ASAN_DIR/palp_globals.o" "$SCRIPT_DIR/palp_globals.c"
+    objs+=("$ASAN_DIR/palp_globals.o")
+    ar rcs "$ASAN_DIR/libpalp.a" "${objs[@]}"
+
+    local ARROW_INC ARROW_LIB
+    ARROW_INC=$(pkg-config --cflags-only-I arrow 2>/dev/null || echo "-I/usr/include")
+    ARROW_LIB=$(pkg-config --libs arrow parquet 2>/dev/null || echo "-larrow -lparquet")
+
+    g++ $ASAN_FLAGS $PALP_DEFINES \
+        -std=c++20 \
+        -I"$PALP_DIR" -I"$SCRIPT_DIR" $ARROW_INC \
+        -o "$ASAN_DIR/classifier" \
+        "$SCRIPT_DIR/classifier.cpp" \
+        -L"$ASAN_DIR" -lpalp \
+        $ARROW_LIB -lpthread
+
+    echo ""
+    echo "ASAN binary: $ASAN_DIR/classifier"
+    echo ""
+    echo "Run example (resume from checkpoint, files 10-11):"
+    echo "  ASAN_OPTIONS=detect_leaks=0 $ASAN_DIR/classifier \\"
+    echo "      --input samples/reflexive --output results/run-500 \\"
+    echo "      --start 10 --end 11 --resume --threads 32"
+}
+
 case "${1:-build}" in
-    clean) rm -rf "$BUILD_DIR" ;;
+    clean) rm -rf "$BUILD_DIR" "$SCRIPT_DIR/build-asan" ;;
     pgo)   do_pgo_build ;;
+    asan)  do_asan_build ;;
     build) do_cmake_build ;;
-    *)     echo "Usage: $0 [build|pgo|clean]"; exit 1 ;;
+    *)     echo "Usage: $0 [build|pgo|asan|clean]"; exit 1 ;;
 esac
 
 echo ""

@@ -190,6 +190,7 @@ run_full() {
     python3 << PYEOF
 import pyarrow.parquet as pq
 import numpy as np
+import sys
 
 limit = $row_limit if $row_limit > 0 else None
 
@@ -200,21 +201,26 @@ if limit is not None:
 else:
     limit = total_rows
 
-# Read only the needed columns, stop early if row-limited
 written = 0
-with open('$tmpdir/all_cws.txt', 'w', buffering=1<<20) as f:
+# Use a large binary buffer; np.savetxt is ~10x faster than row-by-row Python
+with open('$tmpdir/all_cws.txt', 'wb', buffering=1<<23) as f:
     for batch in pf.iter_batches(columns=[f'weight{j}' for j in range(6)],
-                                  batch_size=min(limit, 1_000_000)):
+                                  batch_size=2_000_000):
         remaining = limit - written
         if remaining <= 0:
             break
         if batch.num_rows > remaining:
             batch = batch.slice(0, remaining)
-        w = [batch.column(f'weight{j}').to_pylist() for j in range(6)]
-        for i in range(batch.num_rows):
-            w0, w1, w2, w3, w4, w5 = w[0][i], w[1][i], w[2][i], w[3][i], w[4][i], w[5][i]
-            d = w0 + w1 + w2 + w3 + w4 + w5
-            f.write(f'{d} {w0} {w1} {w2} {w3} {w4} {w5}\n')
+        # Stack into (N, 6) int32 array
+        cols = np.column_stack([batch.column(f'weight{j}').to_pydict()
+                                 if False else
+                                 np.asarray(batch.column(f'weight{j}'))
+                                 for j in range(6)])
+        # Degree = sum of weights
+        deg = cols.sum(axis=1, keepdims=True)
+        # Build (N, 7): [d, w0..w5]
+        out = np.concatenate([deg, cols], axis=1)
+        np.savetxt(f, out, fmt='%d', delimiter=' ')
         written += batch.num_rows
 
 print(f'  Wrote {written:,} CWS ({written/1e6:.2f}M)')

@@ -70,6 +70,7 @@ struct Config {
     bool        resume          = false;
     bool        benchmark_only  = false;
     int64_t     benchmark_rows  = 0;   /* 0 = all rows in first file */
+    int64_t     max_rows_per_file = 0; /* 0 = unlimited               */
 };
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -291,6 +292,11 @@ static void merge_maps(PolytopeMap &global, PolytopeMap &local,
         auto it = global.find(key);
         if (it != global.end()) {
             it->second.count += info.count;
+            /* The first occurrence of this key in the batch was counted in
+               processed_cws but not as dup (only within-batch duplicates
+               2..N were counted by process_batch).  It is a global duplicate,
+               so credit it here. */
+            stats.duplicate_cws.fetch_add(1, std::memory_order_relaxed);
         } else {
             global.emplace(key, info);
             stats.unique_polytopes.fetch_add(1, std::memory_order_relaxed);
@@ -334,6 +340,13 @@ static std::vector<CWSRow> read_parquet_file(const fs::path &path,
     if (max_rows > 0 && table->num_rows() > max_rows)
         table = table->Slice(0, max_rows);
 
+    /* Flatten multi-chunk columns into single chunks so that raw_values()
+       pointers remain valid for the lifetime of `table`.  Multi-chunk columns
+       arise when a Parquet file has more than one row group; without this step
+       the get_col lambda below would return a raw pointer into a temporary
+       combined array that is freed immediately, causing heap corruption. */
+    ASSIGN_OR_THROW(table, table->CombineChunks());
+
     int64_t n = table->num_rows();
     std::vector<CWSRow> rows(n);
 
@@ -341,12 +354,6 @@ static std::vector<CWSRow> read_parquet_file(const fs::path &path,
     auto get_col = [&](const std::string &name) -> const int32_t * {
         auto col = table->GetColumnByName(name);
         if (!col || col->num_chunks() == 0) return nullptr;
-        /* Combine chunks if needed */
-        if (col->num_chunks() > 1) {
-            std::shared_ptr<arrow::Array> combined;
-            ASSIGN_OR_THROW(combined, arrow::Concatenate(col->chunks()));
-            return std::static_pointer_cast<arrow::Int32Array>(combined)->raw_values();
-        }
         return std::static_pointer_cast<arrow::Int32Array>(
                    col->chunk(0))->raw_values();
     };
@@ -679,6 +686,7 @@ static void usage(const char *argv0) {
         << " [--start <n>]     First file index (default: 0)\n"
         << " [--end <n>]       Last file index (inclusive, default: last)\n"
         << " [--resume]        Resume from checkpoint\n"
+        << " [--max-rows <n>]  Limit rows processed per file (for testing)\n"
         << " [--benchmark <n>] Benchmark mode: process N rows from first file\n"
         << " [--merge <dir>]   Merge checkpoint shards from <dir>\n"
         << "\n"
@@ -706,6 +714,7 @@ int main(int argc, char **argv) {
         else if (a == "--start"       && i+1 < argc) cfg.start_file     = std::stoi(argv[++i]);
         else if (a == "--end"         && i+1 < argc) cfg.end_file       = std::stoi(argv[++i]);
         else if (a == "--resume")                     cfg.resume         = true;
+        else if (a == "--max-rows"    && i+1 < argc) cfg.max_rows_per_file = std::stoll(argv[++i]);
         else if (a == "--benchmark"   && i+1 < argc) {
             cfg.benchmark_only = true;
             cfg.benchmark_rows = std::stoll(argv[++i]);
@@ -808,7 +817,8 @@ int main(int argc, char **argv) {
 
     for (size_t fi = 0; fi < input_files.size(); fi++) {
         int64_t max_rows = (cfg.benchmark_only && cfg.benchmark_rows > 0)
-                           ? cfg.benchmark_rows : 0;
+                           ? cfg.benchmark_rows
+                           : cfg.max_rows_per_file;
 
         process_file(input_files[fi], global_map, global_mtx, stats,
                      cfg.n_threads, max_rows);
