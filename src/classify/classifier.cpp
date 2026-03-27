@@ -35,6 +35,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include <unistd.h>  /* sysconf, _SC_PAGESIZE */
+
 #include <arrow/api.h>
 #include <arrow/compute/api.h>
 #include <arrow/io/api.h>

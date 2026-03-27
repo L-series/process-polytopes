@@ -66,7 +66,7 @@ do_pgo_build() {
         ARROW_INC=$(pkg-config --cflags-only-I arrow 2>/dev/null || echo "-I/usr/include")
         ARROW_LIB=$(pkg-config --libs arrow parquet 2>/dev/null || echo "-larrow -lparquet")
         g++ $COMMON_CFLAGS $PALP_DEFINES $extra \
-            -std=c++17 \
+            -std=c++20 \
             -I"$PALP_DIR" -I"$SCRIPT_DIR" $ARROW_INC \
             -o "$BUILD_DIR/classifier" \
             "$SCRIPT_DIR/classifier.cpp" \
