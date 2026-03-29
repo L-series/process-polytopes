@@ -802,9 +802,22 @@ int main(int argc, char **argv) {
 
     /* Resume from checkpoint if requested */
     if (cfg.resume) {
+        /* Load ALL .ckpt files from the checkpoint directory.  In a properly
+           managed run there should be exactly one (the latest full snapshot),
+           but we load all in case of manual checkpoint management. */
         for (auto &e : fs::directory_iterator(cfg.checkpoint_dir))
             if (e.path().extension() == ".ckpt")
                 read_checkpoint(global_map, e.path());
+    } else {
+        /* Fresh start: clean any stale checkpoint files from previous runs
+           to avoid disk accumulation and confusion during --resume later. */
+        for (auto &e : fs::directory_iterator(cfg.checkpoint_dir)) {
+            if (e.path().extension() == ".ckpt") {
+                std::cerr << "  Removing old checkpoint: "
+                          << e.path().filename().string() << "\n";
+                fs::remove(e.path());
+            }
+        }
     }
 
     /* ── Main loop ───────────────────────────────────────────────────────── */
@@ -814,6 +827,7 @@ int main(int argc, char **argv) {
     stats.unique_polytopes.store(global_map.size());
 
     auto t_total = std::chrono::steady_clock::now();
+    fs::path prev_checkpoint;   /* track previous checkpoint for cleanup */
 
     for (size_t fi = 0; fi < input_files.size(); fi++) {
         int64_t max_rows = (cfg.benchmark_only && cfg.benchmark_rows > 0)
@@ -828,11 +842,21 @@ int main(int argc, char **argv) {
         std::cerr << "\n  RSS: " << rss / (1024*1024) << " MB"
                   << "  Map size: " << global_map.size() << "\n";
 
-        /* Periodic checkpoint */
+        /* Periodic checkpoint — each checkpoint is a FULL snapshot of the
+           global map, so we only need to keep the latest one. */
         if ((fi + 1) % 10 == 0 || fi == input_files.size() - 1) {
             char buf[64];
-            std::snprintf(buf, sizeof(buf), "checkpoint-%04zu.ckpt", fi);
-            write_checkpoint(global_map, fs::path(cfg.checkpoint_dir) / buf);
+            int global_idx = (cfg.start_file >= 0 ? cfg.start_file : 0)
+                             + static_cast<int>(fi);
+            std::snprintf(buf, sizeof(buf), "checkpoint-%04d.ckpt", global_idx);
+            fs::path ckpt_path = fs::path(cfg.checkpoint_dir) / buf;
+            write_checkpoint(global_map, ckpt_path);
+
+            /* Delete previous checkpoint — it is a strict subset of the
+               one just written. */
+            if (!prev_checkpoint.empty() && fs::exists(prev_checkpoint))
+                fs::remove(prev_checkpoint);
+            prev_checkpoint = ckpt_path;
         }
     }
 
