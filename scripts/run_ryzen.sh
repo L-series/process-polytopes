@@ -27,7 +27,7 @@ RUNNER_END=1799
 INPUT_DIR="${INPUT_DIR:-$REPO_ROOT/samples/reflexive}"
 
 # Output — use /mnt/external (1.8 TB NVMe, 414 GB free) for checkpoints
-OUTPUT_DIR="${OUTPUT_DIR:-/mnt/external/results/official-ryzen}"
+OUTPUT_DIR="${OUTPUT_DIR:-/mnt/external/home/ahatziiliou/results/official-ryzen}"
 CKPT_DIR="$OUTPUT_DIR/checkpoints"
 LOG_DIR="$OUTPUT_DIR/logs"
 

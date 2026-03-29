@@ -864,6 +864,23 @@ int main(int argc, char **argv) {
         std::chrono::steady_clock::now() - t_total).count();
 
     /* ── Final output ────────────────────────────────────────────────────── */
+    /* Accounting invariant check:
+       Every CWS is either failed, within-thread duplicate, or creates a
+       local map entry.  Every local map entry adds 1 to either unique or
+       duplicate during merge.  So: processed == unique + duplicate + failed. */
+    {
+        int64_t p = stats.processed_cws.load();
+        int64_t u = static_cast<int64_t>(global_map.size());
+        int64_t d = stats.duplicate_cws.load();
+        int64_t f = stats.failed_cws.load();
+        if (p != u + d + f) {
+            std::cerr << "\n⚠ ACCOUNTING MISMATCH: processed(" << p
+                      << ") != unique(" << u << ") + dup(" << d
+                      << ") + fail(" << f << ") = " << (u + d + f)
+                      << "  [diff=" << (p - u - d - f) << "]\n";
+        }
+    }
+
     std::cerr << "\n\n=== Results ===\n"
               << "Total CWS processed:   " << stats.processed_cws.load() << "\n"
               << "Failed (non-IP):       " << stats.failed_cws.load() << "\n"
