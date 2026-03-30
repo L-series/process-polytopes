@@ -18,7 +18,7 @@ data/
 # Python
 __pycache__/
 *.pyc
-
+.env
 # Editor
 .vscode/
 *.swp
