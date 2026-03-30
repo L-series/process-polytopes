@@ -116,7 +116,7 @@ delete_range() {
         fname=$(printf "ws-5d-reflexive-%04d.parquet" "$i")
         if [[ -f "$INPUT_DIR/$fname" ]]; then
             rm -f "$INPUT_DIR/$fname"
-            (( count++ ))
+            count=$(( count + 1 ))
         fi
     done
     echo "  Deleted $count parquet files ($del_start..$del_end)"
@@ -181,7 +181,7 @@ while (( BATCH_START <= RUNNER_END )); do
     fi
 
     # Copy final checkpoint to central checkpoint dir
-    SRC_CKPT=$(ls -t "$BATCH_OUT/checkpoints"/*.ckpt 2>/dev/null | head -1)
+    SRC_CKPT=$(ls -t "$BATCH_OUT/checkpoints"/*.ckpt 2>/dev/null | head -1 || true)
     if [[ -n "$SRC_CKPT" ]]; then
         cp "$SRC_CKPT" "$CKPT_DIR/$FINAL_CKPT_NAME"
         echo "  → Saved: $CKPT_DIR/$FINAL_CKPT_NAME ($(du -h "$CKPT_DIR/$FINAL_CKPT_NAME" | cut -f1))"

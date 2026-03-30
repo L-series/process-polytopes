@@ -883,7 +883,7 @@ int main(int argc, char **argv) {
 
     std::cerr << "\n\n=== Results ===\n"
               << "Total CWS processed:   " << stats.processed_cws.load() << "\n"
-              << "Failed (non-IP):       " << stats.failed_cws.load() << "\n"
+              << "Failed:                " << stats.failed_cws.load() << "\n"
               << "Duplicate CWS:         " << stats.duplicate_cws.load() << "\n"
               << "Unique polytopes:      " << global_map.size() << "\n"
               << "Total time:            " << std::fixed << std::setprecision(1)

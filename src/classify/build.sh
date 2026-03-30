@@ -149,12 +149,76 @@ do_asan_build() {
     echo "      --start 10 --end 11 --resume --threads 32"
 }
 
+do_direct_build() {
+    # Direct gcc/g++ build — bypasses CMake entirely.
+    # Uses whatever gcc/g++ is on PATH (including conda's).
+    # Guarantees PALP and classifier use the same compiler.
+    local PALP_SOURCES=(
+        "$PALP_DIR/Coord.c"
+        "$PALP_DIR/Rat.c"
+        "$PALP_DIR/Vertex.c"
+        "$PALP_DIR/Polynf.c"
+        "$PALP_DIR/LG.c"
+    )
+    local PALP_DEFINES="-DPOLY_Dmax=5 -DPALP_FAST_ASSERT -DPALP_THREADSAFE -DCEQ_Nmax=2048"
+    local CFLAGS="-O3 -march=native -flto -funroll-loops -fomit-frame-pointer"
+
+    if [[ -n "${CONDA_PREFIX:-}" ]]; then
+        export PKG_CONFIG_PATH="$CONDA_PREFIX/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
+    fi
+
+    local ARROW_INC ARROW_LIB
+    ARROW_INC=$(pkg-config --cflags-only-I arrow 2>/dev/null) || {
+        echo "Error: pkg-config cannot find Arrow."
+        echo "  conda: conda install -c conda-forge arrow-cpp parquet"
+        echo "  then:  export PKG_CONFIG_PATH=\$CONDA_PREFIX/lib/pkgconfig"
+        exit 1
+    }
+    ARROW_LIB=$(pkg-config --libs arrow parquet)
+
+    local GCC="${CC:-gcc}"
+    local GXX="${CXX:-g++}"
+    echo "=== Direct build ==="
+    echo "  CC:  $GCC ($($GCC --version | head -1))"
+    echo "  CXX: $GXX ($($GXX --version | head -1))"
+    echo "  Arrow: $ARROW_LIB"
+
+    mkdir -p "$BUILD_DIR"
+
+    echo "=== Building PALP static library ==="
+    local objs=()
+    for src in "${PALP_SOURCES[@]}"; do
+        local base obj
+        base=$(basename "$src" .c)
+        obj="$BUILD_DIR/${base}.o"
+        $GCC -c $CFLAGS $PALP_DEFINES -w -o "$obj" "$src"
+        objs+=("$obj")
+    done
+    $GCC -c $CFLAGS -w -o "$BUILD_DIR/palp_globals.o" "$SCRIPT_DIR/palp_globals.c"
+    objs+=("$BUILD_DIR/palp_globals.o")
+    ar rcs "$BUILD_DIR/libpalp.a" "${objs[@]}"
+
+    echo "=== Building classifier ==="
+    $GXX $CFLAGS $PALP_DEFINES \
+        -std=c++20 \
+        -I"$PALP_DIR" -I"$SCRIPT_DIR" $ARROW_INC \
+        -o "$BUILD_DIR/classifier" \
+        "$SCRIPT_DIR/classifier.cpp" \
+        -L"$BUILD_DIR" -lpalp \
+        $ARROW_LIB -lpthread
+
+    echo ""
+    echo "Binary: $BUILD_DIR/classifier"
+    ls -lh "$BUILD_DIR/classifier"
+}
+
 case "${1:-build}" in
-    clean) rm -rf "$BUILD_DIR" "$SCRIPT_DIR/build-asan" ;;
-    pgo)   do_pgo_build ;;
-    asan)  do_asan_build ;;
-    build) do_cmake_build ;;
-    *)     echo "Usage: $0 [build|pgo|asan|clean]"; exit 1 ;;
+    clean)  rm -rf "$BUILD_DIR" "$SCRIPT_DIR/build-asan" ;;
+    pgo)    do_pgo_build ;;
+    asan)   do_asan_build ;;
+    build)  do_cmake_build ;;
+    direct) do_direct_build ;;
+    *)      echo "Usage: $0 [build|direct|pgo|asan|clean]"; exit 1 ;;
 esac
 
 echo ""
