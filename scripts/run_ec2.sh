@@ -27,6 +27,9 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
+# Ensure AWS CLI v2 is in PATH (installed to /usr/local/bin on EC2)
+export PATH="/usr/local/bin:$PATH"
+
 # ── Configuration ─────────────────────────────────────────────────────────
 
 # Required: file range for this runner
@@ -286,18 +289,21 @@ while (( BATCH_START <= RUNNER_END )); do
     mkdir -p "$BATCH_OUT/checkpoints"
     echo "  Processing..."
 
+    # NOTE: Do NOT pass --start/--end here. Those flags are indices into the
+    # file list found in --input, not dataset file numbers. Since we download
+    # only this batch's files into INPUT_DIR, we process ALL files in the dir.
     "$CLASSIFIER" \
         --input "$INPUT_DIR" \
         --output "$BATCH_OUT" \
         --checkpoint "$BATCH_OUT/checkpoints" \
-        --start "$BATCH_START" \
-        --end "$BATCH_END" \
         --threads "$THREADS" \
         2>&1 | tee "$BATCH_LOG"
 
     if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
         echo "ERROR: Batch $BATCH_NUM failed! Check $BATCH_LOG"
-        # Don't exit — try to continue with next batch
+        # Clean up parquet files even on failure to avoid filling disk
+        delete_range "$BATCH_START" "$BATCH_END"
+        rm -rf "$BATCH_OUT"
         BATCH_START=$(( BATCH_END + 1 ))
         continue
     fi
