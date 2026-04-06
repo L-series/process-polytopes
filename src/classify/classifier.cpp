@@ -111,6 +111,24 @@ struct PolytopeInfo {
 using PolytopeMap = std::unordered_map<Hash128, PolytopeInfo, Hash128Hasher>;
 
 /* ═══════════════════════════════════════════════════════════════════════════
+ *  Flat record for sort-merge operations (matches checkpoint on-disk layout)
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+struct MergeRecord {
+    Hash128      key;
+    PolytopeInfo info;
+};
+/* Hash128 ends at offset 16 (8-aligned), PolytopeInfo starts with uint64_t
+   (needs 8-alignment), so there is no inter-member padding.  Verify: */
+static_assert(sizeof(MergeRecord) == sizeof(Hash128) + sizeof(PolytopeInfo),
+              "MergeRecord must have no padding (matches checkpoint I/O format)");
+
+static bool key_less(const Hash128 &a, const Hash128 &b) {
+    if (a.hi != b.hi) return a.hi < b.hi;
+    return a.lo < b.lo;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
  *  Compute xxHash128 of a normal form matrix
  * ═══════════════════════════════════════════════════════════════════════════ */
 
@@ -523,18 +541,377 @@ static void read_checkpoint(PolytopeMap &map, const fs::path &path) {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
- *  Merge checkpoint shards (for multi-runner merge)
+ *  Sort-merge checkpoint merger (memory-efficient for TB-scale data)
+ *
+ *  Phase 1: Sort each .ckpt file by hash key (parallel across files)
+ *  Phase 2: K-way merge with streaming Parquet output
+ *
+ *  Why this replaces the naive hash-map merge:
+ *  - std::unordered_map at billions of entries causes ~100ns/lookup due
+ *    to TLB + cache misses on random pointer-chasing through heap nodes.
+ *  - Sort-merge uses sequential I/O only → I/O-bound, not cache-bound.
+ *  - Phase 1 is embarrassingly parallel across files.
+ *  - Phase 2 needs only O(K) memory for merge cursors (K = # files).
  * ═══════════════════════════════════════════════════════════════════════════ */
 
-static void merge_checkpoints(const std::vector<fs::path> &shard_paths,
-                               const fs::path &output_path) {
-    PolytopeMap merged;
-    for (const auto &path : shard_paths) {
-        std::cerr << "  Merging shard: " << path.string() << "\n";
-        read_checkpoint(merged, path);
+/* ── Phase 1 helper: sort a single checkpoint file by hash key ─────────── */
+
+static void sort_single_checkpoint(const fs::path &input_path,
+                                   const fs::path &sorted_path) {
+    auto t0 = std::chrono::steady_clock::now();
+
+    std::ifstream f(input_path, std::ios::binary);
+    if (!f.is_open())
+        throw std::runtime_error("Cannot open: " + input_path.string());
+
+    uint64_t n;
+    f.read(reinterpret_cast<char *>(&n), sizeof(n));
+
+    /* Bulk-read all records.  MergeRecord layout matches the on-disk
+       format (Hash128 || PolytopeInfo, no padding — verified by static_assert). */
+    std::vector<MergeRecord> records(n);
+    f.read(reinterpret_cast<char *>(records.data()),
+           static_cast<std::streamsize>(n * sizeof(MergeRecord)));
+    f.close();
+
+    std::sort(records.begin(), records.end(),
+              [](const MergeRecord &a, const MergeRecord &b) {
+                  return key_less(a.key, b.key);
+              });
+
+    std::ofstream o(sorted_path, std::ios::binary);
+    o.write(reinterpret_cast<const char *>(&n), sizeof(n));
+    o.write(reinterpret_cast<const char *>(records.data()),
+            static_cast<std::streamsize>(n * sizeof(MergeRecord)));
+    o.close();
+
+    double secs = std::chrono::duration<double>(
+        std::chrono::steady_clock::now() - t0).count();
+    std::cerr << "  Sorted " << input_path.filename().string()
+              << " (" << n / 1'000'000.0 << "M entries) in "
+              << std::fixed << std::setprecision(1) << secs << "s\n";
+}
+
+/* ── Phase 2 helper: buffered reader for sorted checkpoint files ───────── */
+
+class SortedCheckpointReader {
+    static constexpr size_t BUF_RECORDS = 256 * 1024;  /* ~18 MB buffer */
+
+    std::ifstream file_;
+    uint64_t remaining_;
+    std::vector<MergeRecord> buffer_;
+    size_t buf_pos_;
+    size_t buf_size_;
+
+public:
+    MergeRecord current;
+    bool valid;
+
+    explicit SortedCheckpointReader(const fs::path &path)
+        : buffer_(BUF_RECORDS), buf_pos_(0), buf_size_(0), valid(false)
+    {
+        file_.open(path, std::ios::binary);
+        if (!file_.is_open())
+            throw std::runtime_error("Cannot open sorted shard: " + path.string());
+        file_.read(reinterpret_cast<char *>(&remaining_), sizeof(remaining_));
+        advance();
     }
-    std::cerr << "  Total unique polytopes after merge: " << merged.size() << "\n";
-    write_results(merged, output_path);
+
+    void advance() {
+        if (buf_pos_ < buf_size_) {
+            current = buffer_[buf_pos_++];
+            valid = true;
+            return;
+        }
+        /* Refill buffer from disk */
+        if (remaining_ == 0) { valid = false; return; }
+        size_t to_read = std::min(static_cast<uint64_t>(BUF_RECORDS), remaining_);
+        file_.read(reinterpret_cast<char *>(buffer_.data()),
+                   static_cast<std::streamsize>(to_read * sizeof(MergeRecord)));
+        buf_pos_ = 1;
+        buf_size_ = to_read;
+        remaining_ -= to_read;
+        current = buffer_[0];
+        valid = true;
+    }
+};
+
+/* ── Heap entry for the K-way merge priority queue ─────────────────────── */
+
+struct HeapEntry {
+    Hash128 key;
+    int     reader_idx;
+
+    bool operator>(const HeapEntry &o) const {
+        if (key.hi != o.key.hi) return key.hi > o.key.hi;
+        return key.lo > o.key.lo;
+    }
+};
+
+/* ── Main sort-merge entry point ───────────────────────────────────────── */
+
+static void merge_checkpoints(const std::vector<fs::path> &shard_paths,
+                               const fs::path &output_path,
+                               int n_threads) {
+    auto t_total = std::chrono::steady_clock::now();
+
+    std::cerr << "═══════════════════════════════════════════════════════════════\n"
+              << " Sort-Merge: " << shard_paths.size() << " shards, "
+              << n_threads << " threads\n"
+              << "═══════════════════════════════════════════════════════════════\n\n";
+
+    /* ── Count total records across all shards ───────────────────────────── */
+    uint64_t total_input_records = 0;
+    for (const auto &p : shard_paths) {
+        std::ifstream f(p, std::ios::binary);
+        uint64_t n;
+        f.read(reinterpret_cast<char *>(&n), sizeof(n));
+        total_input_records += n;
+    }
+    double input_gb = static_cast<double>(total_input_records) * sizeof(MergeRecord)
+                      / (1024.0 * 1024 * 1024);
+    std::cerr << "Total input records: " << total_input_records / 1'000'000.0
+              << "M  (" << std::fixed << std::setprecision(1) << input_gb << " GB)\n\n";
+
+    /* ── Phase 1: Sort each checkpoint file (parallel) ───────────────────── */
+    std::cerr << "Phase 1: Sorting checkpoint files...\n";
+    auto t1 = std::chrono::steady_clock::now();
+
+    fs::path temp_dir = output_path.parent_path() / "merge_tmp";
+    fs::create_directories(temp_dir);
+
+    std::vector<fs::path> sorted_paths(shard_paths.size());
+    for (size_t i = 0; i < shard_paths.size(); i++)
+        sorted_paths[i] = temp_dir / (shard_paths[i].stem().string() + ".sorted");
+
+    {
+        /* Limit concurrency: each sort holds one full shard in RAM.
+           Assume avg shard ≈ total_size / n_shards.  Be conservative. */
+        size_t avg_shard_gb = static_cast<size_t>(
+            input_gb / shard_paths.size()) + 1;
+        size_t avail_gb = sysconf(_SC_PHYS_PAGES) * sysconf(_SC_PAGESIZE)
+                          / (1024ULL * 1024 * 1024);
+        int max_concurrent = std::max(1, static_cast<int>(avail_gb / (avg_shard_gb * 2)));
+        int concurrent = std::min({n_threads,
+                                   static_cast<int>(shard_paths.size()),
+                                   max_concurrent});
+
+        std::cerr << "  Sorting " << shard_paths.size() << " files, "
+                  << concurrent << " concurrent (avg shard ~"
+                  << avg_shard_gb << " GB)\n";
+
+        std::atomic<size_t> next_file{0};
+        std::vector<std::thread> sort_threads;
+        std::mutex err_mtx;
+        std::exception_ptr first_error;
+
+        for (int t = 0; t < concurrent; t++) {
+            sort_threads.emplace_back([&] {
+                for (;;) {
+                    size_t idx = next_file.fetch_add(1);
+                    if (idx >= shard_paths.size()) break;
+                    try {
+                        sort_single_checkpoint(shard_paths[idx], sorted_paths[idx]);
+                    } catch (...) {
+                        std::lock_guard<std::mutex> lk(err_mtx);
+                        if (!first_error) first_error = std::current_exception();
+                        break;
+                    }
+                }
+            });
+        }
+        for (auto &th : sort_threads) th.join();
+        if (first_error) std::rethrow_exception(first_error);
+    }
+
+    double sort_secs = std::chrono::duration<double>(
+        std::chrono::steady_clock::now() - t1).count();
+    std::cerr << "\nPhase 1 complete: " << std::fixed << std::setprecision(1)
+              << sort_secs << "s\n\n";
+
+    /* ── Phase 2: K-way merge with streaming Parquet output ──────────────── */
+    std::cerr << "Phase 2: K-way merge (" << sorted_paths.size() << "-way)...\n";
+    auto t2 = std::chrono::steady_clock::now();
+
+    /* Open all sorted files with buffered readers */
+    std::vector<std::unique_ptr<SortedCheckpointReader>> readers;
+    readers.reserve(sorted_paths.size());
+    for (const auto &p : sorted_paths)
+        readers.push_back(std::make_unique<SortedCheckpointReader>(p));
+
+    /* Initialise min-heap */
+    std::priority_queue<HeapEntry, std::vector<HeapEntry>,
+                        std::greater<HeapEntry>> heap;
+    for (int i = 0; i < static_cast<int>(readers.size()); i++)
+        if (readers[i]->valid)
+            heap.push({readers[i]->current.key, i});
+
+    /* ── Set up streaming Parquet writer ─────────────────────────────────── */
+    auto schema = arrow::schema({
+        arrow::field("hash_lo",           arrow::uint64()),
+        arrow::field("hash_hi",           arrow::uint64()),
+        arrow::field("count",             arrow::uint64()),
+        arrow::field("first_weight0",     arrow::int32()),
+        arrow::field("first_weight1",     arrow::int32()),
+        arrow::field("first_weight2",     arrow::int32()),
+        arrow::field("first_weight3",     arrow::int32()),
+        arrow::field("first_weight4",     arrow::int32()),
+        arrow::field("first_weight5",     arrow::int32()),
+        arrow::field("vertex_count",      arrow::int16()),
+        arrow::field("facet_count",       arrow::int16()),
+        arrow::field("point_count",       arrow::int32()),
+        arrow::field("dual_point_count",  arrow::int32()),
+        arrow::field("h11",               arrow::int16()),
+        arrow::field("h12",               arrow::int16()),
+        arrow::field("h13",               arrow::int16()),
+    });
+
+    std::shared_ptr<arrow::io::FileOutputStream> out;
+    ASSIGN_OR_THROW(out, arrow::io::FileOutputStream::Open(output_path.string()));
+
+    auto writer_props = parquet::WriterProperties::Builder()
+        .compression(parquet::Compression::ZSTD)
+        ->max_row_group_length(1024 * 1024)
+        ->build();
+
+    std::unique_ptr<parquet::arrow::FileWriter> writer;
+    {
+        auto result = parquet::arrow::FileWriter::Open(
+            *schema, arrow::default_memory_pool(), out, writer_props);
+        if (!result.ok())
+            throw std::runtime_error("Parquet writer: " + result.status().ToString());
+        writer = std::move(result).ValueOrDie();
+    }
+
+    /* Column builders — flushed in batches */
+    constexpr int64_t FLUSH_SIZE = 1'000'000;
+    arrow::UInt64Builder hash_lo_b, hash_hi_b, count_b;
+    arrow::Int32Builder  w0_b, w1_b, w2_b, w3_b, w4_b, w5_b, pc_b, dpc_b;
+    arrow::Int16Builder  vc_b, fc_b, h11_b, h12_b, h13_b;
+
+    int64_t batch_n = 0;
+
+    auto flush_batch = [&]() {
+        if (batch_n == 0) return;
+        std::shared_ptr<arrow::Array>
+            a_hlo, a_hhi, a_cnt,
+            a_w0, a_w1, a_w2, a_w3, a_w4, a_w5,
+            a_vc, a_fc, a_pc, a_dpc, a_h11, a_h12, a_h13;
+        CHECK_ARROW(hash_lo_b.Finish(&a_hlo)); CHECK_ARROW(hash_hi_b.Finish(&a_hhi));
+        CHECK_ARROW(count_b.Finish(&a_cnt));
+        CHECK_ARROW(w0_b.Finish(&a_w0));  CHECK_ARROW(w1_b.Finish(&a_w1));
+        CHECK_ARROW(w2_b.Finish(&a_w2));  CHECK_ARROW(w3_b.Finish(&a_w3));
+        CHECK_ARROW(w4_b.Finish(&a_w4));  CHECK_ARROW(w5_b.Finish(&a_w5));
+        CHECK_ARROW(vc_b.Finish(&a_vc));  CHECK_ARROW(fc_b.Finish(&a_fc));
+        CHECK_ARROW(pc_b.Finish(&a_pc));  CHECK_ARROW(dpc_b.Finish(&a_dpc));
+        CHECK_ARROW(h11_b.Finish(&a_h11)); CHECK_ARROW(h12_b.Finish(&a_h12));
+        CHECK_ARROW(h13_b.Finish(&a_h13));
+        auto batch = arrow::RecordBatch::Make(schema, batch_n, {
+            a_hlo, a_hhi, a_cnt,
+            a_w0, a_w1, a_w2, a_w3, a_w4, a_w5,
+            a_vc, a_fc, a_pc, a_dpc, a_h11, a_h12, a_h13
+        });
+        CHECK_ARROW(writer->WriteRecordBatch(*batch));
+        batch_n = 0;
+    };
+
+    /* ── K-way merge loop ────────────────────────────────────────────────── */
+    uint64_t total_unique = 0;
+    uint64_t total_merged = 0;
+    auto last_report = std::chrono::steady_clock::now();
+
+    while (!heap.empty()) {
+        HeapEntry top = heap.top();
+        heap.pop();
+
+        Hash128 current_key = top.key;
+        PolytopeInfo merged_info = readers[top.reader_idx]->current.info;
+        total_merged++;
+
+        /* Advance the reader we just consumed */
+        readers[top.reader_idx]->advance();
+        if (readers[top.reader_idx]->valid)
+            heap.push({readers[top.reader_idx]->current.key, top.reader_idx});
+
+        /* Merge all entries with the same key from other readers */
+        while (!heap.empty() && heap.top().key == current_key) {
+            HeapEntry dup = heap.top();
+            heap.pop();
+            merged_info.count += readers[dup.reader_idx]->current.info.count;
+            total_merged++;
+
+            readers[dup.reader_idx]->advance();
+            if (readers[dup.reader_idx]->valid)
+                heap.push({readers[dup.reader_idx]->current.key, dup.reader_idx});
+        }
+
+        /* Append merged record to output batch */
+        CHECK_ARROW(hash_lo_b.Append(current_key.lo));
+        CHECK_ARROW(hash_hi_b.Append(current_key.hi));
+        CHECK_ARROW(count_b.Append(merged_info.count));
+        CHECK_ARROW(w0_b.Append(merged_info.first_weights[0]));
+        CHECK_ARROW(w1_b.Append(merged_info.first_weights[1]));
+        CHECK_ARROW(w2_b.Append(merged_info.first_weights[2]));
+        CHECK_ARROW(w3_b.Append(merged_info.first_weights[3]));
+        CHECK_ARROW(w4_b.Append(merged_info.first_weights[4]));
+        CHECK_ARROW(w5_b.Append(merged_info.first_weights[5]));
+        CHECK_ARROW(vc_b.Append(merged_info.vertex_count));
+        CHECK_ARROW(fc_b.Append(merged_info.facet_count));
+        CHECK_ARROW(pc_b.Append(merged_info.point_count));
+        CHECK_ARROW(dpc_b.Append(merged_info.dual_point_count));
+        CHECK_ARROW(h11_b.Append(merged_info.h11));
+        CHECK_ARROW(h12_b.Append(merged_info.h12));
+        CHECK_ARROW(h13_b.Append(merged_info.h13));
+        batch_n++;
+        total_unique++;
+
+        if (batch_n >= FLUSH_SIZE) {
+            flush_batch();
+
+            auto now = std::chrono::steady_clock::now();
+            if (std::chrono::duration<double>(now - last_report).count() >= 2.0) {
+                double elapsed = std::chrono::duration<double>(now - t2).count();
+                double rate = total_merged / (elapsed > 0 ? elapsed : 1.0);
+                double pct = 100.0 * total_merged / total_input_records;
+                double eta = (total_input_records - total_merged) / (rate > 0 ? rate : 1.0);
+                std::cerr << "\r  " << std::fixed << std::setprecision(1) << pct << "%"
+                          << "  unique: " << total_unique / 1'000'000.0 << "M"
+                          << "  merged: " << total_merged / 1'000'000.0 << "M"
+                          << "  " << std::setprecision(0) << rate / 1'000'000 << "M rec/s"
+                          << "  ETA " << static_cast<int>(eta / 60) << "m"
+                          << "        " << std::flush;
+                last_report = now;
+            }
+        }
+    }
+
+    /* Flush remaining records and close writer */
+    flush_batch();
+    CHECK_ARROW(writer->Close());
+    CHECK_ARROW(out->Close());
+
+    /* ── Cleanup temp files ──────────────────────────────────────────────── */
+    for (const auto &p : sorted_paths)
+        if (fs::exists(p)) fs::remove(p);
+    fs::remove(temp_dir);
+
+    double merge_secs = std::chrono::duration<double>(
+        std::chrono::steady_clock::now() - t2).count();
+    double total_secs = std::chrono::duration<double>(
+        std::chrono::steady_clock::now() - t_total).count();
+
+    std::cerr << "\n\n═══════════════════════════════════════════════════════════════\n"
+              << " Sort-Merge Complete\n"
+              << "═══════════════════════════════════════════════════════════════\n"
+              << "  Total input records:  " << total_merged << "\n"
+              << "  Unique polytopes:     " << total_unique << "\n"
+              << "  Duplicates removed:   " << (total_merged - total_unique) << "\n"
+              << "  Sort phase:           " << std::fixed << std::setprecision(1)
+              << sort_secs << "s\n"
+              << "  Merge phase:          " << merge_secs << "s\n"
+              << "  Total time:           " << total_secs << "s ("
+              << total_secs / 60 << " min)\n"
+              << "  Output:               " << output_path.string() << "\n";
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -727,13 +1104,16 @@ int main(int argc, char **argv) {
     /* ── Merge mode ──────────────────────────────────────────────────────── */
     if (!merge_dir.empty()) {
         if (cfg.output_dir.empty()) { usage(argv[0]); return 1; }
+        if (cfg.n_threads <= 0)
+            cfg.n_threads = static_cast<int>(std::thread::hardware_concurrency());
         std::vector<fs::path> shards;
         for (auto &e : fs::directory_iterator(merge_dir))
             if (e.path().extension() == ".ckpt") shards.push_back(e.path());
         std::sort(shards.begin(), shards.end());
         if (shards.empty()) { std::cerr << "No .ckpt files in " << merge_dir << "\n"; return 1; }
         fs::create_directories(cfg.output_dir);
-        merge_checkpoints(shards, fs::path(cfg.output_dir) / "unique_polytopes.parquet");
+        merge_checkpoints(shards, fs::path(cfg.output_dir) / "unique_polytopes.parquet",
+                          cfg.n_threads);
         return 0;
     }
 
@@ -867,7 +1247,7 @@ int main(int argc, char **argv) {
     /* Accounting invariant check:
        Every CWS is either failed, within-thread duplicate, or creates a
        local map entry.  Every local map entry adds 1 to either unique or
-       duplicate during merge.  So: processed == unique + duplicate + failed. */
+       duplicate during merge.  So: processed == unique + dgplicate + failed. */
     {
         int64_t p = stats.processed_cws.load();
         int64_t u = static_cast<int64_t>(global_map.size());

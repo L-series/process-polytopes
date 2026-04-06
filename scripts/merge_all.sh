@@ -55,23 +55,37 @@ CKPT_BYTES=$(find "$STAGING_DIR" -name '*.ckpt' -exec stat --format='%s' {} + | 
 EST_RAM_GB=$(echo "$CKPT_BYTES" | awk '{printf "%.0f", $1/1024/1024/1024 * 1.8}')
 AVAIL_RAM=$(awk '/MemAvailable/ {printf "%.0f", $2/1024/1024}' /proc/meminfo)
 
-echo "Estimated RAM for merge: ~${EST_RAM_GB} GB"
+echo "Estimated RAM for merge: ~${EST_RAM_GB} GB  (sort phase: ~1 shard at a time)"
 echo "Available RAM:           ~${AVAIL_RAM} GB"
+
+# Sort-merge also needs temporary disk space ≈ checkpoint total size
+AVAIL_DISK_KB=$(df --output=avail "$OUTPUT_DIR" 2>/dev/null | tail -1 || echo 0)
+AVAIL_DISK_GB=$(( AVAIL_DISK_KB / 1024 / 1024 ))
+CKPT_GB=$(echo "$CKPT_BYTES" | awk '{printf "%.0f", $1/1024/1024/1024}')
+echo "Temp disk needed:        ~${CKPT_GB} GB  (sorted intermediates)"
+echo "Available disk:          ~${AVAIL_DISK_GB} GB"
 
 if (( EST_RAM_GB > AVAIL_RAM )); then
     echo ""
-    echo "⚠  WARNING: Merge may exceed available RAM!"
-    echo "   Consider merging in stages or using a machine with more RAM."
-    read -p "   Continue anyway? [y/N] " -n 1 -r
-    echo ""
-    [[ $REPLY =~ ^[Yy]$ ]] || exit 0
+    echo "⚠  WARNING: Estimate exceeds available RAM!"
+    echo "   Note: estimate assumes zero deduplication (worst case)."
+    echo "   Actual usage is typically 5-10x lower due to polytope overlap."
+    # Skip interactive prompt when running non-interactively (e.g. under nohup)
+    if [[ -t 0 && "${FORCE:-0}" != "1" ]]; then
+        read -p "   Continue anyway? [y/N] " -n 1 -r
+        echo ""
+        [[ $REPLY =~ ^[Yy]$ ]] || exit 0
+    else
+        echo "   Running non-interactively — continuing..."
+    fi
 fi
 
 echo ""
-echo "Starting merge..."
+echo "Starting sort-merge..."
 mkdir -p "$OUTPUT_DIR"
 
-"$CLASSIFIER" --merge "$STAGING_DIR" --output "$OUTPUT_DIR"
+N_THREADS="${THREADS:-$(nproc)}"
+"$CLASSIFIER" --merge "$STAGING_DIR" --output "$OUTPUT_DIR" --threads "$N_THREADS"
 
 echo ""
 echo "═══════════════════════════════════════════════════════════════"
