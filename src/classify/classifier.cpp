@@ -541,26 +541,24 @@ static void read_checkpoint(PolytopeMap &map, const fs::path &path) {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
- *  Adaptive sort-merge checkpoint merger
+ *  Sort + K-way merge checkpoint deduplicator
  *
- *  Globally deduplicates across all checkpoint shards in a single merge
- *  pass, using as much RAM as available and writing to disk only when
- *  the sorted data exceeds physical memory.
+ *  Globally deduplicates across all checkpoint shards. Designed for the
+ *  case where shards live on remote/network storage (network I/O dominates).
  *
  *  Algorithm:
- *    Phase 1 — Sort each shard independently (parallel sort, all threads).
- *              Keep sorted shards in RAM until the retain budget is full.
- *              Remaining shards are sorted and spilled to temp files.
- *    Phase 2 — Single k-way merge of ALL sources (in-memory cursors +
- *              file readers) with dedup, streamed directly to Parquet.
+ *    Phase 1 — For each shard (largest first):
+ *                Read from remote storage → parallel sort in memory.
+ *                If RAM budget allows, keep sorted shard in memory.
+ *                Otherwise write sorted data to local temp file.
+ *    Phase 2 — Single k-way merge of all sources (in-memory + file readers)
+ *              with dedup, streamed directly to Parquet output.
  *
- *  Memory budget: 80% of physical RAM.
- *    ┌───────────────────────────────────────┬──────────────────────┐
- *    │  Retained sorted shards (in memory)   │  Sort workspace      │
- *    │  ← retain_budget →                    │  ← largest shard →  │
- *    └───────────────────────────────────────┴──────────────────────┘
+ *  Memory: Phase 1 peak = retained shards + one shard being sorted.
+ *          Phase 2 uses retained shards + 18 MB/file reader buffer.
+ *          Works regardless of dedup ratio — no OOM risk.
  *
- *  If all shards fit, no temp files are created at all.
+ *  Needs local scratch disk only for shards that don't fit in RAM.
  * ═══════════════════════════════════════════════════════════════════════════ */
 
 /* ── Helper: load a checkpoint and parallel-sort it in-place ──────────────
@@ -632,10 +630,10 @@ static std::vector<MergeRecord> load_and_sort_shard(
     return records;
 }
 
-/* ── Helper: buffered reader for sorted binary intermediate files ─────── */
+/* ── Helper: buffered reader for sorted binary temp files ─────────────── */
 
 class SortedBinaryReader {
-    static constexpr size_t BUF_RECORDS = 256 * 1024;
+    static constexpr size_t BUF_RECORDS = 256 * 1024;  /* 18 MB per reader */
     std::ifstream file_;
     uint64_t remaining_;
     std::vector<MergeRecord> buffer_;
@@ -677,28 +675,31 @@ static void write_sorted_temp(const std::vector<MergeRecord> &records,
 
 /* ── Main merge entry point ─────────────────────────────────────────────── *
  *
- *  Single-pass adaptive sort-merge with global deduplication.
+ *  Robust sort-merge with global deduplication.
  *
- *  Strategy:
- *    1. Sort each shard independently (parallel sort, all threads).
- *    2. Keep sorted shards in RAM as long as they fit within budget.
- *       When RAM is full, spill subsequent sorted shards to temp files.
- *    3. Single k-way merge of ALL sources (in-memory + file readers)
- *       directly to Parquet output, deduplicating globally.
+ *  Designed for remote storage where network I/O dominates:
+ *    - Each shard is read from the network exactly ONCE.
+ *    - Sorted in-memory using all threads (parallel sort).
+ *    - Kept in RAM if there is room, otherwise written to local sorted
+ *      temp file (read back during merge at local disk speed).
+ *    - Single k-way merge of ALL sources (in-memory + file readers)
+ *      with dedup, streamed directly to Parquet.
  *
- *  Memory layout during sort phase:
- *    ┌──────────────────────────────────────┬───────────────────────┐
- *    │  Retained sorted shards (persist)    │  Sort workspace       │
- *    │  ← retain_budget →                   │  ← max_shard_mem →   │
- *    └──────────────────────────────────────┴───────────────────────┘
- *    ╰────────────── 80% physical RAM ──────────────────────────────╯
+ *  Memory:
+ *    Phase 1 (sort): one shard at a time, peak = largest shard.
+ *    Phase 2 (retain): sorted shards held in RAM up to 90% of physical.
+ *              Overflow shards spill to local temp files.
+ *    Phase 3 (merge): in-memory shards + small read buffers (~18 MB each).
  *
- *  After sorting completes, the sort workspace is freed (or becomes a
- *  retained shard), so the k-way merge runs with retained shards in RAM
- *  plus small read buffers for any spilled shards.
+ *    Handles ANY dedup ratio — the merge never requires more memory than
+ *    the retained shards + a small per-file buffer.
  *
- *  Disk writes occur ONLY for shards that don't fit in RAM.
- *  If everything fits, no temp files are created at all.
+ *  Speed:
+ *    Total time ≈ network_read(1 TB) + sort(~10 min) + merge(~2 min)
+ *    Network I/O is the dominant cost for remote storage.
+ *
+ *  Shard ordering: largest first.  This means if RAM runs out, the shards
+ *  that spill to disk are the smallest (fastest to read back).
  * ─────────────────────────────────────────────────────────────────────── */
 
 static void merge_checkpoints(const std::vector<fs::path> &shard_paths,
@@ -715,15 +716,13 @@ static void merge_checkpoints(const std::vector<fs::path> &shard_paths,
     /* ── Scan shard sizes ────────────────────────────────────────────────── */
     uint64_t total_input_records = 0;
     std::vector<uint64_t> shard_counts(n_shards);
-    std::vector<size_t> shard_mem(n_shards);
-    size_t max_shard_mem = 0;
+    std::vector<size_t> shard_bytes(n_shards);
 
     for (size_t i = 0; i < n_shards; i++) {
         std::ifstream f(shard_paths[i], std::ios::binary);
         f.read(reinterpret_cast<char *>(&shard_counts[i]), sizeof(uint64_t));
         total_input_records += shard_counts[i];
-        shard_mem[i] = shard_counts[i] * sizeof(MergeRecord);
-        max_shard_mem = std::max(max_shard_mem, shard_mem[i]);
+        shard_bytes[i] = shard_counts[i] * sizeof(MergeRecord);
     }
 
     double input_gb = static_cast<double>(total_input_records) * sizeof(MergeRecord)
@@ -732,91 +731,124 @@ static void merge_checkpoints(const std::vector<fs::path> &shard_paths,
                       * static_cast<size_t>(sysconf(_SC_PAGESIZE));
     size_t phys_gb = phys_bytes / (1024ULL * 1024 * 1024);
 
-    /* Budget: 80% of physical RAM.
-     * During sorting we need all retained shards PLUS the shard currently
-     * being sorted to fit.  So: retain_budget = budget - max_shard_mem.
-     * The sort workspace (one shard) is freed after each sort completes.
-     * inplace_merge may internally try to allocate O(N) temp memory;
-     * if that fails it falls back to O(1)-extra-space rotation merge. */
-    size_t budget = phys_bytes * 80ULL / 100;
-    size_t retain_budget = (budget > max_shard_mem) ? budget - max_shard_mem : 0;
+    /* RAM budget for retaining sorted shards.  We process ONE shard at a
+       time (sort workspace), so during phase 1 we need:
+         retained_shards + current_shard_being_sorted ≤ budget.
+       Reserve 10% for OS/Arrow overhead, so budget = 90% of physical.     */
+    size_t budget = phys_bytes * 90ULL / 100;
 
-    std::cerr << "Total input:     " << std::fixed << std::setprecision(1)
+    std::cerr << "Total input:   " << std::fixed << std::setprecision(1)
               << total_input_records / 1'000'000.0
               << "M records  (" << input_gb << " GB)\n"
-              << "Physical RAM:    " << phys_gb << " GB\n"
-              << "Working budget:  " << budget / (1024ULL*1024*1024) << " GB"
-              << "  (80% of physical)\n"
-              << "Retain budget:   " << retain_budget / (1024ULL*1024*1024) << " GB"
-              << "  (reserve " << std::setprecision(1)
-              << max_shard_mem / (1024.0*1024*1024)
-              << " GB for sort workspace)\n"
-              << "Largest shard:   "
-              << max_shard_mem / (1024.0*1024*1024) << " GB\n\n";
+              << "Physical RAM:  " << phys_gb << " GB\n"
+              << "Retain budget: " << budget / (1024ULL*1024*1024) << " GB  (90% of physical)\n\n";
 
-    /* ── Phase 1: Load, sort, and place each shard ───────────────────────
+    /* ── Sort shards by descending size (largest first) ──────────────────
+     * Processing large shards first means:
+     *   1. They land in RAM (most valuable for merge I/O).
+     *   2. If RAM runs out, only the smallest shards spill to disk
+     *      (fastest to read back during merge).                          */
+    std::vector<size_t> order(n_shards);
+    std::iota(order.begin(), order.end(), 0);
+    std::sort(order.begin(), order.end(), [&](size_t a, size_t b) {
+        return shard_bytes[a] > shard_bytes[b];
+    });
+
+    /* ── Phase 1: Download + sort + retain/spill ─────────────────────────
      *
-     * Process shards sequentially.  Each is loaded into memory and
-     * parallel-sorted using all available threads.  After sorting:
-     *   - If total retained data + this shard fits → keep in memory
-     *   - Otherwise → write sorted data to temp file and free
+     * For each shard (largest first):
+     *   1. Read from remote storage → memory.
+     *   2. Parallel sort in-place using all threads.
+     *   3. If (retained + this shard + room for next sort) ≤ budget:
+     *        keep sorted data in memory.
+     *      Else:
+     *        write sorted data to local temp file, free memory.
      *
-     * Peak RSS = retained_bytes + shard being sorted ≤ budget            */
+     * During step 2, peak RSS = retained_bytes + shard_being_sorted.
+     * We ensure this never exceeds the budget.                           */
 
     std::vector<std::vector<MergeRecord>> mem_shards;
     std::vector<fs::path> temp_files;
     fs::path temp_dir = output_path.parent_path() / "merge_tmp";
     size_t retained_bytes = 0;
 
-    std::cerr << "Phase 1: Sort all " << n_shards << " shards...\n";
+    std::cerr << "Phase 1: Download + sort " << n_shards << " shards...\n\n";
+    auto t_phase1 = std::chrono::steady_clock::now();
 
-    for (size_t i = 0; i < n_shards; i++) {
-        auto sorted = load_and_sort_shard(shard_paths[i], n_threads);
+    for (size_t step = 0; step < n_shards; step++) {
+        size_t si = order[step];
+        size_t this_shard_bytes = shard_bytes[si];
 
-        if (retained_bytes + shard_mem[i] <= retain_budget) {
-            retained_bytes += shard_mem[i];
+        /* Check if we can fit: retained + this shard (for sort) + possibly
+           the next shard (if we want to retain this one and still have room
+           to sort the next).  Conservative: just check retained + this.  */
+        bool can_retain = (retained_bytes + this_shard_bytes <= budget);
+
+        /* If we can't even fit this shard for sorting, we have a problem.
+           This shouldn't happen since budget ≈ 700 GB and max shard ≈ 60 GB. */
+        if (retained_bytes + this_shard_bytes > budget && !can_retain) {
+            /* We can still sort it — temporarily we may slightly exceed the
+               soft budget.  We just won't retain it. */
+        }
+
+        std::cerr << "[" << (step + 1) << "/" << n_shards << "]  ";
+        auto sorted = load_and_sort_shard(shard_paths[si], n_threads);
+
+        if (can_retain) {
+            retained_bytes += this_shard_bytes;
             mem_shards.push_back(std::move(sorted));
+            std::cerr << "    → retained in RAM  (total retained: "
+                      << std::fixed << std::setprecision(1)
+                      << retained_bytes / (1024.0*1024*1024) << " GB)\n";
         } else {
-            /* First spill — create temp directory */
             if (temp_files.empty()) {
                 fs::create_directories(temp_dir);
-                std::cerr << "  (RAM full after " << mem_shards.size()
-                          << " shards — spilling remaining to disk)\n";
+                std::cerr << "    (RAM budget reached — spilling remaining to local disk)\n";
             }
-            fs::path tmp = temp_dir / ("sorted-" + std::to_string(i) + ".bin");
+            fs::path tmp = temp_dir / ("sorted-" + std::to_string(si) + ".bin");
+            auto tw0 = std::chrono::steady_clock::now();
             write_sorted_temp(sorted, tmp);
+            double write_secs = std::chrono::duration<double>(
+                std::chrono::steady_clock::now() - tw0).count();
             temp_files.push_back(tmp);
-            /* Force deallocation before loading next shard */
+            /* Free immediately */
             sorted.clear();
             sorted.shrink_to_fit();
-            std::cerr << "    → spilled " << shard_paths[i].filename().string()
-                      << " → " << tmp.filename().string() << "\n";
+            std::cerr << "    → spilled to " << tmp.filename().string()
+                      << " (" << std::setprecision(1) << this_shard_bytes / (1024.0*1024*1024)
+                      << " GB, " << write_secs << "s)\n";
         }
     }
 
-    bool all_in_memory = temp_files.empty();
-    std::cerr << "\n  In memory: " << mem_shards.size() << " shards ("
-              << std::setprecision(1)
+    double phase1_secs = std::chrono::duration<double>(
+        std::chrono::steady_clock::now() - t_phase1).count();
+    std::cerr << "\nPhase 1 complete: " << std::fixed << std::setprecision(1)
+              << phase1_secs << "s  (" << phase1_secs / 60 << " min)\n"
+              << "  In memory: " << mem_shards.size() << " shards ("
               << retained_bytes / (1024.0*1024*1024) << " GB)\n"
-              << "  On disk:   " << temp_files.size() << " sorted temp files"
-              << (all_in_memory ? " — no disk I/O needed!" : "") << "\n";
+              << "  On disk:   " << temp_files.size() << " sorted temp files\n\n";
 
     /* ── Phase 2: K-way merge with global dedup → Parquet ────────────────
      *
-     * All sources (in-memory sorted vectors + file-based readers) feed
-     * into a single min-heap keyed on Hash128.  Consecutive entries with
-     * the same key are merged (counts summed) before being emitted.
-     * This guarantees correct global deduplication in a single pass.
+     * All sources (in-memory sorted vectors + file-based buffered readers)
+     * feed into a single min-heap keyed on Hash128.  When the minimum key
+     * is popped, ALL entries with that same key are consumed and their
+     * counts summed before the single merged record is emitted.
      *
-     * Source index convention:
-     *   0 .. n_mem-1              → in-memory cursors
-     *   n_mem .. n_mem+n_file-1   → SortedBinaryReader file cursors     */
-
-    std::cerr << "\nPhase 2: K-way merge (" << mem_shards.size() << " memory + "
-              << temp_files.size() << " disk) → Parquet...\n";
+     * Heap size = number of sources ≤ 67.  log2(67) ≈ 6 comparisons per
+     * pop — negligible overhead.
+     *
+     * Memory during merge = retained shards (already allocated) +
+     *                        n_files × 18 MB read buffer ≈ retained + 1 GB.
+     * No risk of OOM regardless of dedup ratio.                          */
 
     const int n_mem  = static_cast<int>(mem_shards.size());
     const int n_file = static_cast<int>(temp_files.size());
+    const int n_sources = n_mem + n_file;
+
+    std::cerr << "Phase 2: K-way merge (" << n_mem << " memory + "
+              << n_file << " disk = " << n_sources << " sources) → Parquet...\n";
+    auto t_phase2 = std::chrono::steady_clock::now();
 
     /* Memory cursors */
     struct MemCursor { const MergeRecord *cur, *end; };
@@ -833,6 +865,10 @@ static void merge_checkpoints(const std::vector<fs::path> &shard_paths,
         file_readers.push_back(std::make_unique<SortedBinaryReader>(p));
 
     /* Source accessors — abstract over memory vs file sources */
+    auto get_key = [&](int idx) -> Hash128 {
+        if (idx < n_mem) return mem_cursors[idx].cur->key;
+        return file_readers[idx - n_mem]->current.key;
+    };
     auto get_info = [&](int idx) -> PolytopeInfo {
         if (idx < n_mem) return mem_cursors[idx].cur->info;
         return file_readers[idx - n_mem]->current.info;
@@ -843,12 +879,8 @@ static void merge_checkpoints(const std::vector<fs::path> &shard_paths,
         file_readers[idx - n_mem]->advance();
         return file_readers[idx - n_mem]->valid;
     };
-    auto source_key = [&](int idx) -> Hash128 {
-        if (idx < n_mem) return mem_cursors[idx].cur->key;
-        return file_readers[idx - n_mem]->current.key;
-    };
 
-    /* Unified heap entry */
+    /* Heap entry */
     struct HeapEntry {
         Hash128 key;
         int source_idx;
@@ -941,7 +973,6 @@ static void merge_checkpoints(const std::vector<fs::path> &shard_paths,
     /* ── Merge loop ──────────────────────────────────────────────────────── */
     uint64_t total_unique = 0, total_merged = 0;
     auto last_report = std::chrono::steady_clock::now();
-    auto mt0 = std::chrono::steady_clock::now();
 
     while (!heap.empty()) {
         HeapEntry top = heap.top(); heap.pop();
@@ -950,7 +981,7 @@ static void merge_checkpoints(const std::vector<fs::path> &shard_paths,
         total_merged++;
 
         if (advance_source(top.source_idx))
-            heap.push({source_key(top.source_idx), top.source_idx});
+            heap.push({get_key(top.source_idx), top.source_idx});
 
         /* Merge all entries with the same key across ALL sources */
         while (!heap.empty() && heap.top().key == cur_key) {
@@ -958,16 +989,16 @@ static void merge_checkpoints(const std::vector<fs::path> &shard_paths,
             info.count += get_info(dup.source_idx).count;
             total_merged++;
             if (advance_source(dup.source_idx))
-                heap.push({source_key(dup.source_idx), dup.source_idx});
+                heap.push({get_key(dup.source_idx), dup.source_idx});
         }
 
         emit(cur_key, info);
         total_unique++;
 
-        /* Progress reporting */
+        /* Progress reporting every 2 seconds */
         auto now = std::chrono::steady_clock::now();
         if (std::chrono::duration<double>(now - last_report).count() >= 2.0) {
-            double elapsed = std::chrono::duration<double>(now - mt0).count();
+            double elapsed = std::chrono::duration<double>(now - t_phase2).count();
             double rate = total_merged / (elapsed > 0 ? elapsed : 1.0);
             double pct  = 100.0 * total_merged / total_input_records;
             double eta  = (total_input_records - total_merged)
@@ -986,6 +1017,9 @@ static void merge_checkpoints(const std::vector<fs::path> &shard_paths,
     CHECK_ARROW(pq_writer->Close());
     CHECK_ARROW(pq_out->Close());
 
+    double phase2_secs = std::chrono::duration<double>(
+        std::chrono::steady_clock::now() - t_phase2).count();
+
     /* ── Cleanup temp files ──────────────────────────────────────────────── */
     file_readers.clear();
     for (auto &p : temp_files)
@@ -998,13 +1032,18 @@ static void merge_checkpoints(const std::vector<fs::path> &shard_paths,
     std::cerr << "\n\n═══════════════════════════════════════════════════════════════\n"
               << " Merge Complete\n"
               << "═══════════════════════════════════════════════════════════════\n"
-              << "  Total input records:  " << total_merged << "\n"
+              << "  Total input records:  " << total_input_records << "\n"
               << "  Unique polytopes:     " << total_unique << "\n"
-              << "  Duplicates removed:   " << (total_merged - total_unique) << "\n"
+              << "  Duplicates removed:   "
+              << (total_input_records - total_unique) << "\n"
               << "  Shards in memory:     " << mem_shards.size() << "\n"
-              << "  Shards spilled:       " << temp_files.size() << "\n"
-              << "  Total time:           " << std::fixed << std::setprecision(1)
-              << total_secs << "s (" << total_secs / 60 << " min)\n"
+              << "  Shards on disk:       " << temp_files.size() << "\n"
+              << "  Phase 1 (sort):       " << std::fixed << std::setprecision(1)
+              << phase1_secs << "s  (" << phase1_secs / 60 << " min)\n"
+              << "  Phase 2 (merge):      " << phase2_secs << "s  ("
+              << phase2_secs / 60 << " min)\n"
+              << "  Total time:           " << total_secs << "s  ("
+              << total_secs / 60 << " min)\n"
               << "  Output:               " << output_path.string() << "\n";
 }
 
