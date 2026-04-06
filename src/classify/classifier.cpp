@@ -558,7 +558,8 @@ static void read_checkpoint(PolytopeMap &map, const fs::path &path) {
 
 static void sort_single_checkpoint(const fs::path &input_path,
                                    const fs::path &sorted_path,
-                                   int n_sort_threads) {
+                                   int n_sort_threads,
+                                   std::mutex &write_mtx) {
     auto t0 = std::chrono::steady_clock::now();
 
     std::ifstream f(input_path, std::ios::binary);
@@ -630,6 +631,13 @@ static void sort_single_checkpoint(const fs::path &input_path,
     std::vector<MergeRecord> wbuf;
     wbuf.reserve(WBUF);
 
+    /* Serialize the merge+write phase across concurrent sorts so only one
+       file writes to disk at a time.  This prevents interleaved 20+ GB
+       writes from fragmenting sequential I/O into random access.  The
+       in-memory sort still runs fully in parallel across files.            */
+    std::lock_guard<std::mutex> write_lk(write_mtx);
+
+    auto write_t0 = std::chrono::steady_clock::now();
     std::ofstream o(sorted_path, std::ios::binary);
     o.write(reinterpret_cast<const char *>(&n), sizeof(n));
 
@@ -649,6 +657,8 @@ static void sort_single_checkpoint(const fs::path &input_path,
                 static_cast<std::streamsize>(wbuf.size() * sizeof(MergeRecord)));
     o.close();
 
+    double write_secs = std::chrono::duration<double>(
+        std::chrono::steady_clock::now() - write_t0).count();
     double total_secs = std::chrono::duration<double>(
         std::chrono::steady_clock::now() - t0).count();
     std::cerr << "  Sorted " << input_path.filename().string()
@@ -656,7 +666,7 @@ static void sort_single_checkpoint(const fs::path &input_path,
               << n_chunks << " threads)"
               << "  read=" << std::fixed << std::setprecision(1) << read_secs << "s"
               << "  sort=" << sort_secs << "s"
-              << "  merge+write=" << (total_secs - read_secs - sort_secs) << "s"
+              << "  write=" << write_secs << "s"
               << "  total=" << total_secs << "s\n";
 }
 
@@ -786,6 +796,7 @@ static void merge_checkpoints(const std::vector<fs::path> &shard_paths,
         std::atomic<size_t> next_file{0};
         std::vector<std::thread> sort_threads;
         std::mutex err_mtx;
+        std::mutex write_mtx;  /* serializes disk writes across concurrent sorts */
         std::exception_ptr first_error;
 
         for (int t = 0; t < concurrent; t++) {
@@ -795,7 +806,7 @@ static void merge_checkpoints(const std::vector<fs::path> &shard_paths,
                     if (idx >= shard_paths.size()) break;
                     try {
                         sort_single_checkpoint(shard_paths[idx], sorted_paths[idx],
-                                               sort_threads_per_file);
+                                               sort_threads_per_file, write_mtx);
                     } catch (...) {
                         std::lock_guard<std::mutex> lk(err_mtx);
                         if (!first_error) first_error = std::current_exception();
