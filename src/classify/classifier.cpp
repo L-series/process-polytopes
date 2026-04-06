@@ -557,7 +557,8 @@ static void read_checkpoint(PolytopeMap &map, const fs::path &path) {
 /* ── Phase 1 helper: sort a single checkpoint file by hash key ─────────── */
 
 static void sort_single_checkpoint(const fs::path &input_path,
-                                   const fs::path &sorted_path) {
+                                   const fs::path &sorted_path,
+                                   int n_sort_threads) {
     auto t0 = std::chrono::steady_clock::now();
 
     std::ifstream f(input_path, std::ios::binary);
@@ -574,22 +575,89 @@ static void sort_single_checkpoint(const fs::path &input_path,
            static_cast<std::streamsize>(n * sizeof(MergeRecord)));
     f.close();
 
-    std::sort(records.begin(), records.end(),
-              [](const MergeRecord &a, const MergeRecord &b) {
-                  return key_less(a.key, b.key);
-              });
+    double read_secs = std::chrono::duration<double>(
+        std::chrono::steady_clock::now() - t0).count();
+
+    /* ── Parallel sort: split into n_sort_threads chunks, each sorted in its
+       own thread.  Chunks are small enough to remain cache-friendly and the
+       work is embarrassingly parallel.                                       */
+    int64_t nn = static_cast<int64_t>(n);
+    int n_chunks = std::min(n_sort_threads,
+                            static_cast<int>((nn + 999) / 1000));
+    int64_t chunk_size = (nn + n_chunks - 1) / n_chunks;
+
+    auto cmp = [](const MergeRecord &a, const MergeRecord &b) {
+        return key_less(a.key, b.key);
+    };
+
+    {
+        std::vector<std::thread> sort_threads;
+        sort_threads.reserve(n_chunks);
+        for (int t = 0; t < n_chunks; t++) {
+            int64_t b = static_cast<int64_t>(t) * chunk_size;
+            int64_t e = std::min(b + chunk_size, nn);
+            sort_threads.emplace_back([&records, b, e, &cmp]() {
+                std::sort(records.begin() + b, records.begin() + e, cmp);
+            });
+        }
+        for (auto &th : sort_threads) th.join();
+    }
+
+    double sort_secs = std::chrono::duration<double>(
+        std::chrono::steady_clock::now() - t0).count() - read_secs;
+
+    /* ── K-way in-memory merge → stream directly to output file ─────────────
+       Merge cursors are raw pointers into the already-loaded records vector.
+       No second allocation needed: output is flushed through a small write
+       buffer.  Memory cost: O(n_chunks) for the heap + ~18 MB write buffer.  */
+    struct Cursor {
+        const MergeRecord *cur, *end;
+        bool operator>(const Cursor &o) const {
+            /* min-heap: top = smallest key */
+            return key_less(o.cur->key, cur->key);
+        }
+    };
+    std::priority_queue<Cursor, std::vector<Cursor>,
+                        std::greater<Cursor>> heap;
+    for (int t = 0; t < n_chunks; t++) {
+        int64_t b = static_cast<int64_t>(t) * chunk_size;
+        if (b >= nn) break;
+        int64_t e = std::min(b + chunk_size, nn);
+        heap.push({records.data() + b, records.data() + e});
+    }
+
+    constexpr size_t WBUF = 256 * 1024;
+    std::vector<MergeRecord> wbuf;
+    wbuf.reserve(WBUF);
 
     std::ofstream o(sorted_path, std::ios::binary);
     o.write(reinterpret_cast<const char *>(&n), sizeof(n));
-    o.write(reinterpret_cast<const char *>(records.data()),
-            static_cast<std::streamsize>(n * sizeof(MergeRecord)));
+
+    while (!heap.empty()) {
+        Cursor top = heap.top(); heap.pop();
+        wbuf.push_back(*top.cur);
+        ++top.cur;
+        if (top.cur < top.end) heap.push(top);
+        if (wbuf.size() >= WBUF) {
+            o.write(reinterpret_cast<const char *>(wbuf.data()),
+                    static_cast<std::streamsize>(wbuf.size() * sizeof(MergeRecord)));
+            wbuf.clear();
+        }
+    }
+    if (!wbuf.empty())
+        o.write(reinterpret_cast<const char *>(wbuf.data()),
+                static_cast<std::streamsize>(wbuf.size() * sizeof(MergeRecord)));
     o.close();
 
-    double secs = std::chrono::duration<double>(
+    double total_secs = std::chrono::duration<double>(
         std::chrono::steady_clock::now() - t0).count();
     std::cerr << "  Sorted " << input_path.filename().string()
-              << " (" << n / 1'000'000.0 << "M entries) in "
-              << std::fixed << std::setprecision(1) << secs << "s\n";
+              << " (" << n / 1'000'000.0 << "M entries, "
+              << n_chunks << " threads)"
+              << "  read=" << std::fixed << std::setprecision(1) << read_secs << "s"
+              << "  sort=" << sort_secs << "s"
+              << "  merge+write=" << (total_secs - read_secs - sort_secs) << "s"
+              << "  total=" << total_secs << "s\n";
 }
 
 /* ── Phase 2 helper: buffered reader for sorted checkpoint files ───────── */
@@ -685,20 +753,35 @@ static void merge_checkpoints(const std::vector<fs::path> &shard_paths,
         sorted_paths[i] = temp_dir / (shard_paths[i].stem().string() + ".sorted");
 
     {
-        /* Limit concurrency: each sort holds one full shard in RAM.
-           Assume avg shard ≈ total_size / n_shards.  Be conservative. */
         size_t avg_shard_gb = static_cast<size_t>(
             input_gb / shard_paths.size()) + 1;
-        size_t avail_gb = sysconf(_SC_PHYS_PAGES) * sysconf(_SC_PAGESIZE)
-                          / (1024ULL * 1024 * 1024);
-        int max_concurrent = std::max(1, static_cast<int>(avail_gb / (avg_shard_gb * 2)));
+
+        /* Concurrency limit: each concurrent sort holds one shard as an
+           anonymous vector in RAM.  We also need OS page cache for the
+           sequential read (~1×) and write (~1×) of each file, so the true
+           per-sort cost is ~3× the shard size.  Use at most 15% of
+           physical RAM to stay well clear of swap.
+
+           NOTE: do NOT use sysconf(_SC_AVPHYS_PAGES) / MemAvailable here —
+           those include reclaimable page cache and caused the original
+           over-commitment that led to 19 concurrent sorts and swap thrashing. */
+        size_t phys_gb = sysconf(_SC_PHYS_PAGES) * (size_t)sysconf(_SC_PAGESIZE)
+                         / (1024ULL * 1024 * 1024);
+        int max_concurrent = std::max(1,
+            static_cast<int>(phys_gb * 15 / 100 / avg_shard_gb));
         int concurrent = std::min({n_threads,
                                    static_cast<int>(shard_paths.size()),
                                    max_concurrent});
 
+        /* Distribute all threads evenly across concurrent sorts so every
+           core is busy sorting rather than sitting idle.                   */
+        int sort_threads_per_file = std::max(1, n_threads / concurrent);
+
         std::cerr << "  Sorting " << shard_paths.size() << " files, "
-                  << concurrent << " concurrent (avg shard ~"
-                  << avg_shard_gb << " GB)\n";
+                  << concurrent << " concurrent, "
+                  << sort_threads_per_file << " threads/file"
+                  << " (avg shard ~" << avg_shard_gb << " GB,"
+                  << " phys RAM " << phys_gb << " GB)\n";
 
         std::atomic<size_t> next_file{0};
         std::vector<std::thread> sort_threads;
@@ -706,12 +789,13 @@ static void merge_checkpoints(const std::vector<fs::path> &shard_paths,
         std::exception_ptr first_error;
 
         for (int t = 0; t < concurrent; t++) {
-            sort_threads.emplace_back([&] {
+            sort_threads.emplace_back([&, sort_threads_per_file] {
                 for (;;) {
                     size_t idx = next_file.fetch_add(1);
                     if (idx >= shard_paths.size()) break;
                     try {
-                        sort_single_checkpoint(shard_paths[idx], sorted_paths[idx]);
+                        sort_single_checkpoint(shard_paths[idx], sorted_paths[idx],
+                                               sort_threads_per_file);
                     } catch (...) {
                         std::lock_guard<std::mutex> lk(err_mtx);
                         if (!first_error) first_error = std::current_exception();
