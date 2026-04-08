@@ -107,6 +107,28 @@ run_harness \
     harness_kway_merge.cpp \
     --unwind 8
 
+# ── Phase 3 harnesses ────────────────────────────────────────────────────────
+
+run_harness \
+    "1.7 SortedBinaryReader state machine" \
+    harness_sorted_reader.cpp \
+    --unwind 10
+
+run_harness \
+    "2.6 palp_compute_nf wrapper" \
+    harness_palp_wrapper.c \
+    --unwind 8
+
+run_harness \
+    "1.9 accounting invariant" \
+    harness_accounting.cpp \
+    --unwind 8
+
+run_harness \
+    "2.5 Sort_VL comparator total order" \
+    harness_sort_vl.cpp \
+    --signed-overflow-check --unwind 4
+
 # ── Summary ───────────────────────────────────────────────────────────────────
 
 echo ""
