@@ -241,3 +241,112 @@ finite recursive search from the explicit $3$D and $4$D base lists to the
 full set of $47$ canonical $5$D structures is formalized in
 \texttt{lean/MinimalPolytopes5D/Structures.lean}.
 \end{remark}
+
+\subsection{Heuristic candidate counts by geometry type}
+\label{subsec:5d-cws-estimates}
+
+The overlap classification also gives a simple first-order model for how
+the dimension-$5$ search should distribute across the $47$ geometry types.
+For a geometry type $T$, let
+\[
+  \sigma(T) = \{\, |S_1|, \dots, |S_\lambda| \,\}
+\]
+be the multiset of simplex sizes read off from the canonical Corollary~1
+ordering in Appendix~\ref{app:5d-structures}.  Let $m_k(T)$ be the
+multiplicity of $k$ in $\sigma(T)$.  We anchor the estimate by the known
+single-weight-system pool sizes
+\begin{equation}
+\label{eq:arity-pool-sizes}
+  A_2 = 1,\qquad A_3 = 3,\qquad A_4 = 95,\qquad
+  A_5 = 184{,}026,\qquad A_6 = 183{,}000{,}000{,}000.
+\end{equation}
+Here $A_2$ is the unique $2$-weight system $(1,1)$, $A_3$ is the number of
+single weight systems in dimension $2$, $A_4$ is the number of single
+weight systems in dimension $3$, $A_5$ is the number of single weight
+systems in dimension $4$, and $A_6$ is the recovered size of the
+$6$-weight pool in dimension $5$.  The published lower-dimensional values
+$A_3$, $A_4$, and $A_5$ are listed on the Kreuzer--Skarke classification
+page~\cite{KreuzerSkarkeCYcsws}.
+
+If one ignores the detailed overlap matrix and only asks how many multisets
+of constituent single weight systems have the required arities, then the
+natural estimate is the product of multiset coefficients
+\begin{equation}
+\label{eq:geometry-type-estimate}
+  \widehat N(T)
+  = \prod_{k=2}^{6} \binom{A_k + m_k(T) - 1}{m_k(T)}.
+\end{equation}
+This is a multiset count rather than an ordinary product because a geometry
+type may use the same single weight system more than once.  For example,
+types $12$ and $13$ use simplex sizes $(5,4,4)$, so
+\[
+  \widehat N(12) = \widehat N(13)
+  = A_5 \binom{A_4 + 1}{2}
+  = 184{,}026 \binom{96}{2}
+  = 839{,}158{,}560.
+\]
+By construction, \cref{eq:geometry-type-estimate} depends only on the
+simplex-size multiset $\sigma(T)$, not on the overlap matrix itself; hence
+distinct geometry types with the same simplex-size multiset receive the
+same estimate.
+
+The same baseline calculation can be calibrated against the published
+dimension-$4$ counts~\cite{KreuzerSkarkeCYcsws}.  For the four families
+$4{+}4$, $3{+}4$, $3{+}3$, and $3{+}3{+}3$ one obtains
+\[
+  \binom{95+1}{2} = 4{,}560,\qquad 3 \cdot 95 = 285,\qquad
+  \binom{3+1}{2} = 6,\qquad \binom{3+2}{3} = 10,
+\]
+whereas the published exact counts are $16{,}040$, $1{,}122$, $6$, and
+$36$.  Thus the ratios exact/baseline are $3.52$, $3.94$, $1.00$, and
+$3.60$, respectively.  We therefore interpret $\widehat N(T)$ as a
+workload estimate anchored to the available single-weight pools, not as an
+exact theorem about the final emitted CWS counts.
+
+Using \cref{eq:arity-pool-sizes,eq:geometry-type-estimate}, and fixing the
+simplex case $T=1$ to the recovered value $A_6 = 183 \times 10^9$, one
+obtains the estimates in \cref{tab:5d-cws-estimates}.  Under this model,
+the largest genuine combined type is $T=3$, with estimate
+$16{,}932{,}876{,}351$, followed by types $12$ and $13$ at
+$839{,}158{,}560$ each.
+
+\begingroup
+\small
+\setlength{\tabcolsep}{6pt}
+\renewcommand{\arraystretch}{1.05}
+\begin{longtable}{@{}p{3.8cm}>{\raggedright\arraybackslash}p{5.7cm}r@{}}
+\caption{Arity-only heuristic estimates for the $5$D geometry types.  Rows are grouped when the numerical value of \cref{eq:geometry-type-estimate} coincides.}
+\label{tab:5d-cws-estimates}\\
+\toprule
+Type IDs & Simplex sizes & $\widehat N(T)$ \\
+\midrule
+\endfirsthead
+\toprule
+Type IDs & Simplex sizes & $\widehat N(T)$ \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+1 & $(6)$ & 183,000,000,000 \\
+3 & $(5,5)$ & 16,932,876,351 \\
+12, 13 & $(5,4,4)$ & 839,158,560 \\
+20, 25, 26, 27, 29 & $(5,4,3)$ & 52,447,410 \\
+6, 15 & $(5,4)$, $(5,4,2)$ & 17,482,470 \\
+43 & $(5,3,3,3)$ & 1,840,260 \\
+21, 35, 40 & $(5,3,3)$, $(5,3,3,2)$ & 1,104,156 \\
+4, 36, 38 & $(5,3)$, $(5,3,2,2)$ & 552,078 \\
+2 & $(5,2)$ & 184,026 \\
+11, 14 & $(4,4,4)$ & 147,440 \\
+24, 28 & $(4,4,3)$ & 13,680 \\
+7, 8, 10 & $(4,4)$, $(4,4,2)$ & 4,560 \\
+45 & $(4,3,3,3)$ & 950 \\
+22, 30, 31, 32, 34, 42 & $(4,3,3)$, $(4,3,3,2)$ & 570 \\
+5, 16, 17, 18, 33 & $(4,3)$, $(4,3,2)$, $(4,3,2,2)$ & 285 \\
+9, 46 & $(4,2,2)$, $(4,2,2,2,2)$ & 95 \\
+44 & $(3,3,3,3)$ & 15 \\
+23, 41 & $(3,3,3)$, $(3,3,3,2)$ & 10 \\
+19, 39 & $(3,3,2)$, $(3,3,2,2)$ & 6 \\
+37 & $(3,2,2,2)$ & 3 \\
+47 & $(2,2,2,2,2)$ & 1 \\
+\end{longtable}
+\endgroup
