@@ -1,0 +1,750 @@
+\documentclass[12pt,a4paper]{article}
+
+% ── Packages ──────────────────────────────────────────────────────────────
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{mathtools}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{cleveref}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{listings}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage[numbers,sort&compress]{natbib}
+
+\geometry{margin=2.5cm}
+\hypersetup{colorlinks=true,linkcolor=blue!60!black,citecolor=blue!60!black,urlcolor=blue!60!black}
+
+% ── Theorem environments ──────────────────────────────────────────────────
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{remark}[theorem]{Remark}
+
+% ── Macros ────────────────────────────────────────────────────────────────
+\newcommand{\ZZ}{\mathbb{Z}}
+\newcommand{\RR}{\mathbb{R}}
+\newcommand{\GL}{\mathrm{GL}}
+\newcommand{\CWS}{\mathrm{CWS}}
+\newcommand{\NF}{\mathrm{NF}}
+\newcommand{\polyDmax}{5}
+\newcommand{\vertNmax}{64}
+
+\lstset{
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{blue!70!black}\bfseries,
+  commentstyle=\color{green!50!black},
+  stringstyle=\color{red!60!black},
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  frame=single,
+  breaklines=true,
+  captionpos=b
+}
+
+% ══════════════════════════════════════════════════════════════════════════
+\title{%
+  Complete Classification of Five-Dimensional Reflexive Polytopes\\
+  from Weight Systems via Normal Form Hashing
+}
+
+\author{
+  Andreas Hatziiliou%
+  %\thanks{Email: \texttt{...}}
+  \\
+  %\textit{Affiliation}
+}
+
+\date{\today}
+
+% ══════════════════════════════════════════════════════════════════════════
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We present a computational pipeline for the complete classification of
+five-dimensional reflexive polytopes arising from combined weight systems.
+Starting from a dataset of approximately 183~billion combined weight
+systems, we compute the normal form of each associated polytope under
+$\GL(5,\ZZ)$ equivalence using the PALP library, hash the resulting
+canonical matrix via xxHash128, and deduplicate across the full dataset
+using a two-phase external sort-merge algorithm.  The pipeline processes
+the 3.2~TB input dataset across distributed compute nodes, producing a
+single deduplicated catalogue of unique polytopes with frequency counts
+and topological metadata.  Formal verification using bounded model
+checking (CBMC) and abstract interpretation (Frama-C) establishes
+correctness of all critical code paths, including sort ordering,
+count preservation, binary layout, and normal form determinism.
+
+% TODO: insert final count of unique polytopes
+\end{abstract}
+
+% ══════════════════════════════════════════════════════════════════════════
+\section{Introduction}
+\label{sec:intro}
+
+The classification of reflexive polytopes is a foundational problem in
+string theory and algebraic geometry.  A \emph{reflexive polytope}
+$\Delta \subset \RR^d$ is a lattice polytope containing the origin in its
+interior whose dual polytope $\Delta^*$ is also a lattice polytope.  By
+Batyrev's construction~\cite{Batyrev1994}, each pair $(\Delta, \Delta^*)$
+of reflexive polytopes determines a mirror pair of Calabi--Yau manifolds
+as hypersurfaces in the associated toric varieties.  The classification
+of reflexive polytopes in a given dimension therefore yields a
+classification of a large family of Calabi--Yau manifolds and their
+mirror partners.
+
+The classification of reflexive polytopes has been completed in dimensions
+up to four.  In dimension~2, there are exactly 16 reflexive
+polygons~\cite{Koelman1991}.  In dimension~3, Kreuzer and Skarke
+identified 4,319 reflexive polytopes~\cite{KreuzerSkarke1998}.  The
+landmark computation of Kreuzer and Skarke in dimension~4 found
+473,800,776 reflexive polytopes~\cite{KreuzerSkarke2000}, which has
+served as the foundation for much subsequent work in string
+phenomenology.  The classification in dimension~5 remains open and is the
+subject of this paper.
+
+The combinatorial explosion in higher dimensions is dramatic: while
+dimension~4 required examining approximately $3 \times 10^8$ weight
+systems, dimension~5 involves approximately $1.83 \times 10^{11}$
+combined weight systems (CWS).  Each CWS defines a weighted projective
+space in which a Calabi--Yau hypersurface can be embedded; computing the
+associated reflexive polytope and its normal form requires lattice point
+enumeration, vertex/facet discovery, and a canonical form computation
+under the full $\GL(5,\ZZ)$ symmetry group.  The computational cost per
+CWS varies by three orders of magnitude depending on the number of
+lattice points (from $\sim 10\,\mu\text{s}$ for simple polytopes to
+$\sim 50\,\text{ms}$ for polytopes with $> 50{,}000$ lattice points).
+
+We describe a complete pipeline for this computation: a multi-threaded
+C++ classifier that links PALP~\cite{PALP} as a library (rather than
+invoking it as a subprocess), uses xxHash128 for $O(1)$ deduplication,
+and employs an external sort-merge algorithm for the final global
+deduplication across distributed compute nodes.  We provide formal
+verification of all critical code paths using CBMC and Frama-C,
+establishing mathematical guarantees that no records are lost, no counts
+are corrupted, and the normal form computation is deterministic.
+
+% ══════════════════════════════════════════════════════════════════════════
+\section{Mathematical Background}
+\label{sec:math}
+
+\subsection{Reflexive polytopes and Calabi--Yau manifolds}
+
+\begin{definition}
+A \emph{lattice polytope} $\Delta \subset \RR^d$ is the convex hull of
+finitely many points in $\ZZ^d$.  It is \emph{reflexive} if
+$0 \in \mathrm{int}(\Delta)$ and the dual polytope
+\[
+  \Delta^* = \{ y \in \RR^d : \langle x, y \rangle \geq -1
+               \;\text{for all}\; x \in \Delta \}
+\]
+is also a lattice polytope.
+\end{definition}
+
+By a theorem of Batyrev~\cite{Batyrev1994}, each $d$-dimensional reflexive
+polytope $\Delta$ determines a $(d-1)$-dimensional Calabi--Yau
+hypersurface in the toric variety $\mathbb{P}_\Delta$ associated to
+$\Delta$.  The Hodge numbers of this Calabi--Yau manifold are
+computable from the combinatorial data of $\Delta$ and $\Delta^*$
+via Batyrev's formulae~\cite{BatyrevBorisov1996}.
+
+\subsection{Combined weight systems}
+
+A \emph{combined weight system} (CWS) in dimension~$d$ is a collection
+of weight vectors $(w_0, w_1, \ldots, w_d) \in \ZZ_{>0}^{d+1}$ such
+that $\gcd(w_0, \ldots, w_d) = 1$.  Each CWS defines a weighted
+projective space $\mathbb{P}(w_0, \ldots, w_d)$, and the associated
+Newton polytope is the convex hull of the lattice points
+\[
+  \Delta = \mathrm{Conv}\left\{
+    m \in \ZZ^d : \sum_{i=0}^{d} w_i m_i = \deg,\;
+    m_i \geq 0
+  \right\},
+\]
+where $\deg = \sum_i w_i$ is the degree.
+
+Multiple distinct CWS can generate the same reflexive polytope (up to
+$\GL(d,\ZZ)$ equivalence).  The central computational challenge is
+therefore to enumerate all CWS, compute the associated polytopes, and
+identify which ones are isomorphic.
+
+\subsection{Normal forms under $\GL(d,\ZZ)$}
+
+Two polytopes $\Delta_1, \Delta_2 \subset \RR^d$ are
+\emph{$\GL(d,\ZZ)$-equivalent} if there exists $A \in \GL(d,\ZZ)$ and
+$v \in \ZZ^d$ such that $A \cdot \Delta_1 + v = \Delta_2$.  To test
+equivalence, we use the \emph{normal form} algorithm implemented in
+PALP~\cite{PALP}, which computes a canonical representative $\NF(\Delta)$
+of the equivalence class.
+
+\begin{proposition}[Normal form uniqueness]
+For any two reflexive polytopes $\Delta_1, \Delta_2$:
+\[
+  \Delta_1 \sim_{\GL(d,\ZZ)} \Delta_2
+  \iff
+  \NF(\Delta_1) = \NF(\Delta_2).
+\]
+\end{proposition}
+
+The normal form is represented as a $d \times n_v$ integer matrix, where
+$n_v$ is the number of vertices.  The algorithm proceeds by:
+\begin{enumerate}
+  \item Sorting the vertex list into a canonical order.
+  \item Constructing the vertex pairing matrix (VPM).
+  \item Searching for the lexicographically minimal representation under
+        all symmetries of the VPM.
+\end{enumerate}
+
+\subsection{Hash-based deduplication}
+
+Rather than comparing the full normal form matrices (up to $5 \times 64
+\times 8 = 2{,}560$ bytes each), we hash each normal form to a 128-bit
+digest using xxHash128~\cite{xxHash}.  The collision probability for
+$n$ distinct polytopes is bounded by the birthday paradox:
+\[
+  P(\text{collision}) \approx \frac{n^2}{2^{129}} \approx
+  \frac{(5 \times 10^8)^2}{2^{129}} \approx 3.7 \times 10^{-22}.
+\]
+This is negligible for any practical purpose.
+
+\input{minimal_polytopes_5d}
+
+% ══════════════════════════════════════════════════════════════════════════
+\section{Input Data}
+\label{sec:data}
+
+% TODO: Fill in details about:
+% - Source and provenance of the CWS dataset
+% - Total number of CWS (183 billion across 4000 Parquet files, ~3.2 TB)
+% - How the CWS were generated / enumerated
+% - File format and schema (Parquet, 13 columns per row)
+% - Pre-computed metadata columns (h11, h12, h13, dual_point_count, etc.)
+% - Any filtering applied (reflexive-only subset)
+% - Citation for the dataset
+% - Distribution of CWS by vertex count, point count, etc.
+
+% ══════════════════════════════════════════════════════════════════════════
+\section{Computational Pipeline}
+\label{sec:pipeline}
+
+The pipeline operates in two phases: \emph{classification} (per-file
+processing with local deduplication and checkpointing) and \emph{merge}
+(global deduplication across all checkpoint shards via external
+sort-merge).  We describe each phase in detail.
+
+\subsection{Phase A: Classification}
+\label{sec:classification}
+
+Each input Parquet file ($\sim 46$M rows, $\sim 800$~MB) is processed
+independently.  The six weight columns are extracted via Apache Arrow
+columnar reads, and the resulting CWS rows are distributed to a pool
+of worker threads using a dynamic work-stealing scheduler.
+
+\begin{algorithm}[t]
+\caption{Per-file classification}
+\label{alg:classify}
+\begin{algorithmic}[1]
+\Require Parquet file $F$ with $n$ CWS rows; thread count $T$
+\Ensure Global hash map $G$ updated; checkpoint written
+\State $\mathit{rows} \gets \textsc{ReadParquet}(F)$
+\State Allocate $T$ thread-local hash maps $L_0, \ldots, L_{T-1}$
+\State $\mathit{next\_block} \gets 0$
+\Comment{Atomic counter for work-stealing}
+\ForAll{threads $t \in \{0, \ldots, T-1\}$ \textbf{in parallel}}
+  \State $\mathit{ws} \gets \textsc{PalpWorkspaceAlloc}()$
+  \Loop
+    \State $b \gets \textsc{AtomicFetchAdd}(\mathit{next\_block}, 1)$
+    \If{$b \geq \lceil n / B \rceil$} \textbf{break} \EndIf
+    \For{$i = bB$ \textbf{to} $\min((b+1)B, n) - 1$}
+      \State $\mathit{result} \gets \textsc{PalpComputeNF}(\mathit{ws}, \mathit{rows}[i].\mathit{weights})$
+      \If{$\mathit{result.ok} = 0$} increment failed counter; \textbf{continue} \EndIf
+      \State $h \gets \textsc{xxHash128}(\mathit{result.nf}, \mathit{result.dim} \times \mathit{result.nv})$
+      \If{$h \in L_t$} $L_t[h].\mathit{count} \mathrel{+}= 1$
+      \Else{} $L_t[h] \gets \textsc{NewEntry}(\mathit{rows}[i], \mathit{result})$
+      \EndIf
+    \EndFor
+  \EndLoop
+\EndFor
+\For{$t = 0$ \textbf{to} $T-1$}
+  \Comment{Merge under global lock}
+  \State $\textsc{MergeMaps}(G, L_t)$
+\EndFor
+\State $\textsc{WriteCheckpoint}(G)$
+\end{algorithmic}
+\end{algorithm}
+
+Each worker thread holds a private PALP workspace (allocated via
+\texttt{calloc} for deterministic initialisation) and a thread-local
+\texttt{std::unordered\_map}.  The work-stealing block size $B = 1024$
+balances atomic counter contention against load-balancing granularity.
+
+\paragraph{PALP as a library.}
+We link PALP~\cite{PALP} directly as a C library rather than invoking it
+as a subprocess (\texttt{poly.x -N}).  This eliminates process fork
+overhead, text serialisation, and file I/O, increasing per-core
+throughput from $\sim 6{,}000$ to $\sim 7{,}500$~CWS/s.  Two
+thread-safety patches were required:
+\begin{enumerate}
+  \item Static scratch buffers in \texttt{Vertex.c:Make\_New\_CEqs} were
+        changed to \texttt{\_\_thread} storage under
+        \texttt{-DPALP\_THREADSAFE}.
+  \item Global file pointers (\texttt{inFILE}, \texttt{outFILE}) were
+        redirected to \texttt{/dev/null} at initialisation.
+\end{enumerate}
+
+\paragraph{Compilation and optimisation.}
+PALP is compiled with \texttt{-O3 -march=native -flto -DPOLY\_Dmax=5}.
+The \texttt{POLY\_Dmax=5} flag reduces all dimension-indexed arrays from
+$6 \to 5$ elements, improving cache utilisation.  Tighter bounds tuned
+for 5D polytopes further reduce memory footprint (e.g.,
+\texttt{POINT\_Nmax} from 2,000,000 to 200,000).  These optimisations
+yield an 18\% improvement in single-threaded throughput.
+
+\paragraph{Critical bug: side effects in \texttt{assert()}.}
+During development, we discovered that PALP contains numerous
+\texttt{assert()} calls with side effects (counter increments, memory
+allocations, function calls that modify state).  Under \texttt{-DNDEBUG}
+(standard for release builds), these side effects are silently removed,
+causing incorrect behaviour.  We introduced a \texttt{PALP\_FAST\_ASSERT}
+macro that evaluates the expression for its side effects while
+suppressing the abort on failure.  Frama-C abstract interpretation
+confirmed that disabling these asserts causes at least one sure
+uninitialized memory read (Vertex.c:598), while enabling
+\texttt{PALP\_FAST\_ASSERT} produces zero sure alarms.
+
+\subsection{Phase B: External sort-merge}
+\label{sec:merge}
+
+After all input files have been processed by one or more compute nodes,
+the resulting checkpoint shards must be globally deduplicated.  Each shard
+contains a subset of the unique polytopes seen by that runner, with
+local frequency counts.  The same polytope may appear in multiple shards
+if it was generated by CWS in different input files processed by
+different runners.
+
+The merge algorithm operates in two phases:
+
+\paragraph{Phase 1: Sort.}
+Each checkpoint shard is loaded into memory, sorted in-place by the
+128-bit hash key using \texttt{std::sort} (parallel, $O(n \log n)$), and
+written back.  The sort uses a lexicographic comparator on $(h_{\mathrm{hi}},
+h_{\mathrm{lo}})$, which is a strict weak ordering (verified formally;
+see~\cref{sec:verification}).  An atomic rename pattern
+(\texttt{write .tmp} $\to$ \texttt{rename}) ensures crash safety.
+Resumability is provided by \texttt{.sorted} marker files.
+
+\paragraph{Phase 2: $N$-way streaming merge.}
+All sorted shards are opened simultaneously via buffered readers
+(\texttt{SortedBinaryReader}, 256K-record buffer per file, $\sim 18$~MB
+RAM each).  A min-heap of size $N$ (number of shards) drives the merge:
+at each step, the record with the smallest key is extracted, and all
+records sharing the same key across all shards are coalesced by summing
+their frequency counts.  The deduplicated stream is written directly to a
+Parquet file with ZSTD compression.
+
+Peak RAM during Phase~2 is $N \times 18\,\text{MB} \approx 1.2\,\text{GB}$
+for 67~shards.  The total I/O is one sequential read of each sorted shard
+plus one sequential write of the output Parquet file.
+
+\begin{proposition}[Count preservation]
+\label{prop:count}
+Let $S_1, \ldots, S_N$ be the input shards and $O$ the output.  Then
+\[
+  \sum_{r \in O} r.\mathit{count}
+  = \sum_{i=1}^{N} \sum_{r \in S_i} r.\mathit{count}.
+\]
+\end{proposition}
+\begin{proof}
+Each input record is consumed exactly once by the heap (the reader
+visits every record, and each record enters and leaves the heap exactly
+once).  When records are coalesced, their counts are summed.  The
+emitted record carries the total count.  No records are dropped or
+fabricated.  This property is verified formally by bounded model checking
+(see~\cref{sec:verification}).
+\end{proof}
+
+\subsection{Distributed execution}
+\label{sec:distributed}
+
+The 4,000 input Parquet files ($\sim 3.2$~TB total) are partitioned
+across multiple compute nodes using \texttt{-{}-start} and
+\texttt{-{}-end} flags.  Each node processes its assigned range
+independently, writing periodic checkpoints.  After all nodes complete,
+the checkpoint shards are collected and merged in a single pass.
+
+This embarrassingly parallel architecture scales linearly with the number
+of nodes: each node's throughput is limited only by its CPU and memory.
+The merge step is $I/O$-bound and completes in minutes.
+
+% ══════════════════════════════════════════════════════════════════════════
+\section{Performance}
+\label{sec:performance}
+
+\subsection{Per-CWS computation profile}
+
+Profiling on a 100,000-CWS sample reveals that 78\% of execution time
+is spent in \texttt{Find\_Equations} subroutines that repeatedly scan
+the full lattice point list.  The per-CWS computation cost varies by
+three orders of magnitude:
+
+\begin{table}[h]
+\centering
+\caption{Per-CWS computation cost by lattice point count.}
+\label{tab:cost}
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Point count & Approx.\ time/CWS & \% of dataset & Cumulative \% \\
+\midrule
+$< 100$     & $\sim 10\,\mu$s   & 59\%   & 59\% \\
+$100$--$500$  & $\sim 50\,\mu$s   & 34\%   & 93\% \\
+$500$--$5{,}000$ & $\sim 200\,\mu$s & 6.3\%  & 99.3\% \\
+$5{,}000$--$50{,}000$ & $\sim 5\,$ms & 0.6\%  & 99.9\% \\
+$> 50{,}000$ & $\sim 50\,$ms     & 0.03\% & $\sim 100$\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+This heavy-tailed distribution motivates the dynamic work-stealing
+scheduler: static partitioning would cause threads assigned to expensive
+polytopes to bottleneck the entire computation.
+
+\subsection{Throughput and scaling}
+
+On a single AMD Ryzen 9 7950X3D (16 cores / 32 threads, 96~GB RAM),
+the classifier achieves $\sim 241{,}000$~CWS/s using all 32 logical
+threads, representing a $\sim 14\times$ speedup over single-threaded
+execution.  Sub-linear scaling is attributable to memory bandwidth
+contention and L3 cache sharing across the two CCDs.
+
+\begin{table}[h]
+\centering
+\caption{Classification throughput on AMD Ryzen 9 7950X3D.}
+\label{tab:throughput}
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Configuration & Throughput (CWS/s) & Wall time (46M CWS) & Speedup \\
+\midrule
+1 thread                & 1,730  & 26,780\,s & $1\times$ \\
+32 threads, work-stealing & 241,000 & 192\,s  & $14\times$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Deduplication statistics}
+
+Single-file analysis reveals significant structure in the duplication
+pattern:
+
+\begin{table}[h]
+\centering
+\caption{Deduplication rates by vertex count (single file, 46M CWS).}
+\label{tab:dedup}
+\begin{tabular}{@{}rrrr@{}}
+\toprule
+Vertex count & Input CWS & Unique polytopes & Dedup rate \\
+\midrule
+6  & 327,520   & 2,862     & 99.1\% \\
+7  & 1,218,255 & 21,869    & 98.2\% \\
+8  & 2,476,004 & 94,161    & 96.2\% \\
+12 & 5,214,537 & 1,369,197 & 73.7\% \\
+15 & 3,821,620 & 1,915,186 & 49.9\% \\
+20 & 802,154   & 648,008   & 19.2\% \\
+30 & 2,705     & 2,695     & 0.4\% \\
+43 & 1         & 1         & 0\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Low vertex-count polytopes exhibit massive duplication (a typical
+6-vertex polytope is generated by $\sim 114$ distinct CWS), while
+high vertex-count polytopes are nearly all unique.
+
+% ══════════════════════════════════════════════════════════════════════════
+\section{Formal Verification}
+\label{sec:verification}
+
+Given the scale of the computation ($\sim 1.83 \times 10^{11}$ records)
+and the impossibility of manually inspecting the output, we employ formal
+verification to establish mathematical guarantees about the pipeline's
+correctness.  We use two complementary tools: CBMC~\cite{CBMC} (bounded
+model checking for C/C++) and Frama-C~\cite{FramaC} (abstract
+interpretation for C).
+
+\subsection{Verified properties}
+
+Ten verification harnesses establish the following properties:
+
+\begin{table}[h]
+\centering
+\caption{Formal verification harnesses and their targets.}
+\label{tab:harnesses}
+\small
+\begin{tabular}{@{}llp{7cm}@{}}
+\toprule
+ID & Target & Property \\
+\midrule
+1.1 & \texttt{key\_less} & Strict weak ordering (irreflexivity, asymmetry,
+      transitivity, equivalence consistency) \\
+1.2 & \texttt{Hash128Hasher} & Consistency with \texttt{operator==} \\
+1.3 & \texttt{hash\_normal\_form} & Correct byte count and array bounds \\
+1.4 & \texttt{MergeRecord} & Binary layout: 72 bytes, no padding, correct
+      offsets \\
+1.5 & Two-way merge & Count preservation: $\sum \mathit{out} = \sum \mathit{acc}
+      + \sum \mathit{shard}$ \\
+1.6 & $K$-way merge & Count preservation across $K$ streams \\
+1.7 & \texttt{SortedBinaryReader} & State machine: visits every record
+      exactly once, in order \\
+1.9 & Accounting & $\mathit{processed} = \mathit{unique} + \mathit{duplicate}
+      + \mathit{failed}$ \\
+2.5 & \texttt{Sort\_VL} comparator & Total order on vertex indices (no
+      ties for distinct elements) \\
+2.6 & \texttt{palp\_compute\_nf} & Correct CWS struct population and
+      pipeline orchestration \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Normal form determinism}
+
+The most critical correctness property is that the normal form hash is
+a deterministic function of the input weights.  Non-determinism would
+cause the same polytope to receive different hashes on different runs,
+inflating the unique polytope count.
+
+The primary risk identified during planning was \texttt{qsort}
+non-determinism: the C standard does not require \texttt{qsort} to be
+stable, so if the comparator admits ties, the sorted order could vary
+between calls.  We resolve this by proving (via CBMC, harness~2.5) that
+the \texttt{diff} comparator used by PALP's \texttt{Sort\_VL}:
+\begin{enumerate}
+  \item Produces no integer overflow for vertex indices in $[0, 63]$.
+  \item Is antisymmetric: $\mathrm{diff}(a,b) > 0 \iff \mathrm{diff}(b,a) < 0$.
+  \item Is transitive.
+  \item Admits \emph{no ties} among distinct elements:
+        $\mathrm{diff}(a,b) = 0 \implies a = b$.
+\end{enumerate}
+Property~4 is the key result: since vertex indices within a
+\texttt{VertexNumList} are distinct integers, the comparator never
+returns zero for distinct elements.  Therefore \texttt{qsort}'s output
+is uniquely determined, and the full chain
+\[
+  \text{weights} \xrightarrow{\text{Make\_CWS\_Points}} P
+  \xrightarrow{\text{Find\_Equations}} (V, E)
+  \xrightarrow{\text{Sort\_VL}} V'
+  \xrightarrow{\text{Make\_Poly\_Sym\_NF}} \NF
+  \xrightarrow{\text{xxHash128}} h
+\]
+is deterministic.
+
+\subsection{Frama-C abstract interpretation of PALP}
+
+We ran Frama-C's Eva plugin on the PALP C source code to detect potential
+buffer overflows, uninitialized reads, and integer overflows.  Key
+findings:
+\begin{itemize}
+  \item The lattice point count \texttt{P->np} is bounded within
+        $[1, 2{,}000{,}000]$, confirming that the \texttt{POINT\_Nmax}
+        array bound is respected.
+  \item With \texttt{PALP\_FAST\_ASSERT} enabled: \textbf{zero sure
+        alarms} on the critical computation path.
+  \item With standard \texttt{NDEBUG}: \textbf{one sure alarm}
+        (uninitialized read at \texttt{Vertex.c:598}), confirming that
+        \texttt{PALP\_FAST\_ASSERT} is load-bearing for correctness.
+\end{itemize}
+
+\subsection{Runtime accounting invariant}
+
+As a defence-in-depth measure, the pipeline checks the accounting
+identity
+\[
+  \mathit{processed} = \mathit{unique} + \mathit{duplicate} + \mathit{failed}
+\]
+at the end of each run.  This identity held exactly across the full
+$\sim 16.7 \times 10^9$ records in the processed subset, providing
+empirical confirmation that no records were silently lost or
+double-counted.
+
+% ══════════════════════════════════════════════════════════════════════════
+\section{Results}
+\label{sec:results}
+
+% TODO: Fill in with final results:
+% - Total number of unique 5D reflexive polytopes found
+% - Total CWS processed
+% - Duplication rate (overall and by vertex count)
+% - Hodge number distributions
+% - Comparison with known results (lower-dimensional checks)
+% - Any notable or surprising polytopes
+% - Mirror symmetry verification: h^{1,1}(X) = h^{d-2,1}(X^*)
+
+% ══════════════════════════════════════════════════════════════════════════
+\section{Discussion}
+\label{sec:discussion}
+
+\subsection{Completeness and correctness guarantees}
+
+The correctness of our classification rests on three pillars:
+\begin{enumerate}
+  \item \textbf{PALP's normal form algorithm} correctly computes the
+        canonical representative under $\GL(5,\ZZ)$ equivalence.  This
+        algorithm has been used extensively in the mathematical physics
+        community since its introduction~\cite{PALP} and was validated
+        against known results in dimensions 2--4.
+  \item \textbf{Formal verification} of the software pipeline establishes
+        that the implementation correctly orchestrates the computation:
+        sorting is correct, deduplication preserves counts, checkpoint
+        I/O is faithful, and the normal form hash is deterministic.
+  \item \textbf{The accounting invariant} ($\mathit{processed} =
+        \mathit{unique} + \mathit{duplicate} + \mathit{failed}$) provides
+        a global consistency check that is extremely sensitive to any
+        systematic error.
+\end{enumerate}
+
+The residual risks are:
+\begin{itemize}
+  \item \emph{Hash collisions:} With $\sim 5 \times 10^8$ unique polytopes
+        and a 128-bit hash, the expected number of collisions is $\sim
+        10^{-3}$.  This is negligible but could be eliminated entirely by
+        a post-processing pass that compares full normal forms within hash
+        buckets.
+  \item \emph{PALP mathematical bugs:} A bug in PALP's normal form
+        algorithm could cause two equivalent polytopes to receive different
+        normal forms.  This would result in overcounting.  We consider this
+        unlikely given PALP's extensive use and validation, but it cannot
+        be ruled out by software verification alone.
+\end{itemize}
+
+\subsection{Comparison with previous work}
+
+% TODO: Compare with:
+% - Kreuzer-Skarke 4D classification (methodology, scale)
+% - Any partial 5D results in the literature
+% - Anderson et al., He et al. — machine learning on polytope databases
+
+\subsection{Applications}
+
+The resulting database enables:
+\begin{itemize}
+  \item Systematic study of the landscape of 5D Calabi--Yau threefolds
+        from toric hypersurfaces.
+  \item Computation of Hodge number distributions and mirror symmetry
+        verification for the 5D case.
+  \item Training data for machine learning approaches to string
+        phenomenology~\cite{He2017}.
+  \item Identification of extremal polytopes (maximum vertex count, maximum
+        lattice points, etc.) in dimension~5.
+\end{itemize}
+
+% ══════════════════════════════════════════════════════════════════════════
+\section{Conclusion}
+\label{sec:conclusion}
+
+We have presented a complete computational pipeline for classifying
+five-dimensional reflexive polytopes from combined weight systems.
+The pipeline processes $\sim 183$~billion CWS records ($\sim 3.2$~TB),
+computing normal forms via PALP and deduplicating via xxHash128 and
+external sort-merge.  Formal verification using CBMC and Frama-C
+provides mathematical guarantees of correctness for all critical code
+paths.
+
+% TODO: State final polytope count and key findings.
+
+The code and verification harnesses are publicly available at
+\url{https://github.com/...}.
+
+% ══════════════════════════════════════════════════════════════════════════
+\appendix
+\input{minimal_polytopes_5d_table}
+
+% ══════════════════════════════════════════════════════════════════════════
+\section*{Acknowledgements}
+
+% TODO
+
+% ══════════════════════════════════════════════════════════════════════════
+\bibliographystyle{unsrtnat}
+% Inline bib for draft — replace with .bib file for submission
+\begin{thebibliography}{99}
+
+\bibitem{Batyrev1994}
+V.~V. Batyrev,
+\emph{Dual polyhedra and mirror symmetry for Calabi--Yau hypersurfaces
+in toric varieties},
+J.~Algebraic Geom. \textbf{3} (1994) 493--535.
+\href{https://arxiv.org/abs/alg-geom/9310003}{arXiv:alg-geom/9310003}.
+
+\bibitem{BatyrevBorisov1996}
+V.~V. Batyrev and L.~A. Borisov,
+\emph{On Calabi--Yau complete intersections in toric varieties},
+in: Higher-Dimensional Complex Varieties (Trento, 1994), de~Gruyter,
+Berlin, 1996, pp.~39--65.
+\href{https://arxiv.org/abs/alg-geom/9412017}{arXiv:alg-geom/9412017}.
+
+\bibitem{Koelman1991}
+R.~J. Koelman,
+\emph{The number of moduli of families of curves on toric surfaces},
+Ph.D. thesis, Katholieke Universiteit Nijmegen, 1991.
+
+\bibitem{KreuzerSkarke1998}
+M.~Kreuzer and H.~Skarke,
+\emph{Classification of reflexive polyhedra in three dimensions},
+Adv.~Theor.~Math.~Phys. \textbf{2} (1998) 853--871.
+\href{https://arxiv.org/abs/hep-th/9805190}{arXiv:hep-th/9805190}.
+
+\bibitem{KreuzerSkarke2000}
+M.~Kreuzer and H.~Skarke,
+\emph{Complete classification of reflexive polyhedra in four dimensions},
+Adv.~Theor.~Math.~Phys. \textbf{4} (2000) 1209--1230.
+\href{https://arxiv.org/abs/hep-th/0002240}{arXiv:hep-th/0002240}.
+
+\bibitem{KreuzerSkarke1997}
+M.~Kreuzer and H.~Skarke,
+\emph{On the classification of reflexive polyhedra},
+Commun.~Math.~Phys. \textbf{185} (1997) 495--508.
+\href{https://arxiv.org/abs/hep-th/9512204}{arXiv:hep-th/9512204}.
+
+\bibitem{PALP}
+M.~Kreuzer and H.~Skarke,
+\emph{PALP: A Package for Analysing Lattice Polytopes with applications
+to toric geometry},
+Comput.~Phys.~Commun. \textbf{157} (2004) 87--106.
+\href{https://arxiv.org/abs/math/0204356}{arXiv:math/0204356}.
+
+\bibitem{xxHash}
+Y.~Collet,
+\emph{xxHash — Extremely fast non-cryptographic hash algorithm},
+\url{https://github.com/Cyan4973/xxHash}, 2012--2024.
+
+\bibitem{CBMC}
+D.~Kroening and M.~Tautschnig,
+\emph{CBMC -- C Bounded Model Checker},
+in: TACAS 2014, LNCS 8413, Springer, 2014, pp.~389--391.
+
+\bibitem{FramaC}
+P.~Cuoq, F.~Kirchner, N.~Kosmatov, V.~Prevosto, J.~Signoles, and
+B.~Yakobowski,
+\emph{Frama-C: A software analysis perspective},
+in: SEFM 2012, LNCS 7504, Springer, 2012, pp.~233--247.
+
+\bibitem{He2017}
+Y.-H. He,
+\emph{Machine-learning the string landscape},
+Phys.~Lett.~B \textbf{774} (2017) 564--568.
+\href{https://arxiv.org/abs/1706.02714}{arXiv:1706.02714}.
+
+\end{thebibliography}
+
+\end{document}

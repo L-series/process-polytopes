@@ -1,0 +1,6 @@
+name = "minimalpolytopes5d"
+version = "0.1.0"
+defaultTargets = ["MinimalPolytopes5D"]
+
+[[lean_lib]]
+name = "MinimalPolytopes5D"

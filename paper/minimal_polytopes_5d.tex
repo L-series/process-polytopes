@@ -1,0 +1,243 @@
+% ══════════════════════════════════════════════════════════════════════════
+\section{Five-Dimensional Minimal Polytopes}
+\label{sec:minimal-5d}
+
+This section isolates the combinatorial input from
+\citet{KreuzerSkarke1997} that controls which combined weight-system
+patterns can occur in dimension~5.  We work with the notation of
+their Lemma~1 and Corollary~1: a minimal polytope $M$ is described by an
+ordered family of good simplices $S_1,\dots,S_\lambda$ such that the
+partial unions span minimal polytopes $M_1,\dots,M_\lambda=M$.
+
+\begin{definition}
+Fix a Corollary~1 ordering $S_1,\dots,S_\lambda$ of a $5$-dimensional
+minimal polytope.  Let $m_\mu$ be the number of vertices of $S_\mu$ that
+do not occur in $S_1 \cup \cdots \cup S_{\mu-1}$.  We call
+$(m_1,\dots,m_\lambda)$ the \emph{ordered new-vertex profile} of the
+chosen decomposition.
+\end{definition}
+
+\begin{proposition}[Five-dimensional profile constraint]
+\label{prop:5d-profiles}
+Let $M$ be a $5$-dimensional minimal polytope and let
+$(m_1,\dots,m_\lambda)$ be the ordered new-vertex profile of a Corollary~1
+decomposition.  Then each $m_\mu \ge 2$ and
+\[
+  \sum_{\mu=1}^{\lambda} (m_\mu - 1) = 5.
+\]
+Consequently, after sorting the profile in weakly decreasing order one
+obtains one of the seven possibilities
+\[
+  [6],\ [5,2],\ [4,3],\ [4,2,2],\ [3,3,2],\ [3,2,2,2],\ [2,2,2,2,2].
+\]
+The case $[6]$ is the simplex case, hence the single-weight-system case;
+all other profiles correspond to genuine combined weight-system patterns.
+\end{proposition}
+
+\begin{proof}
+Write $k_\mu$ for the number of vertices in $M_\mu$.  By
+Corollary~1(a) of \citet{KreuzerSkarke1997},
+$\dim M_\mu = k_\mu - \mu$.  Therefore the dimension jump at step $\mu$ is
+\[
+  \dim M_\mu - \dim M_{\mu-1}
+  = (k_\mu - \mu) - (k_{\mu-1} - (\mu-1))
+  = (k_\mu - k_{\mu-1}) - 1
+  = m_\mu - 1.
+\]
+Summing these jumps from $M_1$ to $M_\lambda = M$ yields
+\[
+  5 = \dim M = \sum_{\mu=1}^{\lambda} (m_\mu - 1).
+\]
+Each $m_\mu$ is at least $2$, because every new simplex contributes at
+least one new dimension and hence at least two vertices.  Subtracting $1$
+from each entry therefore produces a partition of $5$ into positive
+integers.  The only partitions of $5$ are
+$5$, $4+1$, $3+2$, $3+1+1$, $2+2+1$, $2+1+1+1$, and $1+1+1+1+1$.
+Adding $1$ back to each part gives exactly the seven profiles listed.
+\end{proof}
+
+\begin{lemma}[Lower-dimensional input data]
+\label{lem:lower-dimensional-input}
+Up to relabeling of vertices, the complete $3$-dimensional minimal-polytope
+structures are
+\[
+  \{\{1,2,3,4\}\},\qquad
+  \{\{1,2,3\},\{4,5\}\},\qquad
+  \{\{1,2,3\},\{1,4,5\}\},\qquad
+  \{\{1,2\},\{3,4\},\{5,6\}\},
+\]
+and the complete $4$-dimensional minimal-polytope structures are
+\[
+  \{\{1,2,3,4,5\}\},\qquad
+  \{\{1,2,3,4\},\{1,2,5,6\}\},\qquad
+  \{\{1,2,3,4\},\{1,5,6\}\},
+\]
+\[
+  \{\{1,2,3,4\},\{5,6\}\},\qquad
+  \{\{1,2,3\},\{4,5,6\}\},\qquad
+  \{\{1,2,3\},\{4,5\},\{6,7\}\},
+\]
+\[
+  \{\{1,2,3\},\{1,4,5\},\{6,7\}\},\qquad
+  \{\{1,2,3\},\{1,4,5\},\{1,6,7\}\},\qquad
+  \{\{1,2\},\{3,4\},\{5,6\},\{7,8\}\}.
+\]
+\end{lemma}
+
+\begin{proof}
+This is exactly the explicit $n=3$ and $n=4$ classification stated in
+Section~4 of \citet{KreuzerSkarke1997}.  We have only rewritten the same
+structures in the present brace notation for good simplices.
+\end{proof}
+
+\begin{lemma}[Dimension-$5$ extension rule]
+\label{lem:5d-extension-rule}
+Let $M$ be a $5$-dimensional minimal polytope.
+\begin{enumerate}
+  \item If Lemma~1 of \citet{KreuzerSkarke1997} selects $n'=4$, then
+  $M$ is obtained from one of the $4$-dimensional base structures of
+  \cref{lem:lower-dimensional-input} by adjoining a new good simplex
+  \[
+    S = R \cup \{a,b\},
+  \]
+  where $a,b$ are new vertices and $R$ is a subset of old vertices with
+  $|R| \le 3$.
+  \item If Lemma~1 selects $n'=3$, then $M$ is obtained from one of the
+  $3$-dimensional base structures of
+  \cref{lem:lower-dimensional-input} by adjoining a new good simplex
+  \[
+    S = R \cup \{a,b,c\},
+  \]
+  where $a,b,c$ are new vertices and $R$ is a subset of old vertices with
+  $|R| \le 1$.
+\end{enumerate}
+Conversely, every candidate produced in this way satisfies the dimensional
+constraint from Lemma~1.  It survives to a valid structure if and only if
+it is not excluded by Lemma~2, i.e. if no good simplex has exactly one
+vertex that belongs to no other simplex in the spanning collection.
+\end{lemma}
+
+\begin{proof}
+Lemma~1 says that a non-simplex $5$-dimensional minimal polytope contains
+an $n'$-dimensional minimal polytope $M'$ and one further good simplex $S$
+such that
+\[
+  k-k' = 5-n'+1,
+  \qquad
+  \dim S \le n'.
+\]
+Since $n' \ge 5/2$, only $n'=4$ and $n'=3$ can occur.
+
+If $n'=4$, then $k-k' = 2$, so the new simplex contributes exactly two new
+vertices, say $a,b$.  Because $\dim S \le 4$, the simplex has at most five
+vertices, hence at most three old ones.  Therefore
+$S = R \cup \{a,b\}$ with $|R| \le 3$.
+
+If $n'=3$, then $k-k' = 3$, so the new simplex contributes exactly three
+new vertices, say $a,b,c$.  Because $\dim S \le 3$, the simplex has at
+most four vertices, hence at most one old one.  Therefore
+$S = R \cup \{a,b,c\}$ with $|R| \le 1$.
+
+The converse statement about the dimensional constraint is immediate from
+the same bounds.  The final sentence is exactly Lemma~2: a spanning set of
+good simplices is forbidden precisely when one of the simplices has a
+unique vertex not shared by any other simplex.
+\end{proof}
+
+\begin{theorem}[Complete $5$D structure list]
+\label{thm:5d-structures}
+Up to relabeling of the vertices, there are exactly $47$ overlap
+structures for $5$-dimensional minimal polytopes.  They break up by total
+vertex count as follows:
+\begin{center}
+\begin{tabular}{@{}cr@{}}
+\toprule
+Vertices $k$ & Number of structures \\
+\midrule
+6 & 1 \\
+7 & 6 \\
+8 & 25 \\
+9 & 13 \\
+10 & 2 \\
+\bottomrule
+\end{tabular}
+\end{center}
+Grouping the same $47$ structures by their sorted new-vertex profiles
+produces the multiplicities
+\[
+  [6] : 1,\quad [5,2] : 2,\quad [4,3] : 4,\quad [4,2,2] : 7,
+\]
+\[
+  [3,3,2] : 18,\quad [3,2,2,2] : 13,\quad [2,2,2,2,2] : 2.
+\]
+Appendix~\ref{app:5d-structures} lists one canonical Corollary~1 ordering
+for each structure, together with its overlap matrix
+$O_{ij} = |S_i \cap S_j|$.
+\end{theorem}
+
+\begin{proof}
+By \cref{lem:lower-dimensional-input}, there are exactly four possible
+$3$-dimensional base structures and nine possible $4$-dimensional base
+structures.  By \cref{lem:5d-extension-rule}, every non-simplex
+$5$-dimensional minimal polytope arises from one of these thirteen bases by
+one of the following finite operations:
+\begin{enumerate}
+  \item choose a $4$D base and adjoin a simplex $R \cup \{a,b\}$ with
+  $|R| \le 3$;
+  \item choose a $3$D base and adjoin a simplex $R \cup \{a,b,c\}$ with
+  $|R| \le 1$.
+\end{enumerate}
+The simplex case itself contributes the unique structure with profile
+$[6]$.
+
+Thus the problem has been reduced to a completely finite search.  For each
+base structure, one runs through all allowed subsets $R$ of old vertices,
+forms the corresponding candidate spanning collection of good simplices,
+and discards the candidate exactly when Lemma~2 is violated.  The
+surviving candidates are then quotient by the obvious notion of
+isomorphism: permutation of the simplices together with relabeling of the
+vertices.  Equivalently, one keeps one canonical representative of each
+overlap hypergraph.
+
+This search is complete because every $5$D minimal polytope must arise from
+Lemma~1 and therefore from one of the two cases above.  It is correct
+because the only combinatorial obstructions used by Kreuzer--Skarke at this
+stage are precisely the dimensional bound from Lemma~1 and the uniqueness
+obstruction from Lemma~2.  No surviving candidate is identified with a
+different one unless their overlap hypergraphs are isomorphic, since the
+canonicalization step quotients exactly by vertex relabeling and simplex
+permutation.
+
+Carrying out that finite search yields exactly the $47$ canonical overlap
+structures listed in Appendix~\ref{app:5d-structures}.  Counting them by
+total number of vertices gives
+\[
+  1,\ 6,\ 25,\ 13,\ 2
+\]
+for $k=6,7,8,9,10$ respectively, and counting them by sorted new-vertex
+profile gives
+\[
+  [6] : 1,\quad [5,2] : 2,\quad [4,3] : 4,\quad [4,2,2] : 7,
+\]
+\[
+  [3,3,2] : 18,\quad [3,2,2,2] : 13,\quad [2,2,2,2,2] : 2.
+\]
+The finite search itself, including these exact counts, is machine-checked
+in \texttt{lean/MinimalPolytopes5D/Structures.lean} by the theorems
+\texttt{canonicalFiveDimensionalStructures\_length},
+\texttt{countsByVertex\_correct},
+\texttt{countsByProfile\_correct}, and
+\texttt{sortedProfile\_allowed}.
+\end{proof}
+
+\begin{remark}
+The appendix records one admissible Corollary~1 ordering for each overlap
+hypergraph.  Some hypergraphs admit more than one such ordering and hence
+more than one ordered new-vertex profile.  The profile in the appendix is
+therefore a canonical choice, not an invariant attached to the hypergraph
+itself.  The arithmetic core of \cref{prop:5d-profiles} is formalized in
+Lean~4 in the file \texttt{lean/MinimalPolytopes5D/Profiles.lean}, and the
+finite recursive search from the explicit $3$D and $4$D base lists to the
+full set of $47$ canonical $5$D structures is formalized in
+\texttt{lean/MinimalPolytopes5D/Structures.lean}.
+\end{remark}
