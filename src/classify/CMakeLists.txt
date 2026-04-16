@@ -78,5 +78,29 @@ target_link_libraries(classifier PRIVATE
     -flto
 )
 
+# ── add_nf executable ──────────────────────────────────────────────────────
+add_executable(add_nf add_nf.cpp)
+
+target_compile_options(add_nf PRIVATE
+    -O3 -march=native -flto -funroll-loops
+    -DPOLY_Dmax=5
+    -DPALP_FAST_ASSERT
+    -DPALP_THREADSAFE
+    -DCEQ_Nmax=2048
+)
+
+target_include_directories(add_nf PRIVATE
+    ${PALP_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+target_link_libraries(add_nf PRIVATE
+    palp
+    Arrow::arrow_shared
+    Parquet::parquet_shared
+    Threads::Threads
+    -flto
+)
+
 # ── Install ────────────────────────────────────────────────────────────────
-install(TARGETS classifier RUNTIME DESTINATION bin)
+install(TARGETS classifier add_nf RUNTIME DESTINATION bin)
