@@ -247,6 +247,77 @@ Therefore, the hash is a deterministic function of the input weights. **QED.**
 
 ---
 
+### 2.11 `Dim5IndexBelongsToShard` (PALP/cws.c)
+
+**Role:** Assigns each first-slot selection index to exactly one dim-5 shard for
+`cws -c5 -j# -k#`.
+
+**Verified by:** `harness_dim5_shard_partition.c`
+- Every valid index belongs to exactly one shard
+- If an index is assigned to shard `k`, it is rejected by every other shard
+
+**Assumptions:** bounded to `index <= 64` and `shard_count <= 8` for tractable
+symbolic verification. The arithmetic is uniform beyond those bounds.
+
+### 2.12 `SelectDim5Weights` / `EnumerateDim5Selections` (PALP/cws.c)
+
+**Role:** Expands a simplex weight into all size-`u` shared-prefix selections in
+lexicographic order, replacing the old tempfile-based `MakeSelections` path for
+dim-5 canonical enumeration.
+
+**Verified by:** `harness_dim5_select_weights.c`
+- For every deterministic case with `1 <= N <= 4` and `0 <= u <= N`, the
+  number of emitted selections equals $\binom{N}{u}$
+- Every emitted selection is strictly increasing and is a valid subsequence of
+  the source weight
+- No duplicate selections are emitted
+
+**Assumptions:** bounded to `N <= 4` in the harness to keep CBMC tractable.
+This still exercises the recursive selection logic, the zero-selection base
+case, and the full-selection boundary case.
+
+### 2.13 `EmbedWeightInCWS` (PALP/cws.c)
+
+**Role:** Maps a selected simplex weight into the ambient combined-weight-system
+coordinates before `PRINT_CWS` is called.
+
+**Verified by:** `harness_dim5_embed_weight.c`
+- mapped coordinates receive the intended weights
+- non-mapped coordinates are zeroed
+- `CW->nw`, `CW->N`, and `CW->nz` are updated consistently
+
+**Assumptions:** bounded to `ambient_vertices <= 10` and `weight.N <= 5`, which
+matches the dim-5 descriptor limits.
+
+### 2.14 `Dim5PrefixIsCanonical` (PALP/cws.c)
+
+**Role:** Prunes shared-prefix permutations that differ only by descriptor
+symmetries already indistinguishable from earlier slots.
+
+**Verified by:** `harness_dim5_prefix_canonical.c`
+- descending equivalent prefixes are rejected on the first slot
+- ascending equivalent prefixes are kept
+- earlier slots that distinguish the shared coordinates suppress the prune
+- `shared_count < 2` returns canonical immediately
+
+**Assumptions:** deterministic case analysis rather than a fully symbolic model.
+The harness targets the exact semantic cases that matter for the descriptor
+automorphism pruning.
+
+### 2.15 `Dim5SelectionOrderIsCanonical` (PALP/cws.c)
+
+**Role:** Prevents duplicate enumeration when multiple descriptor slots belong
+to the same family/source orbit.
+
+**Verified by:** `harness_dim5_selection_order.c`
+- the predicate returns false exactly when an earlier slot in the same family
+  group has a larger selection index
+
+**Assumptions:** none beyond the bounded `NFmax=10` descriptor slot count used by
+PALP.
+
+---
+
 ## 3. Frama-C Eva Analysis of PALP
 
 Frama-C Eva (abstract value analysis) was run on the PALP C library with
@@ -285,7 +356,7 @@ uninitialized memory reads downstream.
 
 ## 5. Verification Harness Summary
 
-All 10 CBMC harnesses pass (verified 2026-04-09):
+All 15 CBMC harnesses pass (verified 2026-04-17):
 
 | Harness | Plan | Property | Unwind |
 |---|---|---|---|
@@ -299,6 +370,11 @@ All 10 CBMC harnesses pass (verified 2026-04-09):
 | harness_palp_wrapper.c | 2.6 | PALP wrapper correctness | 8 |
 | harness_accounting.cpp | 1.9 | Accounting invariant | 8 |
 | harness_sort_vl.cpp | 2.5 | Comparator total order | 4 |
+| harness_dim5_shard_partition.c | 2.11 | Dim-5 shard exclusivity | 10 |
+| harness_dim5_select_weights.c | 2.12 | Dim-5 selection enumeration | 10 |
+| harness_dim5_embed_weight.c | 2.13 | Dim-5 ambient embedding | 12 |
+| harness_dim5_prefix_canonical.c | 2.14 | Dim-5 shared-prefix pruning | 12 |
+| harness_dim5_selection_order.c | 2.15 | Dim-5 family-order pruning | 12 |
 
 Run with: `nix develop .#proofing -c bash -c "cd src/verify && bash run_verification.sh"`
 

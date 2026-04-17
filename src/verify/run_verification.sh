@@ -129,6 +129,33 @@ run_harness \
     harness_sort_vl.cpp \
     --signed-overflow-check --unwind 4
 
+# ── PALP dim-5 CWS harnesses ────────────────────────────────────────────────
+
+run_harness \
+    "3.1 dim-5 shard partition" \
+    harness_dim5_shard_partition.c \
+    --unwind 10
+
+run_harness \
+    "3.2 dim-5 selection enumeration" \
+    harness_dim5_select_weights.c \
+    --unwind 10
+
+run_harness \
+    "3.3 dim-5 embed mapping" \
+    harness_dim5_embed_weight.c \
+    --unwind 12
+
+run_harness \
+    "3.4 dim-5 shared-prefix canonicalization" \
+    harness_dim5_prefix_canonical.c \
+    --unwind 12
+
+run_harness \
+    "3.5 dim-5 selection-order pruning" \
+    harness_dim5_selection_order.c \
+    --unwind 12
+
 # ── Summary ───────────────────────────────────────────────────────────────────
 
 echo ""
