@@ -258,6 +258,71 @@ Profiling (`gprof`) of the unoptimized binary on the full 100K dataset reveals t
 | `New_Start_Vertex` | 13.6% | 400K | Scan all points for extreme vertices |
 | `Make_New_CEqs` | 6.8% | 1.0M | Generate candidate equations from incidences |
 | `GLZ_Start_Simplex` | 4.9% | 100K | Initial simplex construction |
+
+---
+
+## 2026-04-17 — Dim-5 `cws -c5` pipeline refactor
+
+**Binary:** `./PALP/cws-5d.x`
+**Baseline binary:** committed `HEAD` in a temporary PALP worktree
+**Reproduction:** `BASELINE_BIN=/path/to/baseline/cws-5d.x ./scripts/benchmark_dim5_cws.sh 11 24`
+
+### Changes from previous dim-5 implementation
+
+- Replaced dim-5 `tmpfile()` and `rewind()` enumeration with in-memory weight pools.
+- Reused `PRINT_CWS` scratch `PolyPointList` buffers instead of allocating and freeing them per candidate.
+- Added `-j#` and `-k#` to shard canonical dim-5 enumeration by the first slot.
+
+### Ten-second sampling on representative canonical structures
+
+| Structure | Binary | User (s) | Sys (s) | Wall (s) | Output lines in 10s |
+|---|---|---:|---:|---:|---:|
+| 11 | current | 9.97 | 0.00 | 10.01 | 32,162 |
+| 11 | baseline | 5.25 | 4.36 | 10.00 | 19,848 |
+| 24 | current | 9.97 | 0.00 | 10.00 | 54,194 |
+| 24 | baseline | 5.00 | 4.66 | 10.00 | 21,970 |
+
+The optimized build shifts the workload from kernel time back into user-space arithmetic. On structure 11 the 10-second work rate improves by about **1.62x**. On structure 24 it improves by about **2.47x**.
+
+### `strace -c` syscall profile
+
+In the old dim-5 path, 10-second samples on structures 11 and 24 both executed about **529K syscalls**, dominated by about **264K `mmap`** and **264K `munmap`** calls. After the refactor, the same 10-second samples drop to roughly **858 syscalls** on structure 11 and **1,283 syscalls** on structure 24, with only **19 `mmap`** and **2 `munmap`** calls in each run.
+
+This confirms that the allocator churn from the old tempfile and per-candidate scratch allocation path was the dominant systems bottleneck.
+
+### Full representative runs
+
+| Structure | Binary | Wall time | Output lines |
+|---|---|---:|---:|
+| 24 | current | 25.29s | 103,274 |
+| 24 | baseline | 63.98s | 103,274 |
+
+Structure 24 therefore sees an end-to-end speedup of about **2.53x**.
+
+For the heavier structure 11, the optimized binary still had not completed after 120 seconds and had emitted 200,573 lines. The baseline binary emitted only 76,484 lines in 60 seconds. That gives a conservative throughput improvement of about **1.79x** on this longer-running case, implying that any full structure-11 run should now take about **56%** of the old wall time.
+
+### Sharding
+
+Measured on structure 24 with two shards:
+
+| Command | Wall time | Output lines |
+|---|---:|---:|
+| `./cws-5d.x -c5 -s24` | 25.29s | 103,274 |
+| `./cws-5d.x -c5 -s24 -j2 -k1` | 12.28s | 46,874 |
+| `./cws-5d.x -c5 -s24 -j2 -k2` | 12.71s | 56,400 |
+
+The measured two-shard wall time is therefore about **2.0x** better than the optimized single-process run for a reasonably balanced structure.
+
+### Runtime estimate
+
+For exact measured work, canonical structure 24 drops from about **64s** to about **25s**, and to about **13s** with two shards.
+
+For longer dim-5 canonical workloads, the measured throughput improvement falls in the **1.8x to 2.5x** range. A practical estimate for the total `-c5` processing time on one core is therefore:
+
+- **before:** `T`
+- **after:** about `T / 1.8` to `T / 2.5`
+
+On balanced shardable workloads, two workers reduce that further to about `T / 3.6` to `T / 5.0` relative to the old single-process implementation.
 | `Aux_vNF_Line` | 2.3% | 1.1M | Normal form VPM line processing |
 | All other | 8.3% | — | — |
 
