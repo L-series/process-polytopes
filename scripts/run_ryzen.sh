@@ -20,8 +20,8 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 # ── Configuration ─────────────────────────────────────────────────────────
 
 # Files assigned to this runner (global indices into the 4000-file dataset)
-RUNNER_START=0
-RUNNER_END=1799
+RUNNER_START="${RUNNER_START:-0}"
+RUNNER_END="${RUNNER_END:-1799}"
 
 # Local parquet directory
 INPUT_DIR="${INPUT_DIR:-$REPO_ROOT/samples/reflexive}"
@@ -152,26 +152,25 @@ while (( BATCH_START <= RUNNER_END )); do
         continue
     fi
 
-    # Download any missing files in this range
-    LOCAL_COUNT=$(files_exist_locally "$BATCH_START" "$BATCH_END")
-    NEEDED=$(( BATCH_END - BATCH_START + 1 ))
-    if (( LOCAL_COUNT < NEEDED )); then
-        echo "  Have $LOCAL_COUNT / $NEEDED files locally"
-        download_range "$BATCH_START" "$BATCH_END"
-    else
-        echo "  All $NEEDED files present locally"
-    fi
+    # Clear any leftover parquet files from previous batches so the classifier
+    # only sees this batch's files (--start/--end are not passed, so all files
+    # in INPUT_DIR get processed — the dir must contain only this batch).
+    find "$INPUT_DIR" -name '*.parquet' -delete
+
+    # Download files for this batch
+    download_range "$BATCH_START" "$BATCH_END"
 
     # Process
     mkdir -p "$BATCH_OUT/checkpoints"
     echo "  Processing..."
 
+    # NOTE: Do NOT pass --start/--end here. Those flags are indices into the
+    # file list found in --input, not dataset file numbers. Since we clear
+    # INPUT_DIR and download only this batch's files, we process ALL files.
     "$CLASSIFIER" \
         --input "$INPUT_DIR" \
         --output "$BATCH_OUT" \
         --checkpoint "$BATCH_OUT/checkpoints" \
-        --start "$BATCH_START" \
-        --end "$BATCH_END" \
         --threads "$THREADS" \
         2>&1 | tee "$BATCH_LOG"
 

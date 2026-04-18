@@ -19,6 +19,27 @@ data/
 __pycache__/
 *.pyc
 .env
+
+# Local documentation/build outputs
+compare.log
+draft.aux
+draft.fdb_latexmk
+draft.fls
+draft.log
+draft.out
+draft.pdf
+paper/draft.aux
+paper/draft.fdb_latexmk
+paper/draft.fls
+paper/draft.log
+paper/draft.out
+paper/draft.pdf
+paper/draft.synctex.gz
+paper/pdflatex*.fls
+
+# Lean build cache
+lean/.lake/
+
 # Editor
 .vscode/
 *.swp
