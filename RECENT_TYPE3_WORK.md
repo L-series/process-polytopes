@@ -480,6 +480,54 @@ Conclusion:
 - the next safe optimization target should stay focused on the seed-bound path,
   not on `R == 0` handling or singleton-specialized scanning
 
+## Small-Divisor Fast Path That Landed
+
+Implemented a direct arithmetic fast path in `PALP/Coord.c` for the common
+small divisors inside the active `Make_CWS_Points` bound logic.
+
+Change:
+
+- when the seeded pivot divisor is `R == 1`, compute the seeded interval
+  directly instead of calling `PD_Floor`
+- when a tighten step has `R == 1`, update bounds with `Low` / `Upp` directly
+- when a negative tighten step has `R == -1`, update bounds with `-Low` /
+  `-Upp` directly
+
+Why this is safe:
+
+- these are exact algebraic specializations of the existing formulas, not
+  approximations
+- they only bypass the generic floor-division helper when the denominator makes
+  the result trivial
+
+Representative timed benchmark against the pre-change binary:
+
+- command:
+  `./cws.x -c5 -T -I -n2 cws/wf4-d1-20.txt cws/wf4-d1-20.txt -s3 -j32 -k1 /dev/null`
+- before change:
+  - candidates: `82410`
+  - IP successes: `32933`
+  - `Make_CWS_Points total`: `2.795726 s`
+  - `Timed-stage total`: `4.360175 s`
+- after change:
+  - candidates: `82410`
+  - IP successes: `32933`
+  - `Make_CWS_Points total`: `2.714832 s`
+  - `Timed-stage total`: `4.281797 s`
+
+That is about a `2.9%` improvement in `Make_CWS_Points` and about a `1.8%`
+improvement in the full timed stage on the representative shard.
+
+Heavier wall-clock benchmark:
+
+- command:
+  `./cws.x -c5 -I -n2 cws/wf4-d1-20.txt cws/wf4-d1-20.txt -s3 -j8 -k1 /dev/null`
+- pre-change wall time: `13.883 s`
+- post-change wall time: `13.604 s`
+
+So the same optimization improves the heavier shard by about `2.0%` in real
+wall-clock time as well.
+
 ## Current Uncommitted Work
 
 - `PALP/cws.c`
