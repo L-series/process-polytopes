@@ -556,3 +556,79 @@ wall-clock time as well.
   attempts regressed and were reverted.
 3. Use the new `-T` branch summary on additional representative shards only when
   a candidate optimization targets the seed-bound path directly.
+
+## Divisor-Histogram Follow-up
+
+Added a temporary `-T`-only divisor-bucketing pass to measure which exact
+small divisors still appear often enough in the surviving `Make_CWS_Points`
+bound logic on a large real shard.
+
+Large explicit-file measurement:
+
+- command:
+  `./cws.x -c5 -T -I -n2 cws/wf4-all.txt cws/wf4-all.txt -s3 -j1000000 -k1 /dev/null`
+- candidates: `6833280`
+- IP successes: `181482`
+- `Make_CWS_Points total`: `213.575122 s`
+- seed divisors:
+  `1=8136683477 2=467278090 3=314521923 4=228985662 other=32393047409`
+- tighten divisors `(+):`
+  `1=34181043 2=11635844 3=16614299 4=11030209 other=489120249`
+- tighten divisors `(-):`
+  `1=3074495 2=19544407 3=48433529 4=23976082 other=2192575970`
+
+Conclusion:
+
+- `R == 2` / `R == -2` was common enough to test next.
+- `R == 3` also appears often, but `/3` is a less attractive exact arithmetic
+  specialization than `/2`.
+
+## `/2` Fast Path That Was Rejected
+
+Implemented an exact `/2` bound specialization in `PALP/Coord.c` for:
+
+- seeded intervals with `R == 2`
+- positive tighten steps with `R == 2`
+- negative tighten steps with `R == -2`
+
+Result:
+
+- representative production benchmark:
+  `./cws.x -c5 -I -n2 cws/wf4-d1-20.txt cws/wf4-d1-20.txt -s3 -j32 -k1 /dev/null`
+  - experiment: `4.25 s`, `4.20 s`, `4.21 s`
+  - baseline: `4.19 s`, `4.25 s`, `4.20 s`
+- heavier production benchmark:
+  `./cws.x -c5 -I -n2 cws/wf4-d1-20.txt cws/wf4-d1-20.txt -s3 -j8 -k1 /dev/null`
+  - experiment: `13.54 s`, `13.56 s`
+  - baseline: `13.48 s`, `13.43 s`
+
+Conclusion:
+
+- the `/2` specialization was effectively flat on the smaller shard and
+  slightly slower on the heavier shard
+- it did not clear the no-regression bar and was reverted
+
+## Output-File Buffering That Landed
+
+Kept a small output-path change in `PALP/cws.c`: when `Make_IP_CWS` opens an
+explicit output file, it now requests a `1 MiB` fully buffered stdio stream via
+`setvbuf(outFILE, NULL, _IOFBF, 1 << 20)`.
+
+Validation:
+
+- output-heavy IP-only benchmark:
+  `./cws.x -c5 -I -n2 cws/wf4-d1-20.txt cws/wf4-d1-20.txt -s3 -j8 -k1 OUTFILE`
+  - buffered: `13.51 s`, `13.52 s`
+  - baseline: `13.63 s`, `13.56 s`
+  - output matched exactly: `120256` lines, `4330754` bytes
+- full combined-CWS path:
+  `./cws.x -c5 -n2 cws/wf4-d1-20.txt cws/wf4-d1-20.txt -s3 -j32 -k1 OUTFILE`
+  - buffered: `5.86 s`
+  - baseline: `5.88 s`
+  - output matched exactly: `32933` lines, `1773759` bytes
+
+Interpretation:
+
+- output is not a dominant cost on the representative shard
+- the larger stdio buffer is still a small, measurable win on file-backed
+  output and did not show a regression in the validated runs
