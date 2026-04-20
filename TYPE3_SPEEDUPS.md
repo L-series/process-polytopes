@@ -284,3 +284,22 @@ Interpretation:
 - but it is still slower than the CPU baseline on this card, which means the remaining bottleneck is no longer just host-side frontier expansion
 - at this point the GTX 1060 is useful for correctness and for detecting directional improvements, but it is a weak platform for estimating the best-case live CUDA upside of the next stages
 - the next meaningful step is likely cross-candidate batching or a broader device-side front-end, because per-candidate launch/orchestration overhead is still too expensive relative to the small amount of work in many individual `Make_CWS_Points` calls
+
+## Candidate Batch Status
+
+The repo also contains an opt-in cross-candidate batching path. It remains
+default-off, but it is now validated enough to treat as the next real live-CUDA
+lever rather than just profiling scaffolding.
+
+- `PALP_TYPE3_CUDA_CANDIDATE_BATCH=1` keeps the normal single-candidate live CUDA path
+- values greater than `1` opt into the queued candidate path explicitly
+- on `wf4-d1-20`, shard `-j32 -k1`, with a freshly rebuilt `cws.x` and CUDA runtime, the single-candidate CUDA path is still clearly slower than CPU on this GTX 1060:
+  - CPU baseline: `7.35s`
+  - current working-tree CUDA runtime, `batch=1`: `15.39s`
+  - last committed control runtime, `batch=1`: `14.87s`
+- that control comparison shows the current per-candidate runtime is still within about `3.5%` of the last committed behavior; the important new result is the queueing layer itself
+- on the same shard, queued cross-candidate batching now removes most of the launch/orchestration penalty:
+  - `batch=16`, `lanes=8`: `7.11s`
+  - `batch=32`, `lanes=8`: `6.40s`
+- on this card, `batch=32` with `PALP_TYPE3_CUDA_BATCH_LANES=8` is the best validated preset so far and beats the CPU baseline while preserving exact output hashes
+- this is still not enough evidence to make batching the default, but it is now the right path to test on a stronger NVIDIA GPU and over a broader shard sweep

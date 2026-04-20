@@ -59,6 +59,15 @@ int Type3BoundsCudaEnumerate(Type3BoundsCudaContext *context,
                              Type3BoundsCudaStats *stats,
                              char *error_buffer,
                              size_t error_buffer_size);
+int Type3BoundsCudaEnumerateBatch(Type3BoundsCudaContext *context,
+                                  const Type3BoundsCudaProblem *problems,
+                                  uint32_t problem_count,
+                                  uint32_t point_capacity,
+                                  int64_t **points,
+                                  uint32_t *point_counts,
+                                  Type3BoundsCudaStats *stats,
+                                  char *error_buffer,
+                                  size_t error_buffer_size);
 void Type3BoundsCudaDestroy(Type3BoundsCudaContext *context);
 
 #ifdef __cplusplus

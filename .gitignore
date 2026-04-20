@@ -36,6 +36,8 @@ paper/draft.out
 paper/draft.pdf
 paper/draft.synctex.gz
 paper/pdflatex*.fls
+.type3-cuda-runtime/
+.type3-frontier-bench/
 
 # Lean build cache
 lean/.lake/

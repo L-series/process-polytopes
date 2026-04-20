@@ -14,8 +14,14 @@ CUDA_NIXPKGS_SET="${CUDA_NIXPKGS_SET:-cudaPackages_12_6}"
 SHARD_COUNT="${SHARD_COUNT:-32}"
 SHARD_INDEX="${SHARD_INDEX:-1}"
 FRONTIER_BATCH="${FRONTIER_BATCH:-65536}"
+CUDA_CANDIDATE_BATCH="${CUDA_CANDIDATE_BATCH:-1}"
+CUDA_BATCH_LANES="${CUDA_BATCH_LANES:-4}"
 MODES="${MODES:-baseline cpu cuda}"
 AUTO_BUILD_CUDA="${AUTO_BUILD_CUDA:-1}"
+
+if [[ "$BENCH_DIR" != /* ]]; then
+    BENCH_DIR="$REPO_ROOT/$BENCH_DIR"
+fi
 
 detect_host_cuda_lib_dir() {
     local candidate
@@ -57,7 +63,7 @@ run_case() {
                 echo "skipping cuda mode; no visible NVIDIA GPU" >&2
                 return 0
             fi
-            env_args+=(PALP_TYPE3_FRONTIER=cuda PALP_TYPE3_FRONTIER_BATCH="$FRONTIER_BATCH" PALP_TYPE3_CUDA_RUNTIME="$CUDA_RUNTIME")
+            env_args+=(PALP_TYPE3_FRONTIER=cuda PALP_TYPE3_FRONTIER_BATCH="$FRONTIER_BATCH" PALP_TYPE3_CUDA_RUNTIME="$CUDA_RUNTIME" PALP_TYPE3_CUDA_CANDIDATE_BATCH="$CUDA_CANDIDATE_BATCH" PALP_TYPE3_CUDA_BATCH_LANES="$CUDA_BATCH_LANES")
             local host_cuda_lib_dir
             host_cuda_lib_dir="$(detect_host_cuda_lib_dir || true)"
             if [[ -n "$host_cuda_lib_dir" ]]; then
