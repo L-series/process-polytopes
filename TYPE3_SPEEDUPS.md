@@ -257,3 +257,30 @@ Interpretation:
 - but this specific implementation is slower, because it keeps frontier expansion on the host and pays host-device transfer and synchronization costs at every level
 - in other words, this bridges the replay PoC to a live path, but it does **not** yet achieve the larger architectural step needed for speedups
 - the next meaningful CUDA step is a more device-resident frontier expansion, not more tuning of the current host-managed batching layer
+
+## Device-Resident Frontier Follow-Up
+
+The CUDA runtime now has a second stage beyond the original live batching path: it can keep the per-coordinate type-3 frontier on the device, expand it there, and copy the final point list back only once per candidate.
+
+What changed:
+
+- the original live path built jobs on the host, shipped each batch to the GPU, downloaded the bounds back, and then expanded the frontier on the host
+- the current runtime can upload the candidate-specific basis/X0/Xmax problem, initialize the last-coordinate frontier on the device, expand each remaining coordinate there, and download only the final points and aggregate stats
+
+Measured results on the same GTX 1060 6 GB:
+
+- shard `-j128 -k1`
+  - baseline: `1.68s`
+  - previous live CUDA frontier: `6.42s`
+  - current device-resident CUDA frontier: `4.26s`
+- shard `-j32 -k1`
+  - baseline: `7.26s`
+  - previous live CUDA frontier: `27.12s`
+  - current device-resident CUDA frontier: `16.64s`
+
+Interpretation:
+
+- this is a real improvement over the previous live CUDA attempt: about `1.5x` faster on the small validation shard and about `1.6x` faster on the more representative shard
+- but it is still slower than the CPU baseline on this card, which means the remaining bottleneck is no longer just host-side frontier expansion
+- at this point the GTX 1060 is useful for correctness and for detecting directional improvements, but it is a weak platform for estimating the best-case live CUDA upside of the next stages
+- the next meaningful step is likely cross-candidate batching or a broader device-side front-end, because per-candidate launch/orchestration overhead is still too expensive relative to the small amount of work in many individual `Make_CWS_Points` calls
