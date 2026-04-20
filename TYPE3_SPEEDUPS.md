@@ -130,3 +130,130 @@ worth revisiting later.
 2. Stop rebuilding the size-5 / overlap-3 selection cache in every worker.
 3. Use more logical shards than physical cores and schedule them dynamically.
 4. Explore stronger duplicate-pruning before `PRINT_CWS`.
+
+## Ranked next bets
+
+There are really two rankings worth keeping separate.
+
+Raw upside if everything works:
+
+1. Stronger safe pruning before [PALP/cws.c](PALP/cws.c#L2894).
+2. A successful GPU offload of the seed/tighten kernel in [PALP/Coord.c](PALP/Coord.c#L1128).
+3. More CPU-only refactoring inside `Make_CWS_Points`.
+
+Probability-weighted next action:
+
+1. More CPU work inside [PALP/Coord.c](PALP/Coord.c#L1128).
+  Expected upside: another `1.3x` to `2.0x` on the hot routine, likely `1.2x` to `1.6x` end-to-end on the emitted-candidate front end.
+  Why: the measured hotspot is already isolated, and the code is branch-heavy integer arithmetic that still has some structure left to simplify.
+2. Stronger pre-geometry pruning before [PALP/cws.c](PALP/cws.c#L2894).
+  Expected upside: potentially larger than CPU refactoring if a sound rejector exists, because it cuts the candidate count itself.
+  Why not first: the mathematical risk is higher, and the last few descriptor-level shortcuts have not paid off.
+3. GPU work, but only after a standalone kernel benchmark.
+  Expected upside: likely `1.5x` to `3.0x` on the seed/tighten kernel if divergence is tolerable, but materially less on the whole PALP path unless more of the front end moves with it.
+  Why third: the hot loop is not a dense numeric kernel, so the uncertainty is much higher than for more CPU cleanup.
+
+For multi-machine runs, there is a separate engineering track with high confidence but smaller per-candidate upside:
+
+- use many more logical shards than cores and schedule them dynamically across machines
+- stop rebuilding the shared size-5 pool and overlap-3 selection cache in every worker process
+
+Those cluster-facing changes do not alter the per-candidate math, but they should reduce wall time on a 256-core fleet more reliably than a speculative GPU port.
+
+## CUDA Probe Harness
+
+To test the GPU idea without porting PALP itself, the repo now contains a small standalone microbenchmark of the seed/tighten logic from [PALP/Coord.c](PALP/Coord.c#L1128):
+
+- CPU reference generator and benchmark: [src/verify/harness_type3_cuda_bounds.cpp](src/verify/harness_type3_cuda_bounds.cpp)
+- shared kernel model: [src/verify/type3_bounds_bench_common.h](src/verify/type3_bounds_bench_common.h)
+- CUDA kernel benchmark: [src/verify/harness_type3_cuda_bounds.cu](src/verify/harness_type3_cuda_bounds.cu)
+- runner script: [scripts/benchmark_type3_cuda.sh](scripts/benchmark_type3_cuda.sh)
+- real-job export and replay script: [scripts/benchmark_type3_cuda_real.sh](scripts/benchmark_type3_cuda_real.sh)
+
+What it does:
+
+- generates a synthetic batch of independent seed/tighten jobs
+- biases the divisor mix toward the measured large-shard type-3 `-T` histograms
+- can export real seed/tighten jobs from the timing-enabled [PALP/Coord.c](PALP/Coord.c#L1128) path via `PALP_TYPE3_BOUNDS_EXPORT`
+- stores self-validating records, so both CPU and GPU replay fail if any replayed result differs from the exported PALP result
+- reports CPU reference throughput now
+- reports CUDA kernel throughput later on any machine with `nvcc` and a visible GPU
+- can sweep block sizes in one run
+
+What it does not do yet:
+
+- it does not include host-device transfer cost in the GPU timing
+- it does not model later `IP_Check` or dual-polytope work
+- it does not yet splice GPU replay back into `PRINT_CWS`; it is still a narrow replay/offload prototype
+
+That is deliberate. The question here is only whether the hot bound kernel itself behaves like something worth moving to SIMT. If the kernel-only result is not compelling, a full CUDA port is almost certainly not worth the effort.
+
+## Current GPU Replay Results
+
+Synthetic replay on the local GTX 1060 6 GB with CUDA 12.6 and exact CPU/GPU parity checks:
+
+- synthetic dataset: `200,000` jobs
+- CPU reference: about `61.2M` jobs/s
+- GPU replay:
+  - block `128`: about `627.7M` jobs/s
+  - block `256`: about `609.4M` jobs/s
+  - block `512`: about `583.3M` jobs/s
+- best synthetic block size on this card: `128`
+- validation: `cpu_validation mismatches=0`, `gpu_validation mismatches=0`
+
+Real-job replay from the actual `./cws.x -c5 -T -I -n2 ... -s3` path on `wf4-d1-20`, shard `-j32 -k1`, exported from [PALP/Coord.c](PALP/Coord.c#L1128):
+
+- exported records: `200,000`
+- observed real-job mix:
+  - `61.8%` tighten-empty
+  - `6.2%` zero-fail
+  - `32.0%` survive
+  - average `2.146` steps/job
+- CPU reference: about `172.8M` jobs/s
+- GPU replay:
+  - block `64`: about `575.3M` jobs/s
+  - block `128`: about `594.4M` jobs/s
+  - block `256`: about `594.4M` jobs/s
+  - block `512`: about `592.5M` jobs/s
+- best real-job block sizes on this card: effectively `128` and `256`
+- measured real-job GPU/CPU speedup: about `3.44x`
+- validation: `cpu_validation mismatches=0`, `gpu_validation mismatches=0`
+
+Interpretation:
+
+- the synthetic `~10x` result on the GTX 1060 was real, but too optimistic for the true exported workload
+- on real PALP jobs, the narrow kernel replay still wins cleanly, but by about `3.4x`, not `10x`
+- that makes a GPU path plausible, but only for a narrow offload with low marshaling overhead; it does not justify a blind full CUDA rewrite of PALP
+
+## Live Frontier Trial
+
+The repo now also contains an env-gated live frontier path inside [PALP/Coord.c](PALP/Coord.c#L1278) plus a loadable CUDA runtime:
+
+- CUDA runtime build: [scripts/build_type3_cuda_runtime.sh](scripts/build_type3_cuda_runtime.sh)
+- end-to-end benchmark and hash check: [scripts/benchmark_type3_frontier.sh](scripts/benchmark_type3_frontier.sh)
+- runtime ABI: [src/verify/type3_bounds_runtime.h](src/verify/type3_bounds_runtime.h)
+- runtime implementation: [src/verify/type3_bounds_runtime.cu](src/verify/type3_bounds_runtime.cu)
+
+How it works today:
+
+- `PALP_TYPE3_FRONTIER=cpu` switches the type-3 `(5,5)` `Make_CWS_Points` hot path to a breadth-first frontier enumerator that batches the existing seed/tighten jobs
+- `PALP_TYPE3_FRONTIER=cuda` uses the same frontier path, but sends each batch of jobs through the loadable CUDA runtime named by `PALP_TYPE3_CUDA_RUNTIME`
+- the original depth-first PALP path remains the default and is untouched unless the env flag is set
+- the benchmark script compares output hashes against baseline so the experimental path has an immediate correctness check
+
+Measured results on this GTX 1060 6 GB:
+
+- shard `-j128 -k1`, batch `8192`
+  - baseline: `1.64s`
+  - cpu frontier: `2.55s`
+  - cuda frontier: `6.42s`
+- shard `-j32 -k1`, batch `65536`
+  - baseline: `7.49s`
+  - cuda frontier: `27.12s`
+
+Interpretation:
+
+- the new path is functionally correct on the tested shards: baseline, CPU frontier, and CUDA frontier produced identical output hashes
+- but this specific implementation is slower, because it keeps frontier expansion on the host and pays host-device transfer and synchronization costs at every level
+- in other words, this bridges the replay PoC to a live path, but it does **not** yet achieve the larger architectural step needed for speedups
+- the next meaningful CUDA step is a more device-resident frontier expansion, not more tuning of the current host-managed batching layer
