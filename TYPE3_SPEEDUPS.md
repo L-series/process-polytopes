@@ -301,5 +301,57 @@ lever rather than just profiling scaffolding.
 - on the same shard, queued cross-candidate batching now removes most of the launch/orchestration penalty:
   - `batch=16`, `lanes=8`: `7.11s`
   - `batch=32`, `lanes=8`: `6.40s`
-- on this card, `batch=32` with `PALP_TYPE3_CUDA_BATCH_LANES=8` is the best validated preset so far and beats the CPU baseline while preserving exact output hashes
+- after moving the toolchain into the new `cuda` Nix shell and rebuilding `cws.x` plus the CUDA runtime inside that shell, the same shard still shows the same qualitative result:
+  - CPU baseline: `7.57s`
+  - `batch=1`, `lanes=8`: `15.78s`
+  - `batch=16`, `lanes=8`: `6.47s`
+  - `batch=32`, `lanes=8`: `6.54s`
+- on this card, `batch=16` and `batch=32` with `PALP_TYPE3_CUDA_BATCH_LANES=8` are effectively tied in the fresh shell-based rebuild, and both beat the CPU baseline while preserving exact output hashes
 - this is still not enough evidence to make batching the default, but it is now the right path to test on a stronger NVIDIA GPU and over a broader shard sweep
+
+## Nix GPU Shell Status
+
+The repo now has dedicated Nix shells for the GPU work:
+
+- `cuda` provides `nvcc`, the CUDA runtime build dependencies, and the type-3 benchmark scripts
+- `rocm` provides `hipcc`, ROCm probe tools, and enough runtime/compiler state to validate basic HIP compilation
+- on this host, direct `nix develop` tries to use `/nix/var/nix/builds` and fails, so the practical entry point is [scripts/nix_develop_local.sh](scripts/nix_develop_local.sh)
+- quick probes live in [scripts/probe_gpu_stack.sh](scripts/probe_gpu_stack.sh)
+
+Current shell validation results on this machine:
+
+- CUDA shell:
+  - `scripts/probe_gpu_stack.sh cuda` sees the GTX 1060 6 GB and CUDA 12.6
+  - rebuilding `PALP/cws.x` and [scripts/build_type3_cuda_runtime.sh](scripts/build_type3_cuda_runtime.sh) from inside the shell succeeds
+- ROCm shell:
+  - `hipcc` now compiles a trivial HIP runtime probe successfully
+  - `rocm-smi` sees the RX 7700 XT as `gfx1102`
+  - `rocminfo` still fails with `HSA_STATUS_ERROR_OUT_OF_RESOURCES`
+  - a trivial `hipGetDeviceCount` probe currently returns `status=100` and `devices=0`
+
+Interpretation:
+
+- the CUDA shell is now a usable reproducible path for this repo on this machine
+- the ROCm shell is sufficient for toolchain/probe validation, but the AMD runtime is still not usable for real HIP execution here; the remaining blocker is the host ROCm runtime state, not the flake packaging
+
+## Multi-Worker GPU Launcher
+
+The repo now contains a GPU-aware shard launcher for the live CUDA path:
+
+- launcher: [scripts/run_type3_multi_gpu.sh](scripts/run_type3_multi_gpu.sh)
+- it schedules a shard range across one or more GPU worker slots using separate PALP processes
+- each run records per-shard logs, aggregate timings, and an order-insensitive combined sorted SHA-256 over the emitted CWS lines
+
+Representative launcher benchmarks on the GTX 1060, using `wf4-d1-20`, shard subset `1..8 / 32`, all with the same combined sorted hash `849563a99352395ec00c62e658ef3e287086b16648395e6e0c487b104215ddf7`:
+
+- `1 worker/GPU`, `batch=16`, `lanes=8`: `45.54s`
+- `2 workers/GPU`, `batch=16`, `lanes=8`: `40.34s`
+- `2 workers/GPU`, `batch=32`, `lanes=8`: `39.94s`
+- `2 workers/GPU`, `batch=16`, `lanes=4`: `54.40s`
+- `4 workers/GPU`, `batch=16`, `lanes=4`: `60.28s`
+
+Interpretation:
+
+- on this GPU, moderate oversubscription helps: `2 workers/GPU` is about `12.3%` faster than `1 worker/GPU` on this shard subset when using `batch=32`, `lanes=8`
+- lowering per-process lane count to `4` was clearly the wrong direction here
+- this gives a practical starting point for future RTX multi-GPU tests: keep one or two PALP processes per GPU, start from `batch=32`, `lanes=8`, and scale out with explicit `GPU_LIST`

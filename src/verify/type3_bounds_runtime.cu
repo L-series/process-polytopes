@@ -30,6 +30,9 @@ struct Type3BoundsCudaEnumerationLane {
   int64_t (*device_frontier_a)[kType3BoundsRuntimeMaxDimension];
   int64_t (*device_frontier_b)[kType3BoundsRuntimeMaxDimension];
   int64_t (*device_points)[kType3BoundsRuntimeMaxDimension];
+  Type3BoundsCudaDevicePointBuffer *device_ip_point_buffer;
+  int *device_ip_result;
+  int *device_ip_error_flag;
 };
 
 struct Type3BoundsCudaBatchWorkers {
@@ -46,6 +49,9 @@ struct Type3BoundsCudaBatchWorkers {
   uint32_t point_capacity;
   int64_t **points;
   uint32_t *point_counts;
+  Type3BoundsCudaPointBuffer *compact_outputs;
+  Type3BoundsCudaDevicePointBuffer *device_outputs;
+  int *ip_results;
   Type3BoundsCudaStats *stats;
   bool batch_active;
   bool stop;
@@ -63,6 +69,9 @@ struct Type3BoundsCudaBatchWorkers {
         point_capacity(0),
         points(nullptr),
         point_counts(nullptr),
+        compact_outputs(nullptr),
+        device_outputs(nullptr),
+        ip_results(nullptr),
         stats(nullptr),
         batch_active(false),
         stop(false),
@@ -73,6 +82,14 @@ struct Type3BoundsCudaBatchWorkers {
 struct Type3BoundsCudaContext {
   Type3BoundsJob *device_jobs;
   Type3BoundsResult *device_results;
+  Type3BoundsCudaEquation *device_equation_batch;
+  Type3BoundsCudaEquationTask *device_equation_tasks;
+  Type3BoundsCudaIPState *device_ip_states;
+  Type3BoundsCudaDevicePointBuffer *device_ip_point_buffers;
+  int64_t *device_equation_points;
+  uint8_t *device_equation_negative_flags;
+  int *device_ip_results;
+  int *device_ip_error_flag;
   Type3BoundsCudaCwsCandidate *device_candidate_batch;
   Type3BoundsCudaProblem *device_problem_batch;
   int *device_prepare_status_batch;
@@ -80,11 +97,19 @@ struct Type3BoundsCudaContext {
   Type3BoundsCudaDim5Structure3Candidate *device_dim5_structure3_candidates;
   uint32_t *device_dim5_structure3_candidate_counts;
   uint32_t candidate_batch_capacity;
+  uint32_t equation_batch_capacity;
+  uint32_t ip_state_capacity;
   uint32_t dim5_weight_capacity;
   uint32_t dim5_weight_count;
   uint32_t dim5_structure3_pair_capacity;
+  uint32_t uploaded_equation_point_count;
+  uint32_t uploaded_equation_point_stride;
   uint32_t capacity;
   uint32_t block_size;
+  size_t equation_point_value_capacity;
+  int64_t **device_output_pool;
+  size_t *device_output_pool_value_capacities;
+  uint32_t device_output_pool_capacity;
   int device_ordinal;
   uint32_t lane_count;
   Type3BoundsCudaEnumerationLane *lanes;
@@ -777,7 +802,9 @@ int EnumerateOnLane(Type3BoundsCudaContext *context,
                     const Type3BoundsCudaProblem *problem,
           const Type3BoundsCudaReduction *reduction,
                     uint32_t point_capacity, int64_t *points,
-                    uint32_t *point_count, Type3BoundsCudaStats *stats,
+                    uint32_t *point_count,
+                    Type3BoundsCudaDevicePointBuffer *resident_output,
+                    Type3BoundsCudaStats *stats,
                     char *error_buffer, size_t error_buffer_size);
 
 int EnumerateCwsOnLane(Type3BoundsCudaContext *context,
@@ -785,7 +812,9 @@ int EnumerateCwsOnLane(Type3BoundsCudaContext *context,
                        const Type3BoundsCudaCwsCandidate *candidate,
                        const Type3BoundsCudaReduction *reduction,
                        uint32_t point_capacity, int64_t *points,
-                       uint32_t *point_count, Type3BoundsCudaStats *stats,
+                       uint32_t *point_count,
+                       Type3BoundsCudaDevicePointBuffer *resident_output,
+                       Type3BoundsCudaStats *stats,
                        char *error_buffer, size_t error_buffer_size);
 
 int EnumerateSynchronously(Type3BoundsCudaContext *context,
@@ -793,7 +822,9 @@ int EnumerateSynchronously(Type3BoundsCudaContext *context,
                            const Type3BoundsCudaProblem *problem,
             const Type3BoundsCudaReduction *reduction,
                            uint32_t point_capacity, int64_t *points,
-                           uint32_t *point_count, Type3BoundsCudaStats *stats,
+                           uint32_t *point_count,
+                           Type3BoundsCudaDevicePointBuffer *resident_output,
+                           Type3BoundsCudaStats *stats,
                            char *error_buffer, size_t error_buffer_size);
 
 int EnumerateCwsSynchronously(Type3BoundsCudaContext *context,
@@ -802,9 +833,16 @@ int EnumerateCwsSynchronously(Type3BoundsCudaContext *context,
                               const Type3BoundsCudaReduction *reduction,
                               uint32_t point_capacity, int64_t *points,
                               uint32_t *point_count,
+                              Type3BoundsCudaDevicePointBuffer *resident_output,
                               Type3BoundsCudaStats *stats,
                               char *error_buffer,
                               size_t error_buffer_size);
+
+__global__ void RunIPCheckDeviceBatchKernel(
+  const Type3BoundsCudaDevicePointBuffer *point_buffers,
+  uint32_t state_count,
+  int *results,
+  int *error_flag);
 
 void DestroyEnumerationLane(Type3BoundsCudaEnumerationLane *lane) {
   if (lane == nullptr)
@@ -831,6 +869,12 @@ void DestroyEnumerationLane(Type3BoundsCudaEnumerationLane *lane) {
     cudaFree(lane->device_frontier_b);
   if (lane->device_points != nullptr)
     cudaFree(lane->device_points);
+  if (lane->device_ip_point_buffer != nullptr)
+    cudaFree(lane->device_ip_point_buffer);
+  if (lane->device_ip_result != nullptr)
+    cudaFree(lane->device_ip_result);
+  if (lane->device_ip_error_flag != nullptr)
+    cudaFree(lane->device_ip_error_flag);
   if (lane->stream != nullptr)
     cudaStreamDestroy(lane->stream);
   std::memset(lane, 0, sizeof(*lane));
@@ -859,7 +903,34 @@ void DestroyBatchWorkers(Type3BoundsCudaContext *context) {
 void DestroyContext(Type3BoundsCudaContext *context) {
   if (context == nullptr)
     return;
+  if (context->device_output_pool != nullptr) {
+    for (uint32_t index = 0; index < context->device_output_pool_capacity;
+         index++)
+      if (context->device_output_pool[index] != nullptr)
+        cudaFree(context->device_output_pool[index]);
+    std::free(context->device_output_pool);
+  }
+  if (context->device_output_pool_value_capacities != nullptr)
+    std::free(context->device_output_pool_value_capacities);
+  if (context == nullptr)
+    return;
   DestroyBatchWorkers(context);
+  if (context->device_equation_batch != nullptr)
+    cudaFree(context->device_equation_batch);
+  if (context->device_equation_tasks != nullptr)
+    cudaFree(context->device_equation_tasks);
+  if (context->device_ip_states != nullptr)
+    cudaFree(context->device_ip_states);
+  if (context->device_ip_point_buffers != nullptr)
+    cudaFree(context->device_ip_point_buffers);
+  if (context->device_equation_points != nullptr)
+    cudaFree(context->device_equation_points);
+  if (context->device_equation_negative_flags != nullptr)
+    cudaFree(context->device_equation_negative_flags);
+  if (context->device_ip_results != nullptr)
+    cudaFree(context->device_ip_results);
+  if (context->device_ip_error_flag != nullptr)
+    cudaFree(context->device_ip_error_flag);
   if (context->device_dim5_weights != nullptr)
     cudaFree(context->device_dim5_weights);
   if (context->device_dim5_structure3_candidates != nullptr)
@@ -893,6 +964,324 @@ void RecordBatchFailure(Type3BoundsCudaBatchWorkers *workers,
         (message != nullptr) ? message : "unknown batch failure";
 }
 
+int CopyCompactPointsFromLane(Type3BoundsCudaEnumerationLane *lane,
+                              uint32_t point_count,
+                              Type3BoundsCudaPointBuffer *output,
+                              char *error_buffer,
+                              size_t error_buffer_size) {
+  size_t point_value_count;
+  int64_t *copied_points;
+
+  if (output == nullptr) {
+    SetError(error_buffer, error_buffer_size,
+             "invalid compact point output buffer");
+    return 1;
+  }
+
+  output->points = nullptr;
+  output->point_count = point_count;
+  if (point_count == 0)
+    return 0;
+
+  point_value_count = static_cast<size_t>(point_count) *
+                      kType3BoundsRuntimeMaxDimension;
+  copied_points = static_cast<int64_t *>(
+      std::malloc(point_value_count * sizeof(int64_t)));
+  if (copied_points == nullptr) {
+    SetError(error_buffer, error_buffer_size,
+             "unable to allocate compact host point buffer");
+    return 1;
+  }
+
+  std::memcpy(copied_points, lane->host_point_staging,
+              point_value_count * sizeof(int64_t));
+  output->points = copied_points;
+  return 0;
+}
+
+void FreeCompactPointBuffers(Type3BoundsCudaPointBuffer *outputs,
+                             uint32_t output_count) {
+  if (outputs == nullptr)
+    return;
+
+  for (uint32_t index = 0; index < output_count; index++) {
+    std::free(outputs[index].points);
+    outputs[index].points = nullptr;
+    outputs[index].point_count = 0;
+  }
+}
+
+void FreeDevicePointBuffers(Type3BoundsCudaDevicePointBuffer *outputs,
+                            uint32_t output_count) {
+  if (outputs == nullptr)
+    return;
+
+  for (uint32_t index = 0; index < output_count; index++) {
+    if (outputs[index].points != nullptr)
+      cudaFree(outputs[index].points);
+    outputs[index].points = nullptr;
+    outputs[index].point_count = 0;
+    outputs[index].point_dimension = 0;
+    outputs[index].point_stride = 0;
+  }
+}
+
+cudaError_t EnsureDeviceOutputPoolCapacity(Type3BoundsCudaContext *context,
+                                           uint32_t output_count) {
+  int64_t **new_pool;
+  size_t *new_capacities;
+  uint32_t index;
+
+  if (output_count <= context->device_output_pool_capacity)
+    return cudaSuccess;
+
+  new_pool = static_cast<int64_t **>(std::realloc(
+      context->device_output_pool,
+      static_cast<size_t>(output_count) * sizeof(*new_pool)));
+  if (new_pool == nullptr)
+    return cudaErrorMemoryAllocation;
+  context->device_output_pool = new_pool;
+
+  new_capacities = static_cast<size_t *>(std::realloc(
+      context->device_output_pool_value_capacities,
+      static_cast<size_t>(output_count) * sizeof(*new_capacities)));
+  if (new_capacities == nullptr)
+    return cudaErrorMemoryAllocation;
+  context->device_output_pool_value_capacities = new_capacities;
+
+  for (index = context->device_output_pool_capacity; index < output_count;
+       index++) {
+    context->device_output_pool[index] = nullptr;
+    context->device_output_pool_value_capacities[index] = 0;
+  }
+  context->device_output_pool_capacity = output_count;
+  return cudaSuccess;
+}
+
+cudaError_t EnsureDeviceOutputBufferCapacity(Type3BoundsCudaContext *context,
+                                             uint32_t output_index,
+                                             size_t point_value_count) {
+  cudaError_t status;
+  int64_t *new_buffer;
+
+  status = EnsureDeviceOutputPoolCapacity(context, output_index + 1);
+  if (status != cudaSuccess)
+    return status;
+  if (point_value_count <=
+      context->device_output_pool_value_capacities[output_index])
+    return cudaSuccess;
+
+  new_buffer = nullptr;
+  status = cudaMalloc(&new_buffer, point_value_count * sizeof(int64_t));
+  if (status != cudaSuccess)
+    return status;
+  if (context->device_output_pool[output_index] != nullptr)
+    cudaFree(context->device_output_pool[output_index]);
+  context->device_output_pool[output_index] = new_buffer;
+  context->device_output_pool_value_capacities[output_index] = point_value_count;
+  return cudaSuccess;
+}
+
+cudaError_t EnsureLaneIPCheckCapacity(Type3BoundsCudaEnumerationLane *lane) {
+  cudaError_t status;
+
+  if (lane->device_ip_point_buffer == nullptr) {
+    status = cudaMalloc(&lane->device_ip_point_buffer,
+                        sizeof(Type3BoundsCudaDevicePointBuffer));
+    if (status != cudaSuccess)
+      return status;
+  }
+  if (lane->device_ip_result == nullptr) {
+    status = cudaMalloc(&lane->device_ip_result, sizeof(int));
+    if (status != cudaSuccess)
+      return status;
+  }
+  if (lane->device_ip_error_flag == nullptr) {
+    status = cudaMalloc(&lane->device_ip_error_flag, sizeof(int));
+    if (status != cudaSuccess)
+      return status;
+  }
+
+  return cudaSuccess;
+}
+
+int PrepareDirectDeviceOutputBuffer(Type3BoundsCudaContext *context,
+                                    uint32_t output_index,
+                                    uint32_t point_capacity,
+                                    uint32_t point_dimension,
+                                    Type3BoundsCudaDevicePointBuffer *output,
+                                    char *error_buffer,
+                                    size_t error_buffer_size) {
+  cudaError_t status;
+  size_t point_value_count;
+
+  if (output == nullptr) {
+    SetError(error_buffer, error_buffer_size,
+             "invalid direct device point output buffer");
+    return 1;
+  }
+  if ((point_dimension == 0) ||
+      (point_dimension > kType3BoundsRuntimeMaxDimension)) {
+    SetError(error_buffer, error_buffer_size,
+             "invalid point dimension for direct device output");
+    return 1;
+  }
+
+  point_value_count = static_cast<size_t>(point_capacity) *
+                      kType3BoundsRuntimeMaxDimension;
+  status = EnsureDeviceOutputBufferCapacity(context, output_index,
+                                            point_value_count);
+  if (status != cudaSuccess) {
+    SetCudaError(error_buffer, error_buffer_size,
+                 "unable to reserve direct device point buffer", status);
+    return 1;
+  }
+
+  output->points = context->device_output_pool[output_index];
+  output->point_count = 0;
+  output->point_dimension = point_dimension;
+  output->point_stride = kType3BoundsRuntimeMaxDimension;
+  return 0;
+}
+
+int CopyDevicePointsFromLane(Type3BoundsCudaContext *context,
+                             Type3BoundsCudaEnumerationLane *lane,
+                             uint32_t output_index,
+                             uint32_t point_count,
+                             uint32_t point_dimension,
+                             Type3BoundsCudaDevicePointBuffer *output,
+                             char *error_buffer,
+                             size_t error_buffer_size) {
+  cudaError_t status;
+  size_t point_value_count;
+
+  if (output == nullptr) {
+    SetError(error_buffer, error_buffer_size,
+             "invalid device point output buffer");
+    return 1;
+  }
+
+  output->points = nullptr;
+  output->point_count = point_count;
+  output->point_dimension = point_dimension;
+  output->point_stride = kType3BoundsRuntimeMaxDimension;
+  if (point_count == 0)
+    return 0;
+
+  point_value_count = static_cast<size_t>(point_count) *
+                      kType3BoundsRuntimeMaxDimension;
+  status = EnsureDeviceOutputBufferCapacity(context, output_index,
+                                            point_value_count);
+  if (status != cudaSuccess) {
+    SetCudaError(error_buffer, error_buffer_size,
+                 "unable to reserve compact device point buffer", status);
+    return 1;
+  }
+  status = cudaMemcpy(context->device_output_pool[output_index],
+                      lane->device_points,
+                      point_value_count * sizeof(int64_t),
+                      cudaMemcpyDeviceToDevice);
+  if (status != cudaSuccess) {
+    SetCudaError(error_buffer, error_buffer_size,
+                 "unable to copy compact device point buffer", status);
+    return 1;
+  }
+
+  output->points = context->device_output_pool[output_index];
+  return 0;
+}
+
+int RunResidentIPCheckOnLane(Type3BoundsCudaContext *context,
+                             Type3BoundsCudaEnumerationLane *lane,
+                             const Type3BoundsCudaDevicePointBuffer *point_buffer,
+                             int *result,
+                             char *error_buffer,
+                             size_t error_buffer_size) {
+  cudaError_t status;
+  uint32_t block_size;
+  int device_error = 0;
+
+  if ((point_buffer == nullptr) || (result == nullptr)) {
+    SetError(error_buffer, error_buffer_size,
+             "invalid resident CUDA IP-check args");
+    return 1;
+  }
+  if ((point_buffer->point_dimension == 0) ||
+      (point_buffer->point_dimension > kType3BoundsRuntimeMaxDimension) ||
+      (point_buffer->point_stride < point_buffer->point_dimension) ||
+      ((point_buffer->point_count != 0) && (point_buffer->points == nullptr))) {
+    SetError(error_buffer, error_buffer_size,
+             "invalid resident CUDA IP-check payload");
+    return 1;
+  }
+
+  status = EnsureLaneIPCheckCapacity(lane);
+  if (status != cudaSuccess) {
+    SetCudaError(error_buffer, error_buffer_size,
+                 "unable to reserve resident CUDA IP-check buffers", status);
+    return 1;
+  }
+  status = cudaMemcpyAsync(lane->device_ip_point_buffer, point_buffer,
+                           sizeof(*point_buffer), cudaMemcpyHostToDevice,
+                           lane->stream);
+  if (status != cudaSuccess) {
+    SetCudaError(error_buffer, error_buffer_size,
+                 "unable to upload resident CUDA IP-check descriptor", status);
+    return 1;
+  }
+  status = cudaMemsetAsync(lane->device_ip_error_flag, 0, sizeof(int),
+                           lane->stream);
+  if (status != cudaSuccess) {
+    SetCudaError(error_buffer, error_buffer_size,
+                 "unable to reset resident CUDA IP-check error flag", status);
+    return 1;
+  }
+
+  block_size = context->block_size;
+  if ((block_size == 0) || (block_size > 256))
+    block_size = 256;
+  RunIPCheckDeviceBatchKernel<<<1, block_size, 0, lane->stream>>>(
+      lane->device_ip_point_buffer, 1, lane->device_ip_result,
+      lane->device_ip_error_flag);
+  status = cudaGetLastError();
+  if (status != cudaSuccess) {
+    SetCudaError(error_buffer, error_buffer_size,
+                 "resident CUDA IP-check kernel launch failed", status);
+    return 1;
+  }
+  status = cudaStreamSynchronize(lane->stream);
+  if (status != cudaSuccess) {
+    SetCudaError(error_buffer, error_buffer_size,
+                 "resident CUDA IP-check kernel failed", status);
+    return 1;
+  }
+
+  status = cudaMemcpy(&device_error, lane->device_ip_error_flag,
+                      sizeof(device_error), cudaMemcpyDeviceToHost);
+  if (status != cudaSuccess) {
+    SetCudaError(error_buffer, error_buffer_size,
+                 "unable to download resident CUDA IP-check error flag",
+                 status);
+    return 1;
+  }
+  if (device_error != 0) {
+    SetError(error_buffer, error_buffer_size,
+             "resident CUDA IP-check overflowed bounded geometry state");
+    return 1;
+  }
+  status = cudaMemcpy(result, lane->device_ip_result, sizeof(*result),
+                      cudaMemcpyDeviceToHost);
+  if (status != cudaSuccess) {
+    SetCudaError(error_buffer, error_buffer_size,
+                 "unable to download resident CUDA IP-check result", status);
+    return 1;
+  }
+
+  if ((error_buffer != nullptr) && (error_buffer_size > 0))
+    error_buffer[0] = '\0';
+  return 0;
+}
+
 void BatchWorkerLoop(Type3BoundsCudaContext *context, uint32_t worker_index) {
   Type3BoundsCudaBatchWorkers *workers = context->batch_workers;
   Type3BoundsCudaEnumerationLane *lane = &context->lanes[worker_index];
@@ -922,12 +1311,35 @@ void BatchWorkerLoop(Type3BoundsCudaContext *context, uint32_t worker_index) {
       } else {
         while (!workers->failed.load()) {
           uint32_t index = workers->next_index.fetch_add(1);
+          int use_compact_output = workers->compact_outputs != nullptr;
+          int use_device_output = workers->device_outputs != nullptr;
+          int use_fused_ip = workers->ip_results != nullptr;
+          uint32_t point_count = 0;
+          uint32_t point_dimension = 0;
+          Type3BoundsCudaDevicePointBuffer resident_output = {};
 
           if (index >= workers->problem_count)
             break;
-          if (workers->points[index] == nullptr) {
+          if (!use_compact_output && !use_device_output && !use_fused_ip &&
+              (workers->points[index] == nullptr)) {
             RecordBatchFailure(workers, "null host point buffer");
             break;
+          }
+          if (use_device_output) {
+            if (workers->candidates != nullptr)
+              point_dimension = workers->candidates[index].ambient_count -
+                                workers->candidates[index].nw;
+            else
+              point_dimension = workers->problems[index].n;
+            if (PrepareDirectDeviceOutputBuffer(
+                    context, index, workers->point_capacity, point_dimension,
+                    &resident_output, local_error,
+                    sizeof(local_error)) != 0) {
+              RecordBatchFailure(workers,
+                                 local_error[0] ? local_error
+                                                : "unable to reserve direct device output buffer");
+              break;
+            }
           }
             if (((workers->candidates != nullptr) &&
                (EnumerateCwsOnLane(context, lane, &workers->candidates[index],
@@ -935,8 +1347,15 @@ void BatchWorkerLoop(Type3BoundsCudaContext *context, uint32_t worker_index) {
                            ? &workers->reductions[index]
                            : nullptr,
                          workers->point_capacity,
-                         workers->points[index],
-                         &workers->point_counts[index],
+                         (use_compact_output || use_device_output || use_fused_ip)
+                             ? nullptr
+                             : workers->points[index],
+                         (use_compact_output || use_device_output || use_fused_ip)
+                           ? &point_count
+                           : &workers->point_counts[index],
+                         (use_fused_ip || use_device_output)
+                             ? &resident_output
+                             : nullptr,
                          (workers->stats != nullptr)
                            ? &workers->stats[index]
                            : nullptr,
@@ -947,8 +1366,15 @@ void BatchWorkerLoop(Type3BoundsCudaContext *context, uint32_t worker_index) {
                         ? &workers->reductions[index]
                         : nullptr,
                       workers->point_capacity,
-                      workers->points[index],
-                      &workers->point_counts[index],
+                      (use_compact_output || use_device_output || use_fused_ip)
+                          ? nullptr
+                          : workers->points[index],
+                        (use_compact_output || use_device_output || use_fused_ip)
+                          ? &point_count
+                          : &workers->point_counts[index],
+                      (use_fused_ip || use_device_output)
+                          ? &resident_output
+                          : nullptr,
                       (workers->stats != nullptr)
                         ? &workers->stats[index]
                         : nullptr,
@@ -957,6 +1383,47 @@ void BatchWorkerLoop(Type3BoundsCudaContext *context, uint32_t worker_index) {
             RecordBatchFailure(workers,
                                local_error[0] ? local_error
                                               : "unknown batch failure");
+            break;
+          }
+          if (use_compact_output &&
+              (CopyCompactPointsFromLane(lane, point_count,
+                                         &workers->compact_outputs[index],
+                                         local_error,
+                                         sizeof(local_error)) != 0)) {
+            RecordBatchFailure(workers,
+                               local_error[0] ? local_error
+                                              : "unable to build compact host point buffer");
+            break;
+          }
+          if (use_device_output) {
+            if ((point_dimension == 0) ||
+                (point_dimension > kType3BoundsRuntimeMaxDimension)) {
+              RecordBatchFailure(workers,
+                                 "invalid point dimension for device output");
+              break;
+            }
+            if ((resident_output.points == context->device_output_pool[index]) ||
+                (point_count == 0)) {
+              workers->device_outputs[index] = resident_output;
+            } else if (CopyDevicePointsFromLane(context, lane, index,
+                                                point_count, point_dimension,
+                                                &workers->device_outputs[index],
+                                                local_error,
+                                                sizeof(local_error)) != 0) {
+              RecordBatchFailure(workers,
+                                 local_error[0] ? local_error
+                                                : "unable to build compact device point buffer");
+              break;
+            }
+          }
+          if (use_fused_ip &&
+              (RunResidentIPCheckOnLane(context, lane, &resident_output,
+                                        &workers->ip_results[index],
+                                        local_error,
+                                        sizeof(local_error)) != 0)) {
+            RecordBatchFailure(workers,
+                               local_error[0] ? local_error
+                                              : "unable to run resident CUDA IP-check");
             break;
           }
         }
@@ -1109,6 +1576,1025 @@ __global__ void ReducePointsToSublatticeKernel(
     for (uint32_t row = 0; row < point_dimension; row++)
       output_points[output_index][row] = reduced[row];
   }
+}
+
+__device__ int64_t EvalCudaEquationOnPoint(
+    const Type3BoundsCudaEquation *equation, const int64_t *point,
+    uint32_t point_dimension) {
+  int64_t value = equation->c;
+
+  for (uint32_t coord = 0; coord < point_dimension; coord++)
+    value += equation->a[coord] * point[coord];
+  return value;
+}
+
+__global__ void ClassifyEquationNegativityKernel(
+    const Type3BoundsCudaEquation *equations, uint32_t equation_count,
+  const int64_t *points, uint32_t point_count, uint32_t point_dimension,
+  uint32_t point_stride,
+    uint8_t *has_negative) {
+  uint32_t equation_index = blockIdx.x;
+  __shared__ int block_negative;
+
+  if (equation_index >= equation_count)
+    return;
+
+  if (threadIdx.x == 0)
+    block_negative = 0;
+  __syncthreads();
+
+  for (uint32_t point_index = threadIdx.x; point_index < point_count;
+       point_index += blockDim.x) {
+    const int64_t *point = points +
+                    static_cast<size_t>(point_index) * point_stride;
+
+    if (EvalCudaEquationOnPoint(&equations[equation_index], point,
+                                point_dimension) < 0) {
+      atomicExch(&block_negative, 1);
+      break;
+    }
+  }
+
+  __syncthreads();
+  if ((threadIdx.x == 0) && block_negative)
+    has_negative[equation_index] = 1;
+}
+
+__global__ void ClassifyEquationTaskBatchKernel(
+    const Type3BoundsCudaEquation *equations,
+    const Type3BoundsCudaEquationTask *tasks, uint32_t equation_count,
+    const int64_t *points, uint32_t point_stride, uint8_t *has_negative) {
+  uint32_t equation_index = blockIdx.x;
+  __shared__ int block_negative;
+  Type3BoundsCudaEquationTask task;
+
+  if (equation_index >= equation_count)
+    return;
+
+  task = tasks[equation_index];
+  if (threadIdx.x == 0)
+    block_negative = 0;
+  __syncthreads();
+
+  for (uint32_t point_index = threadIdx.x; point_index < task.point_count;
+       point_index += blockDim.x) {
+    const int64_t *point =
+        points + static_cast<size_t>(task.point_offset + point_index) *
+                     point_stride;
+
+    if (EvalCudaEquationOnPoint(&equations[equation_index], point,
+                                task.point_dimension) < 0) {
+      atomicExch(&block_negative, 1);
+      break;
+    }
+  }
+
+  __syncthreads();
+  if ((threadIdx.x == 0) && block_negative)
+    has_negative[equation_index] = 1;
+}
+
+__device__ uint64_t InciAppend(uint64_t incidence, int64_t value) {
+  return 2ull * incidence + ((value == 0) ? 1ull : 0ull);
+}
+
+__device__ int InciAbs64(uint64_t incidence) {
+  return __popcll(incidence);
+}
+
+__device__ int InciLe64(uint64_t left, uint64_t right) {
+  return ((left | right) == right) ? 1 : 0;
+}
+
+__device__ int PointLexGreater(const int64_t *points, uint32_t point_stride,
+                               uint32_t point_dimension, uint32_t left_index,
+                               uint32_t right_index) {
+  const int64_t *left =
+      points + static_cast<size_t>(left_index) * point_stride;
+  const int64_t *right =
+      points + static_cast<size_t>(right_index) * point_stride;
+
+  for (int coord = static_cast<int>(point_dimension) - 1; coord >= 0; coord--) {
+    if (left[coord] > right[coord])
+      return 1;
+    if (left[coord] < right[coord])
+      return 0;
+  }
+  return 0;
+}
+
+__device__ int PointLexGreaterPtr(const int64_t *left, const int64_t *right,
+                                  uint32_t point_dimension) {
+  for (int coord = static_cast<int>(point_dimension) - 1; coord >= 0;
+       coord--) {
+    if (left[coord] > right[coord])
+      return 1;
+    if (left[coord] < right[coord])
+      return 0;
+  }
+  return 0;
+}
+
+__device__ int64_t WToGLZ64(int64_t *W, int d, int64_t **GLZ) {
+  int i, j;
+  int64_t G;
+  int64_t *E = GLZ[0];
+  int64_t *B = GLZ[1];
+
+  for (i = 1; i < d; i++)
+    for (j = 0; j < d; j++)
+      GLZ[i][j] = 0;
+  G = Egcd64(W[0], W[1], &E[0], &E[1]);
+  B[0] = -W[1] / G;
+  B[1] = W[0] / G;
+  for (i = 2; i < d; i++) {
+    int64_t a, b;
+    int64_t g = Egcd64(G, W[i], &a, &b);
+
+    B = GLZ[i];
+    B[i] = G / g;
+    G = W[i] / g;
+    for (j = 0; j < i; j++)
+      B[j] = -E[j] * G;
+    for (j = 0; j < i; j++)
+      E[j] *= a;
+    E[j] = b;
+    for (j = i - 1; j > 0; j--) {
+      int n;
+      int64_t *Y = GLZ[j];
+      int64_t rB = RoundQ64(B[j], Y[j]);
+      int64_t rE = RoundQ64(E[j], Y[j]);
+
+      for (n = 0; n <= j; n++) {
+        B[n] -= rB * Y[n];
+        E[n] -= rE * Y[n];
+      }
+    }
+    G = g;
+  }
+  return G;
+}
+
+__device__ int64_t VZToBase64(const int64_t *V, int d,
+                              int64_t M[][kType3BoundsRuntimeMaxDimension]) {
+  int p[kType3BoundsRuntimeMaxDimension];
+  int i, j, J = 0;
+  int64_t g = 0;
+  int64_t W[kType3BoundsRuntimeMaxDimension];
+  int64_t *G[kType3BoundsRuntimeMaxDimension];
+
+  for (i = 0; i < d; i++) {
+    if (V[i] != 0) {
+      W[J] = V[i];
+      G[J] = M[i];
+      p[J++] = i;
+    } else {
+      for (j = 0; j < d; j++)
+        M[i][j] = (i == j);
+    }
+  }
+  if ((J != 0) && (p[0] != 0)) {
+    G[0] = M[0];
+    for (j = 0; j < d; j++)
+      M[p[0]][j] = (j == 0);
+  }
+  if (J > 1)
+    g = WToGLZ64(W, J, G);
+  else if (J != 0) {
+    g = W[0];
+    M[0][0] = 0;
+    M[0][p[0]] = 1;
+  }
+  if (J > 1)
+    for (i = 0; i < J; i++) {
+      int I = J;
+
+      for (j = d - 1; j >= 0; j--)
+        G[i][j] = (V[j] != 0) ? G[i][--I] : 0;
+      if (I != 0)
+        return 0;
+    }
+  return g;
+}
+
+__device__ int OrthBaseRedByV64(
+    const int64_t *V, int d, int64_t A[][kType3BoundsRuntimeMaxDimension],
+    int *r, int64_t B[][kType3BoundsRuntimeMaxDimension]) {
+  int i, j, k;
+  int64_t W[kType3BoundsRuntimeMaxDimension];
+  int64_t G[kType3BoundsRuntimeMaxDimension][kType3BoundsRuntimeMaxDimension];
+
+  for (i = 0; i < *r; i++) {
+    W[i] = 0;
+    for (j = 0; j < d; j++)
+      W[i] += A[i][j] * V[j];
+  }
+  if (VZToBase64(W, *r, G) == 0)
+    return 0;
+  for (i = 0; i < *r - 1; i++)
+    for (k = 0; k < d; k++) {
+      B[i][k] = 0;
+      for (j = 0; j < *r; j++)
+        B[i][k] += G[i + 1][j] * A[j][k];
+    }
+  (*r)--;
+  return 1;
+}
+
+__device__ int NewStartVertex64(const int64_t *V0, const int64_t *Ea,
+                                const Type3BoundsCudaDevicePointBuffer *points,
+                                uint32_t *vertex_index) {
+  Type3BoundsCudaEquation equation = {};
+  const int64_t *Xn;
+  const int64_t *Xp;
+  int n = 0;
+  int p = 0;
+  int64_t d;
+  int64_t dn = 0;
+  int64_t dp = 0;
+
+  if ((points->point_count == 0) || (points->points == nullptr))
+    return 0;
+  for (uint32_t coord = 0; coord < points->point_dimension; coord++)
+    equation.a[coord] = Ea[coord];
+  equation.c = -EvalCudaEquationOnPoint(&equation, V0, points->point_dimension);
+  Xn = points->points;
+  Xp = Xn;
+  d = EvalCudaEquationOnPoint(&equation, points->points, points->point_dimension);
+  if (d > 0)
+    dp = d;
+  if (d < 0)
+    dn = d;
+  for (uint32_t index = 1; index < points->point_count; index++) {
+    const int64_t *point = points->points +
+        static_cast<size_t>(index) * points->point_stride;
+
+    d = EvalCudaEquationOnPoint(&equation, point, points->point_dimension);
+    if (d == 0)
+      continue;
+    if ((d == dp) && PointLexGreaterPtr(point, Xp, points->point_dimension)) {
+      Xp = point;
+      p = static_cast<int>(index);
+    }
+    if (d > dp) {
+      dp = d;
+      Xp = point;
+      p = static_cast<int>(index);
+    }
+    if ((d == dn) && PointLexGreaterPtr(point, Xn, points->point_dimension)) {
+      Xn = point;
+      n = static_cast<int>(index);
+    }
+    if (d < dn) {
+      dn = d;
+      Xn = point;
+      n = static_cast<int>(index);
+    }
+  }
+  if (dp != 0) {
+    if (dn != 0) {
+      *vertex_index = static_cast<uint32_t>((dp + dn > 0) ? n : p);
+      return 1;
+    }
+    *vertex_index = static_cast<uint32_t>(p);
+    return 1;
+  }
+  if (dn != 0) {
+    *vertex_index = static_cast<uint32_t>(n);
+    return 1;
+  }
+  return 0;
+}
+
+__device__ int InitializeCudaIPStateFromPoints(
+    const Type3BoundsCudaDevicePointBuffer *point_buffer,
+    Type3BoundsCudaIPState *state) {
+  int x = 0;
+  int y = 0;
+  int d = static_cast<int>(point_buffer->point_dimension);
+  int r = d;
+  int b[kType3BoundsRuntimeMaxDimension];
+  int64_t XX = 0;
+  int64_t YY = 0;
+  int64_t B[(kType3BoundsRuntimeMaxDimension *
+             (kType3BoundsRuntimeMaxDimension + 1)) /
+            2][kType3BoundsRuntimeMaxDimension];
+  int64_t W[kType3BoundsRuntimeMaxDimension];
+  const int64_t *X;
+  const int64_t *Y;
+
+  state->point_offset = 0;
+  state->point_count = point_buffer->point_count;
+  state->point_dimension = point_buffer->point_dimension;
+  state->vertex_count = 0;
+  state->facet_count = 0;
+  state->ceq_count = 0;
+  if ((point_buffer->points == nullptr) ||
+      (point_buffer->point_stride < point_buffer->point_dimension))
+    return d;
+  if (point_buffer->point_count < 2) {
+    for (x = 0; x < d; x++) {
+      for (y = 0; y < d; y++)
+        state->ceqs[x].a[y] = (x == y);
+      state->ceqs[x].c = -point_buffer->points[x];
+    }
+    state->ceq_count = static_cast<uint32_t>(d);
+    return d;
+  }
+
+  X = point_buffer->points;
+  Y = point_buffer->points;
+  for (uint32_t index = 1; index < point_buffer->point_count; index++) {
+    const int64_t *Z = point_buffer->points +
+        static_cast<size_t>(index) * point_buffer->point_stride;
+
+    if (PointLexGreaterPtr(X, Z, point_buffer->point_dimension)) {
+      X = Z;
+      x = static_cast<int>(index);
+    }
+    if (PointLexGreaterPtr(Z, Y, point_buffer->point_dimension)) {
+      Y = Z;
+      y = static_cast<int>(index);
+    }
+  }
+  if (x == y)
+    return d;
+  for (int coord = 0; coord < d; coord++) {
+    int64_t Xi = (X[coord] > 0) ? X[coord] : -X[coord];
+    int64_t Yi = (Y[coord] > 0) ? Y[coord] : -Y[coord];
+
+    if (Xi > XX)
+      XX = Xi;
+    if (Yi > YY)
+      YY = Yi;
+  }
+  if (YY < XX) {
+    state->vertices[0] = static_cast<uint32_t>(y);
+    state->vertices[1] = static_cast<uint32_t>(x);
+  } else {
+    state->vertices[0] = static_cast<uint32_t>(x);
+    state->vertices[1] = static_cast<uint32_t>(y);
+  }
+  state->vertex_count = 2;
+  y = static_cast<int>(state->vertices[1]);
+  X = point_buffer->points +
+      static_cast<size_t>(state->vertices[0]) * point_buffer->point_stride;
+  for (int coord = 0; coord < d; coord++)
+    b[coord] = (coord * (2 * d - coord + 1)) / 2;
+  for (x = 0; x < d; x++)
+    for (int coord = 0; coord < d; coord++)
+      B[x][coord] = (x == coord);
+  for (x = 1; x < d; x++) {
+    const int64_t *point_y = point_buffer->points +
+        static_cast<size_t>(y) * point_buffer->point_stride;
+
+    for (int coord = 0; coord < d; coord++)
+      W[coord] = point_y[coord] - X[coord];
+    if (!OrthBaseRedByV64(W, d, &B[b[x - 1]], &r, &B[b[x]]))
+      return d;
+    for (int index = 0; index < r; index++) {
+      uint32_t new_vertex = 0;
+
+      if (NewStartVertex64(X, B[b[x] + index], point_buffer, &new_vertex)) {
+        y = static_cast<int>(new_vertex);
+        break;
+      }
+      if (index == r - 1)
+        goto simplex_done;
+    }
+    state->vertices[state->vertex_count++] = static_cast<uint32_t>(y);
+  }
+
+simplex_done:
+  if (x < d) {
+    for (y = 0; y < r; y++) {
+      state->ceqs[y].c = 0;
+      for (int coord = 0; coord < d; coord++)
+        state->ceqs[y].a[coord] = B[b[x] + y][coord];
+      state->ceqs[y].c = -EvalCudaEquationOnPoint(&state->ceqs[y], X,
+                                                  point_buffer->point_dimension);
+    }
+    state->ceq_count = static_cast<uint32_t>(r);
+    return r;
+  }
+
+  {
+    Type3BoundsCudaEquation *equation = &state->ceqs[0];
+    int64_t *Z = B[b[d - 1]];
+
+    state->ceq_count = 2;
+    equation->c = 0;
+    for (int coord = 0; coord < d; coord++)
+      equation->a[coord] = Z[coord];
+    equation->c = -EvalCudaEquationOnPoint(equation, X,
+                                           point_buffer->point_dimension);
+    if (EvalCudaEquationOnPoint(
+            equation,
+            point_buffer->points +
+                static_cast<size_t>(state->vertices[d]) * point_buffer->point_stride,
+            point_buffer->point_dimension) < 0) {
+      for (int coord = 0; coord < d; coord++)
+        equation->a[coord] = -equation->a[coord];
+      equation->c = -equation->c;
+    }
+
+    X = point_buffer->points +
+        static_cast<size_t>(state->vertices[r = d]) * point_buffer->point_stride;
+    for (x = 1; x < d; x++) {
+      Y = point_buffer->points +
+          static_cast<size_t>(state->vertices[x - 1]) * point_buffer->point_stride;
+      for (int coord = 0; coord < d; coord++)
+        W[coord] = X[coord] - Y[coord];
+      if (!OrthBaseRedByV64(W, d, &B[b[x - 1]], &r, &B[b[x]]))
+        return d;
+    }
+    equation = &state->ceqs[1];
+    equation->c = 0;
+    for (int coord = 0; coord < d; coord++)
+      equation->a[coord] = Z[coord];
+    equation->c = -EvalCudaEquationOnPoint(equation, X,
+                                           point_buffer->point_dimension);
+    XX = EvalCudaEquationOnPoint(
+        equation,
+        point_buffer->points +
+            static_cast<size_t>(state->vertices[d - 1]) * point_buffer->point_stride,
+        point_buffer->point_dimension);
+    if (XX == 0)
+      return d;
+    if (XX < 0) {
+      for (int coord = 0; coord < d; coord++)
+        equation->a[coord] = -equation->a[coord];
+      equation->c = -equation->c;
+    }
+    for (x = d - 2; x >= 0; x--) {
+      r = d - x;
+      for (y = x + 1; y < d; y++) {
+        Y = point_buffer->points +
+            static_cast<size_t>(state->vertices[y]) * point_buffer->point_stride;
+        for (int coord = 0; coord < d; coord++)
+          W[coord] = X[coord] - Y[coord];
+        if (!OrthBaseRedByV64(W, d, &B[b[y - 1]], &r, &B[b[y]]))
+          return d;
+      }
+      equation = &state->ceqs[state->ceq_count++];
+      equation->c = 0;
+      for (int coord = 0; coord < d; coord++)
+        equation->a[coord] = Z[coord];
+      equation->c = -EvalCudaEquationOnPoint(equation, X,
+                                             point_buffer->point_dimension);
+      XX = EvalCudaEquationOnPoint(
+          equation,
+          point_buffer->points +
+              static_cast<size_t>(state->vertices[x]) * point_buffer->point_stride,
+          point_buffer->point_dimension);
+      if (XX == 0)
+        return d;
+      if (XX < 0) {
+        for (int coord = 0; coord < d; coord++)
+          equation->a[coord] = -equation->a[coord];
+        equation->c = -equation->c;
+      }
+    }
+  }
+
+  return 0;
+}
+
+__device__ int InitializeCudaIPIncidences(
+    Type3BoundsCudaIPState *state,
+    const Type3BoundsCudaDevicePointBuffer *point_buffer) {
+  for (uint32_t ceq_index = 0; ceq_index < state->ceq_count; ceq_index++) {
+    uint64_t incidence = 0;
+
+    for (uint32_t vertex_index = 0; vertex_index < state->vertex_count;
+         vertex_index++) {
+      const int64_t *point = point_buffer->points +
+          static_cast<size_t>(state->vertices[vertex_index]) *
+              point_buffer->point_stride;
+      incidence = InciAppend(incidence,
+                             EvalCudaEquationOnPoint(&state->ceqs[ceq_index],
+                                                     point,
+                                                     state->point_dimension));
+    }
+    if (InciAbs64(incidence) < static_cast<int>(state->point_dimension))
+      return 1;
+    state->ceq_incidences[ceq_index] = incidence;
+  }
+  return 0;
+}
+
+__device__ void NegateCudaEquation(Type3BoundsCudaEquation *equation,
+                                   uint32_t point_dimension) {
+  for (uint32_t coord = 0; coord < point_dimension; coord++)
+    equation->a[coord] = -equation->a[coord];
+  equation->c = -equation->c;
+}
+
+__device__ Type3BoundsCudaEquation EEVToCudaEquation(
+    const Type3BoundsCudaEquation *left,
+    const Type3BoundsCudaEquation *right,
+    const int64_t *vertex,
+    uint32_t point_dimension) {
+  Type3BoundsCudaEquation equation = {{0}, 0};
+  int64_t left_eval = EvalCudaEquationOnPoint(right, vertex, point_dimension);
+  int64_t right_eval = EvalCudaEquationOnPoint(left, vertex, point_dimension);
+  int64_t gcd = GcdNonNegative(left_eval, right_eval);
+
+  left_eval /= gcd;
+  right_eval /= gcd;
+  for (uint32_t coord = 0; coord < point_dimension; coord++)
+    equation.a[coord] = left_eval * left->a[coord] -
+                        right_eval * right->a[coord];
+  equation.c = left_eval * left->c - right_eval * right->c;
+
+  gcd = GcdNonNegative(equation.c, equation.a[0]);
+  for (uint32_t coord = 1; coord < point_dimension; coord++)
+    gcd = GcdNonNegative(gcd, equation.a[coord]);
+  if (gcd > 1) {
+    equation.c /= gcd;
+    for (uint32_t coord = 0; coord < point_dimension; coord++)
+      equation.a[coord] /= gcd;
+  }
+
+  return equation;
+}
+
+__device__ int IsGoodCudaCEq(Type3BoundsCudaEquation *equation,
+                             const Type3BoundsCudaIPState *state,
+                             const int64_t *points,
+                             uint32_t point_stride) {
+  int vertex_index = static_cast<int>(state->vertex_count);
+  int64_t sign = 0;
+
+  while ((vertex_index > 0) && (sign == 0)) {
+    uint32_t point_index = state->vertices[vertex_index - 1] + state->point_offset;
+
+    sign = EvalCudaEquationOnPoint(
+        equation, points + static_cast<size_t>(point_index) * point_stride,
+        state->point_dimension);
+    vertex_index--;
+  }
+  if (sign < 0)
+    NegateCudaEquation(equation, state->point_dimension);
+
+  while (vertex_index > 0) {
+    uint32_t point_index = state->vertices[vertex_index - 1] + state->point_offset;
+
+    if (EvalCudaEquationOnPoint(
+            equation, points + static_cast<size_t>(point_index) * point_stride,
+            state->point_dimension) < 0)
+      return 0;
+    vertex_index--;
+  }
+  return 1;
+}
+
+__device__ int SelectLexGreatestCEq(const Type3BoundsCudaIPState *state) {
+  int selected = static_cast<int>(state->ceq_count) - 1;
+
+  for (int index = 0; index < selected; index++)
+    if (state->ceq_incidences[index] > state->ceq_incidences[selected])
+      selected = index;
+  return selected;
+}
+
+__device__ int MakeNewCudaCEqs(Type3BoundsCudaIPState *state,
+                               const int64_t *points,
+                               uint32_t point_stride) {
+  Type3BoundsCudaEquation bad_equations[kType3BoundsRuntimeMaxIPEquations];
+  uint64_t bad_incidences[kType3BoundsRuntimeMaxIPEquations];
+  uint32_t bad_count = 0;
+  uint32_t old_ceq_count = state->ceq_count;
+  uint32_t keep_count = 0;
+  const int64_t *new_vertex = points +
+      static_cast<size_t>(state->point_offset +
+                          state->vertices[state->vertex_count - 1]) *
+          point_stride;
+
+  for (uint32_t index = 0; index < old_ceq_count; index++) {
+    int64_t distance =
+        EvalCudaEquationOnPoint(&state->ceqs[index], new_vertex,
+                                state->point_dimension);
+
+    state->ceq_incidences[index] = InciAppend(state->ceq_incidences[index], distance);
+    if (distance < 0) {
+      bad_equations[bad_count] = state->ceqs[index];
+      bad_incidences[bad_count] = state->ceq_incidences[index];
+      bad_count++;
+    } else {
+      state->ceqs[keep_count] = state->ceqs[index];
+      state->ceq_incidences[keep_count] = state->ceq_incidences[index];
+      keep_count++;
+    }
+  }
+  state->ceq_count = keep_count;
+
+  for (uint32_t index = 0; index < state->facet_count; index++)
+    state->facet_incidences[index] = InciAppend(
+        state->facet_incidences[index],
+        EvalCudaEquationOnPoint(&state->facets[index], new_vertex,
+                                state->point_dimension));
+
+  for (uint32_t facet_index = 0; facet_index < state->facet_count; facet_index++)
+    if ((state->facet_incidences[facet_index] & 1ull) == 0)
+      for (uint32_t bad_index = 0; bad_index < bad_count; bad_index++) {
+        uint64_t new_face =
+            bad_incidences[bad_index] & state->facet_incidences[facet_index];
+        uint32_t check_index;
+
+        if (InciAbs64(new_face) < static_cast<int>(state->point_dimension) - 1)
+          continue;
+        for (check_index = 0; check_index < bad_count; check_index++)
+          if (InciLe64(new_face, bad_incidences[check_index]) &&
+              (check_index != bad_index))
+            break;
+        if (check_index != bad_count)
+          continue;
+        for (check_index = 0; check_index < keep_count; check_index++)
+          if (InciLe64(new_face, state->ceq_incidences[check_index]))
+            break;
+        if (check_index != keep_count)
+          continue;
+        for (check_index = 0; check_index < state->facet_count; check_index++)
+          if (InciLe64(new_face, state->facet_incidences[check_index]) &&
+              (check_index != facet_index))
+            break;
+        if (check_index != state->facet_count)
+          continue;
+        if (state->ceq_count >= kType3BoundsRuntimeMaxIPEquations)
+          return 1;
+        state->ceq_incidences[state->ceq_count] =
+            InciAppend(new_face >> 1, 0);
+        state->ceqs[state->ceq_count] = EEVToCudaEquation(
+            &bad_equations[bad_index], &state->facets[facet_index],
+            new_vertex, state->point_dimension);
+        if (!IsGoodCudaCEq(&state->ceqs[state->ceq_count], state, points,
+                           point_stride))
+          return 1;
+        state->ceq_count++;
+      }
+
+  for (uint32_t ceq_index = 0; ceq_index < keep_count; ceq_index++)
+    if ((state->ceq_incidences[ceq_index] & 1ull) == 0)
+      for (int bad_index = static_cast<int>(bad_count) - 1; bad_index >= 0;
+           bad_index--) {
+        uint64_t new_face = bad_incidences[bad_index] &
+                            state->ceq_incidences[ceq_index];
+        uint32_t check_index;
+
+        if (InciAbs64(new_face) < static_cast<int>(state->point_dimension) - 1)
+          continue;
+        for (check_index = 0; check_index < bad_count; check_index++)
+          if (InciLe64(new_face, bad_incidences[check_index]) &&
+              (static_cast<int>(check_index) != bad_index))
+            break;
+        if (check_index != bad_count)
+          continue;
+        for (check_index = 0; check_index < keep_count; check_index++)
+          if (InciLe64(new_face, state->ceq_incidences[check_index]) &&
+              (check_index != ceq_index))
+            break;
+        if (check_index != keep_count)
+          continue;
+        for (check_index = 0; check_index < state->facet_count; check_index++)
+          if (InciLe64(new_face, state->facet_incidences[check_index]))
+            break;
+        if (check_index != state->facet_count)
+          continue;
+        if (state->ceq_count >= kType3BoundsRuntimeMaxIPEquations)
+          return 1;
+        state->ceq_incidences[state->ceq_count] =
+            InciAppend(new_face >> 1, 0);
+        state->ceqs[state->ceq_count] = EEVToCudaEquation(
+            &bad_equations[bad_index], &state->ceqs[ceq_index], new_vertex,
+            state->point_dimension);
+        if (!IsGoodCudaCEq(&state->ceqs[state->ceq_count], state, points,
+                           point_stride))
+          return 1;
+        state->ceq_count++;
+      }
+
+  return 0;
+}
+
+__global__ void RunIPCheckBatchKernel(Type3BoundsCudaIPState *states,
+                                      uint32_t state_count,
+                                      const int64_t *points,
+                                      uint32_t point_stride,
+                                      int *results,
+                                      int *error_flag) {
+  enum { kMaxIPCheckBlockSize = 256 };
+  uint32_t state_index = blockIdx.x;
+  __shared__ Type3BoundsCudaIPState state;
+  __shared__ int block_negative;
+  __shared__ int finished;
+  __shared__ int final_result;
+  __shared__ int selected_eq_index;
+  __shared__ uint32_t selected_vertex_index;
+  __shared__ int64_t best_values[kMaxIPCheckBlockSize];
+  __shared__ uint32_t best_indices[kMaxIPCheckBlockSize];
+  __shared__ uint8_t has_best[kMaxIPCheckBlockSize];
+
+  if (state_index >= state_count)
+    return;
+
+  if (threadIdx.x == 0) {
+    state = states[state_index];
+    finished = 0;
+    final_result = 0;
+  }
+  __syncthreads();
+
+  while (!finished) {
+    const int64_t *state_points =
+        points + static_cast<size_t>(state.point_offset) * point_stride;
+
+    if (threadIdx.x == 0) {
+      if ((state.point_dimension == 0) ||
+          (state.point_dimension > kType3BoundsRuntimeMaxDimension) ||
+          (state.vertex_count > kType3BoundsRuntimeMaxIPVertices) ||
+          (state.facet_count > kType3BoundsRuntimeMaxIPEquations) ||
+          (state.ceq_count > kType3BoundsRuntimeMaxIPEquations)) {
+        atomicExch(error_flag, 1);
+        finished = 1;
+      } else if (state.ceq_count == 0) {
+        final_result = 1;
+        finished = 1;
+      } else {
+        selected_eq_index = SelectLexGreatestCEq(&state);
+        block_negative = 0;
+      }
+    }
+    __syncthreads();
+    if (finished)
+      break;
+
+    has_best[threadIdx.x] = 0;
+    for (uint32_t point_index = threadIdx.x; point_index < state.point_count;
+         point_index += blockDim.x) {
+      const int64_t *point = state_points +
+          static_cast<size_t>(point_index) * point_stride;
+      int64_t value = EvalCudaEquationOnPoint(
+          &state.ceqs[selected_eq_index], point, state.point_dimension);
+
+      if (value < 0)
+        atomicExch(&block_negative, 1);
+      if (!has_best[threadIdx.x] || (value < best_values[threadIdx.x]) ||
+          ((value == best_values[threadIdx.x]) &&
+           PointLexGreater(state_points, point_stride, state.point_dimension,
+                           point_index, best_indices[threadIdx.x]))) {
+        has_best[threadIdx.x] = 1;
+        best_values[threadIdx.x] = value;
+        best_indices[threadIdx.x] = point_index;
+      }
+    }
+    __syncthreads();
+
+    if (threadIdx.x == 0) {
+      int best_thread = -1;
+
+      for (uint32_t thread_index = 0; thread_index < blockDim.x;
+           thread_index++) {
+        if (!has_best[thread_index])
+          continue;
+        if ((best_thread < 0) ||
+            (best_values[thread_index] < best_values[best_thread]) ||
+            ((best_values[thread_index] == best_values[best_thread]) &&
+             PointLexGreater(state_points, point_stride, state.point_dimension,
+                             best_indices[thread_index],
+                             best_indices[best_thread])))
+          best_thread = static_cast<int>(thread_index);
+      }
+      if (best_thread < 0) {
+        atomicExch(error_flag, 1);
+        finished = 1;
+      } else {
+        selected_vertex_index = best_indices[best_thread];
+        if (block_negative) {
+          int last_index = static_cast<int>(state.ceq_count) - 1;
+
+          if (selected_eq_index != last_index) {
+            Type3BoundsCudaEquation selected_equation =
+                state.ceqs[selected_eq_index];
+            uint64_t selected_incidence = state.ceq_incidences[selected_eq_index];
+
+            state.ceqs[selected_eq_index] = state.ceqs[last_index];
+            state.ceq_incidences[selected_eq_index] =
+                state.ceq_incidences[last_index];
+            state.ceqs[last_index] = selected_equation;
+            state.ceq_incidences[last_index] = selected_incidence;
+          }
+          if (state.vertex_count >= kType3BoundsRuntimeMaxIPVertices) {
+            atomicExch(error_flag, 1);
+            finished = 1;
+          } else {
+            state.vertices[state.vertex_count++] = selected_vertex_index;
+            if (MakeNewCudaCEqs(&state, points, point_stride) != 0) {
+              atomicExch(error_flag, 1);
+              finished = 1;
+            }
+          }
+        } else if (state.ceqs[selected_eq_index].c < 1) {
+          final_result = 0;
+          finished = 1;
+        } else {
+          uint32_t last_index = state.ceq_count - 1;
+
+          if (state.facet_count >= kType3BoundsRuntimeMaxIPEquations) {
+            atomicExch(error_flag, 1);
+            finished = 1;
+          } else {
+            state.facets[state.facet_count] = state.ceqs[selected_eq_index];
+            state.facet_incidences[state.facet_count] =
+                state.ceq_incidences[selected_eq_index];
+            state.facet_count++;
+            if (selected_eq_index != static_cast<int>(last_index)) {
+              state.ceqs[selected_eq_index] = state.ceqs[last_index];
+              state.ceq_incidences[selected_eq_index] =
+                  state.ceq_incidences[last_index];
+            }
+            state.ceq_count--;
+            if (state.ceq_count == 0) {
+              final_result = 1;
+              finished = 1;
+            }
+          }
+        }
+      }
+    }
+    __syncthreads();
+  }
+
+  if (threadIdx.x == 0)
+    results[state_index] = final_result;
+}
+
+__global__ void RunIPCheckDeviceBatchKernel(
+    const Type3BoundsCudaDevicePointBuffer *point_buffers,
+    uint32_t state_count,
+    int *results,
+    int *error_flag) {
+  enum { kMaxIPCheckBlockSize = 256 };
+  uint32_t state_index = blockIdx.x;
+  __shared__ Type3BoundsCudaDevicePointBuffer point_buffer;
+  __shared__ Type3BoundsCudaIPState state;
+  __shared__ int block_negative;
+  __shared__ int finished;
+  __shared__ int final_result;
+  __shared__ int selected_eq_index;
+  __shared__ uint32_t selected_vertex_index;
+  __shared__ int64_t best_values[kMaxIPCheckBlockSize];
+  __shared__ uint32_t best_indices[kMaxIPCheckBlockSize];
+  __shared__ uint8_t has_best[kMaxIPCheckBlockSize];
+
+  if (state_index >= state_count)
+    return;
+
+  if (threadIdx.x == 0) {
+    point_buffer = point_buffers[state_index];
+    state = {};
+    finished = 0;
+    final_result = 0;
+    if ((point_buffer.point_dimension == 0) ||
+        (point_buffer.point_dimension > kType3BoundsRuntimeMaxDimension) ||
+        (point_buffer.point_stride < point_buffer.point_dimension) ||
+        ((point_buffer.point_count != 0) && (point_buffer.points == nullptr))) {
+      atomicExch(error_flag, 1);
+      finished = 1;
+    } else if (InitializeCudaIPStateFromPoints(&point_buffer, &state) != 0) {
+      finished = 1;
+      final_result = 0;
+    } else if (InitializeCudaIPIncidences(&state, &point_buffer) != 0) {
+      atomicExch(error_flag, 1);
+      finished = 1;
+    }
+  }
+  __syncthreads();
+
+  while (!finished) {
+    const int64_t *state_points = point_buffer.points;
+
+    if (threadIdx.x == 0) {
+      if ((state.point_dimension == 0) ||
+          (state.point_dimension > kType3BoundsRuntimeMaxDimension) ||
+          (state.vertex_count > kType3BoundsRuntimeMaxIPVertices) ||
+          (state.facet_count > kType3BoundsRuntimeMaxIPEquations) ||
+          (state.ceq_count > kType3BoundsRuntimeMaxIPEquations)) {
+        atomicExch(error_flag, 1);
+        finished = 1;
+      } else if (state.ceq_count == 0) {
+        final_result = 1;
+        finished = 1;
+      } else {
+        selected_eq_index = SelectLexGreatestCEq(&state);
+        block_negative = 0;
+      }
+    }
+    __syncthreads();
+    if (finished)
+      break;
+
+    has_best[threadIdx.x] = 0;
+    for (uint32_t point_index = threadIdx.x; point_index < state.point_count;
+         point_index += blockDim.x) {
+      const int64_t *point = state_points +
+          static_cast<size_t>(point_index) * point_buffer.point_stride;
+      int64_t value = EvalCudaEquationOnPoint(
+          &state.ceqs[selected_eq_index], point, state.point_dimension);
+
+      if (value < 0)
+        atomicExch(&block_negative, 1);
+      if (!has_best[threadIdx.x] || (value < best_values[threadIdx.x]) ||
+          ((value == best_values[threadIdx.x]) &&
+           PointLexGreater(state_points, point_buffer.point_stride,
+                           state.point_dimension, point_index,
+                           best_indices[threadIdx.x]))) {
+        has_best[threadIdx.x] = 1;
+        best_values[threadIdx.x] = value;
+        best_indices[threadIdx.x] = point_index;
+      }
+    }
+    __syncthreads();
+
+    if (threadIdx.x == 0) {
+      int best_thread = -1;
+
+      for (uint32_t thread_index = 0; thread_index < blockDim.x;
+           thread_index++) {
+        if (!has_best[thread_index])
+          continue;
+        if ((best_thread < 0) ||
+            (best_values[thread_index] < best_values[best_thread]) ||
+            ((best_values[thread_index] == best_values[best_thread]) &&
+             PointLexGreater(state_points, point_buffer.point_stride,
+                             state.point_dimension,
+                             best_indices[thread_index],
+                             best_indices[best_thread])))
+          best_thread = static_cast<int>(thread_index);
+      }
+      if (best_thread < 0) {
+        atomicExch(error_flag, 1);
+        finished = 1;
+      } else {
+        selected_vertex_index = best_indices[best_thread];
+        if (block_negative) {
+          int last_index = static_cast<int>(state.ceq_count) - 1;
+
+          if (selected_eq_index != last_index) {
+            Type3BoundsCudaEquation selected_equation =
+                state.ceqs[selected_eq_index];
+            uint64_t selected_incidence = state.ceq_incidences[selected_eq_index];
+
+            state.ceqs[selected_eq_index] = state.ceqs[last_index];
+            state.ceq_incidences[selected_eq_index] =
+                state.ceq_incidences[last_index];
+            state.ceqs[last_index] = selected_equation;
+            state.ceq_incidences[last_index] = selected_incidence;
+          }
+          if (state.vertex_count >= kType3BoundsRuntimeMaxIPVertices) {
+            atomicExch(error_flag, 1);
+            finished = 1;
+          } else {
+            state.vertices[state.vertex_count++] = selected_vertex_index;
+            if (MakeNewCudaCEqs(&state, point_buffer.points,
+                                point_buffer.point_stride) != 0) {
+              atomicExch(error_flag, 1);
+              finished = 1;
+            }
+          }
+        } else if (state.ceqs[selected_eq_index].c < 1) {
+          final_result = 0;
+          finished = 1;
+        } else {
+          uint32_t last_index = state.ceq_count - 1;
+
+          if (state.facet_count >= kType3BoundsRuntimeMaxIPEquations) {
+            atomicExch(error_flag, 1);
+            finished = 1;
+          } else {
+            state.facets[state.facet_count] = state.ceqs[selected_eq_index];
+            state.facet_incidences[state.facet_count] =
+                state.ceq_incidences[selected_eq_index];
+            state.facet_count++;
+            if (selected_eq_index != static_cast<int>(last_index)) {
+              state.ceqs[selected_eq_index] = state.ceqs[last_index];
+              state.ceq_incidences[selected_eq_index] =
+                  state.ceq_incidences[last_index];
+            }
+            state.ceq_count--;
+            if (state.ceq_count == 0) {
+              final_result = 1;
+              finished = 1;
+            }
+          }
+        }
+      }
+    }
+    __syncthreads();
+  }
+
+  if (threadIdx.x == 0)
+    results[state_index] = final_result;
 }
 
 cudaError_t EnsureEnumerationCapacity(Type3BoundsCudaEnumerationLane *lane,
@@ -1286,6 +2772,106 @@ cudaError_t EnsureDim5Structure3BatchCapacity(Type3BoundsCudaContext *context,
     return status;
 
   context->dim5_structure3_pair_capacity = pair_count;
+  return cudaSuccess;
+}
+
+cudaError_t EnsureEquationClassificationCapacity(
+    Type3BoundsCudaContext *context, uint32_t equation_count,
+    size_t point_value_count) {
+  cudaError_t status;
+
+  if (equation_count > context->equation_batch_capacity) {
+    if (context->device_equation_batch != nullptr) {
+      cudaFree(context->device_equation_batch);
+      context->device_equation_batch = nullptr;
+    }
+    if (context->device_equation_tasks != nullptr) {
+      cudaFree(context->device_equation_tasks);
+      context->device_equation_tasks = nullptr;
+    }
+    if (context->device_equation_negative_flags != nullptr) {
+      cudaFree(context->device_equation_negative_flags);
+      context->device_equation_negative_flags = nullptr;
+    }
+
+    status = cudaMalloc(&context->device_equation_batch,
+                        static_cast<size_t>(equation_count) *
+                            sizeof(Type3BoundsCudaEquation));
+    if (status != cudaSuccess)
+      return status;
+    status = cudaMalloc(&context->device_equation_negative_flags,
+                        static_cast<size_t>(equation_count) * sizeof(uint8_t));
+    if (status != cudaSuccess)
+      return status;
+    status = cudaMalloc(&context->device_equation_tasks,
+                        static_cast<size_t>(equation_count) *
+                            sizeof(Type3BoundsCudaEquationTask));
+    if (status != cudaSuccess)
+      return status;
+
+    context->equation_batch_capacity = equation_count;
+  }
+
+  if (point_value_count > context->equation_point_value_capacity) {
+    if (context->device_equation_points != nullptr) {
+      cudaFree(context->device_equation_points);
+      context->device_equation_points = nullptr;
+    }
+
+    status = cudaMalloc(&context->device_equation_points,
+                        point_value_count * sizeof(int64_t));
+    if (status != cudaSuccess)
+      return status;
+
+    context->equation_point_value_capacity = point_value_count;
+  }
+
+  return cudaSuccess;
+}
+
+cudaError_t EnsureIPCheckBatchCapacity(Type3BoundsCudaContext *context,
+                                      uint32_t state_count) {
+  cudaError_t status;
+
+  if (state_count <= context->ip_state_capacity)
+    return cudaSuccess;
+
+  if (context->device_ip_states != nullptr) {
+    cudaFree(context->device_ip_states);
+    context->device_ip_states = nullptr;
+  }
+  if (context->device_ip_point_buffers != nullptr) {
+    cudaFree(context->device_ip_point_buffers);
+    context->device_ip_point_buffers = nullptr;
+  }
+  if (context->device_ip_results != nullptr) {
+    cudaFree(context->device_ip_results);
+    context->device_ip_results = nullptr;
+  }
+  if (context->device_ip_error_flag != nullptr) {
+    cudaFree(context->device_ip_error_flag);
+    context->device_ip_error_flag = nullptr;
+  }
+
+  status = cudaMalloc(&context->device_ip_states,
+                      static_cast<size_t>(state_count) *
+                          sizeof(Type3BoundsCudaIPState));
+  if (status != cudaSuccess)
+    return status;
+  status = cudaMalloc(&context->device_ip_point_buffers,
+                      static_cast<size_t>(state_count) *
+                          sizeof(Type3BoundsCudaDevicePointBuffer));
+  if (status != cudaSuccess)
+    return status;
+  status = cudaMalloc(&context->device_ip_results,
+                      static_cast<size_t>(state_count) * sizeof(int));
+  if (status != cudaSuccess)
+    return status;
+  status = cudaMalloc(&context->device_ip_error_flag, sizeof(int));
+  if (status != cudaSuccess)
+    return status;
+
+  context->ip_state_capacity = state_count;
   return cudaSuccess;
 }
 
@@ -1468,6 +3054,7 @@ int EnumeratePreparedOnLane(Type3BoundsCudaContext *context,
                             const Type3BoundsCudaReduction *reduction,
                             uint32_t point_capacity, uint32_t state_count,
                             int64_t *points, uint32_t *point_count,
+                            Type3BoundsCudaDevicePointBuffer *resident_output,
                             Type3BoundsCudaStats *stats,
                             char *error_buffer,
                             size_t error_buffer_size) {
@@ -1475,14 +3062,28 @@ int EnumeratePreparedOnLane(Type3BoundsCudaContext *context,
   uint32_t blocks;
   int overflow_flag = 0;
   Type3BoundsCudaStats local_stats = {0};
+    int64_t (*device_point_output)[kType3BoundsRuntimeMaxDimension] =
+      lane->device_points;
   int64_t (*current)[kType3BoundsRuntimeMaxDimension] = lane->device_frontier_a;
   int64_t (*next)[kType3BoundsRuntimeMaxDimension] = lane->device_frontier_b;
   const int64_t (*download_points)[kType3BoundsRuntimeMaxDimension] =
       lane->device_points;
 
-  if ((problem == nullptr) || (points == nullptr) || (point_count == nullptr)) {
+  if ((problem == nullptr) || (point_count == nullptr)) {
     SetError(error_buffer, error_buffer_size, "invalid CUDA enumerate args");
     return 1;
+  }
+  if ((resident_output != nullptr) && (resident_output->points != nullptr)) {
+    device_point_output = reinterpret_cast<
+        int64_t (*)[kType3BoundsRuntimeMaxDimension]>(resident_output->points);
+    download_points = device_point_output;
+  }
+  if (resident_output != nullptr) {
+    resident_output->point_count = 0;
+    resident_output->point_dimension = problem->n;
+    resident_output->point_stride =
+        (resident_output->points != nullptr) ? kType3BoundsRuntimeMaxDimension
+                                             : 0;
   }
   if ((reduction != nullptr) && (reduction->mod_count > problem->n)) {
     SetError(error_buffer, error_buffer_size,
@@ -1543,7 +3144,7 @@ int EnumeratePreparedOnLane(Type3BoundsCudaContext *context,
     blocks = (state_count + context->block_size - 1) / context->block_size;
     ExpandFrontierKernel<<<blocks, context->block_size, 0, lane->stream>>>(
         lane->device_problem, coord, current, state_count,
-        (coord == 0) ? lane->device_points : next, point_capacity,
+      (coord == 0) ? device_point_output : next, point_capacity,
         lane->device_output_count, lane->device_overflow_flag,
         lane->device_stats);
     status = cudaGetLastError();
@@ -1609,7 +3210,7 @@ int EnumeratePreparedOnLane(Type3BoundsCudaContext *context,
     blocks = (state_count + context->block_size - 1) / context->block_size;
     ReducePointsToSublatticeKernel<<<blocks, context->block_size, 0,
                                      lane->stream>>>(
-        lane->device_reduction, problem->n, lane->device_points, state_count,
+      lane->device_reduction, problem->n, device_point_output, state_count,
         lane->device_frontier_a, point_capacity, lane->device_output_count,
         lane->device_overflow_flag);
     status = cudaGetLastError();
@@ -1650,7 +3251,14 @@ int EnumeratePreparedOnLane(Type3BoundsCudaContext *context,
   }
 
   *point_count = state_count;
-  if (state_count > 0) {
+  if (resident_output != nullptr) {
+    resident_output->points =
+        (state_count == 0) ? nullptr : const_cast<int64_t *>(download_points[0]);
+    resident_output->point_count = state_count;
+    resident_output->point_dimension = problem->n;
+    resident_output->point_stride = kType3BoundsRuntimeMaxDimension;
+  }
+  if ((state_count > 0) && ((points != nullptr) || (resident_output == nullptr))) {
     size_t download_bytes = static_cast<size_t>(state_count) *
                             kType3BoundsRuntimeMaxDimension * sizeof(int64_t);
 
@@ -1661,7 +3269,8 @@ int EnumeratePreparedOnLane(Type3BoundsCudaContext *context,
                    "unable to download enumerated points", status);
       return 1;
     }
-    std::memcpy(points, lane->host_point_staging, download_bytes);
+    if (points != nullptr)
+      std::memcpy(points, lane->host_point_staging, download_bytes);
   }
   status = cudaMemcpy(&local_stats, lane->device_stats, sizeof(local_stats),
                       cudaMemcpyDeviceToHost);
@@ -1753,7 +3362,9 @@ int EnumerateCwsOnLane(Type3BoundsCudaContext *context,
                        const Type3BoundsCudaCwsCandidate *candidate,
                        const Type3BoundsCudaReduction *reduction,
                        uint32_t point_capacity, int64_t *points,
-                       uint32_t *point_count, Type3BoundsCudaStats *stats,
+                       uint32_t *point_count,
+                       Type3BoundsCudaDevicePointBuffer *resident_output,
+                       Type3BoundsCudaStats *stats,
                        char *error_buffer, size_t error_buffer_size) {
   Type3BoundsCudaProblem prepared_problem;
   uint32_t state_count = 0;
@@ -1770,7 +3381,8 @@ int EnumerateCwsOnLane(Type3BoundsCudaContext *context,
     return 1;
   return EnumeratePreparedOnLane(context, lane, &prepared_problem, reduction,
                                  point_capacity, state_count, points,
-                                 point_count, stats, error_buffer,
+                                 point_count, resident_output, stats,
+                                 error_buffer,
                                  error_buffer_size);
 }
 
@@ -1780,6 +3392,7 @@ int EnumerateCwsSynchronously(Type3BoundsCudaContext *context,
                               const Type3BoundsCudaReduction *reduction,
                               uint32_t point_capacity, int64_t *points,
                               uint32_t *point_count,
+                              Type3BoundsCudaDevicePointBuffer *resident_output,
                               Type3BoundsCudaStats *stats,
                               char *error_buffer,
                               size_t error_buffer_size) {
@@ -1795,7 +3408,8 @@ int EnumerateCwsSynchronously(Type3BoundsCudaContext *context,
           error_buffer, error_buffer_size) != 0)
     return 1;
   return EnumerateSynchronously(context, lane, &prepared_problem, reduction,
-                                point_capacity, points, point_count, stats,
+                                point_capacity, points, point_count,
+                                resident_output, stats,
                                 error_buffer, error_buffer_size);
 }
 
@@ -1804,14 +3418,16 @@ int EnumerateOnLane(Type3BoundsCudaContext *context,
                     const Type3BoundsCudaProblem *problem,
                     const Type3BoundsCudaReduction *reduction,
                     uint32_t point_capacity, int64_t *points,
-                    uint32_t *point_count, Type3BoundsCudaStats *stats,
+                    uint32_t *point_count,
+                    Type3BoundsCudaDevicePointBuffer *resident_output,
+                    Type3BoundsCudaStats *stats,
                     char *error_buffer, size_t error_buffer_size) {
   cudaError_t status;
   uint32_t state_count;
   uint32_t blocks;
   Type3BoundsCudaStats local_stats = {0};
 
-  if ((problem == nullptr) || (points == nullptr) || (point_count == nullptr)) {
+  if ((problem == nullptr) || (point_count == nullptr)) {
     SetError(error_buffer, error_buffer_size, "invalid CUDA enumerate args");
     return 1;
   }
@@ -1888,7 +3504,8 @@ int EnumerateOnLane(Type3BoundsCudaContext *context,
   }
   return EnumeratePreparedOnLane(context, lane, problem, reduction,
                                  point_capacity, state_count, points,
-                                 point_count, stats, error_buffer,
+                                 point_count, resident_output, stats,
+                                 error_buffer,
                                  error_buffer_size);
 }
 
@@ -1897,20 +3514,34 @@ int EnumerateSynchronously(Type3BoundsCudaContext *context,
                            const Type3BoundsCudaProblem *problem,
                            const Type3BoundsCudaReduction *reduction,
                            uint32_t point_capacity, int64_t *points,
-                           uint32_t *point_count, Type3BoundsCudaStats *stats,
+                           uint32_t *point_count,
+                           Type3BoundsCudaDevicePointBuffer *resident_output,
+                           Type3BoundsCudaStats *stats,
                            char *error_buffer, size_t error_buffer_size) {
   cudaError_t status;
   uint32_t state_count;
   uint32_t blocks;
   int overflow_flag = 0;
   Type3BoundsCudaStats local_stats = {0};
+  int64_t (*device_point_output)[kType3BoundsRuntimeMaxDimension];
   int64_t (*current)[kType3BoundsRuntimeMaxDimension];
   int64_t (*next)[kType3BoundsRuntimeMaxDimension];
   const int64_t (*download_points)[kType3BoundsRuntimeMaxDimension];
 
-  if ((problem == nullptr) || (points == nullptr) || (point_count == nullptr)) {
+  if ((problem == nullptr) || (point_count == nullptr)) {
     SetError(error_buffer, error_buffer_size, "invalid CUDA enumerate args");
     return 1;
+  }
+  device_point_output = lane->device_points;
+  if ((resident_output != nullptr) && (resident_output->points != nullptr))
+    device_point_output = reinterpret_cast<
+        int64_t (*)[kType3BoundsRuntimeMaxDimension]>(resident_output->points);
+  if (resident_output != nullptr) {
+    resident_output->point_count = 0;
+    resident_output->point_dimension = problem->n;
+    resident_output->point_stride =
+        (resident_output->points != nullptr) ? kType3BoundsRuntimeMaxDimension
+                                             : 0;
   }
   if ((problem->n == 0) ||
       (problem->n > kType3BoundsRuntimeMaxDimension) ||
@@ -1955,7 +3586,7 @@ int EnumerateSynchronously(Type3BoundsCudaContext *context,
                  "unable to reserve enumeration buffers", status);
     return 1;
   }
-  download_points = lane->device_points;
+  download_points = device_point_output;
 
   status = cudaMemcpy(lane->device_problem, problem, sizeof(*problem),
                       cudaMemcpyHostToDevice);
@@ -2016,7 +3647,7 @@ int EnumerateSynchronously(Type3BoundsCudaContext *context,
     blocks = (state_count + context->block_size - 1) / context->block_size;
     ExpandFrontierKernel<<<blocks, context->block_size>>>(
         lane->device_problem, coord, current, state_count,
-        (coord == 0) ? lane->device_points : next, point_capacity,
+      (coord == 0) ? device_point_output : next, point_capacity,
         lane->device_output_count, lane->device_overflow_flag,
         lane->device_stats);
     status = cudaGetLastError();
@@ -2077,7 +3708,7 @@ int EnumerateSynchronously(Type3BoundsCudaContext *context,
 
     blocks = (state_count + context->block_size - 1) / context->block_size;
     ReducePointsToSublatticeKernel<<<blocks, context->block_size>>>(
-      lane->device_reduction, problem->n, lane->device_points, state_count,
+      lane->device_reduction, problem->n, device_point_output, state_count,
         lane->device_frontier_a, point_capacity, lane->device_output_count,
         lane->device_overflow_flag);
     status = cudaGetLastError();
@@ -2116,7 +3747,14 @@ int EnumerateSynchronously(Type3BoundsCudaContext *context,
   }
 
   *point_count = state_count;
-  if (state_count > 0) {
+  if (resident_output != nullptr) {
+    resident_output->points =
+        (state_count == 0) ? nullptr : const_cast<int64_t *>(download_points[0]);
+    resident_output->point_count = state_count;
+    resident_output->point_dimension = problem->n;
+    resident_output->point_stride = kType3BoundsRuntimeMaxDimension;
+  }
+  if ((state_count > 0) && ((points != nullptr) || (resident_output == nullptr))) {
     size_t download_bytes = static_cast<size_t>(state_count) *
                             kType3BoundsRuntimeMaxDimension * sizeof(int64_t);
 
@@ -2129,7 +3767,8 @@ int EnumerateSynchronously(Type3BoundsCudaContext *context,
                    "unable to download enumerated points", status);
       return 1;
     }
-    std::memcpy(points, lane->host_point_staging, download_bytes);
+    if (points != nullptr)
+      std::memcpy(points, lane->host_point_staging, download_bytes);
   }
 
   status = cudaMemcpy(&local_stats, lane->device_stats, sizeof(local_stats),
@@ -2330,6 +3969,528 @@ extern "C" int Type3BoundsCudaEvaluate(Type3BoundsCudaContext *context,
   return 0;
 }
 
+extern "C" int Type3BoundsCudaClassifyEquationBatch(
+    Type3BoundsCudaContext *context,
+    const Type3BoundsCudaEquation *equations,
+    uint32_t equation_count,
+    const int64_t *points,
+    uint32_t point_count,
+    uint32_t point_dimension,
+  uint32_t point_stride,
+    uint8_t *has_negative,
+    char *error_buffer,
+    size_t error_buffer_size) {
+  cudaError_t status;
+  size_t point_value_count;
+  uint32_t blocks;
+
+  if ((context == nullptr) || (equations == nullptr) ||
+      (has_negative == nullptr)) {
+    SetError(error_buffer, error_buffer_size,
+             "invalid CUDA equation-classify args");
+    return 1;
+  }
+  if (equation_count == 0) {
+    if ((error_buffer != nullptr) && (error_buffer_size > 0))
+      error_buffer[0] = '\0';
+    return 0;
+  }
+  if ((point_dimension == 0) ||
+      (point_dimension > kType3BoundsRuntimeMaxDimension)) {
+    SetError(error_buffer, error_buffer_size,
+             "invalid CUDA equation point dimension");
+    return 1;
+  }
+
+  if (point_stride < point_dimension) {
+    SetError(error_buffer, error_buffer_size,
+             "invalid CUDA equation point stride");
+    return 1;
+  }
+
+  std::memset(has_negative, 0,
+              static_cast<size_t>(equation_count) * sizeof(uint8_t));
+  if (point_count == 0) {
+    if ((error_buffer != nullptr) && (error_buffer_size > 0))
+      error_buffer[0] = '\0';
+    return 0;
+  }
+  if (points == nullptr) {
+    SetError(error_buffer, error_buffer_size,
+             "null CUDA equation point buffer");
+    return 1;
+  }
+
+  point_value_count = static_cast<size_t>(point_count) * point_stride;
+
+  status = cudaSetDevice(context->device_ordinal);
+  if (status != cudaSuccess) {
+    SetCudaError(error_buffer, error_buffer_size,
+                 "unable to select CUDA device", status);
+    return 1;
+  }
+  status = EnsureEquationClassificationCapacity(context, equation_count,
+                                                point_value_count);
+  if (status != cudaSuccess) {
+    SetCudaError(error_buffer, error_buffer_size,
+                 "unable to reserve equation classifier buffers", status);
+    return 1;
+  }
+
+  status = cudaMemcpy(context->device_equation_batch, equations,
+                      static_cast<size_t>(equation_count) *
+                          sizeof(Type3BoundsCudaEquation),
+                      cudaMemcpyHostToDevice);
+  if (status != cudaSuccess) {
+    SetCudaError(error_buffer, error_buffer_size,
+                 "unable to upload equations to device", status);
+    return 1;
+  }
+  status = cudaMemcpy(context->device_equation_points, points,
+                      point_value_count * sizeof(int64_t),
+                      cudaMemcpyHostToDevice);
+  if (status != cudaSuccess) {
+    SetCudaError(error_buffer, error_buffer_size,
+                 "unable to upload equation points to device", status);
+    return 1;
+  }
+  status = cudaMemset(context->device_equation_negative_flags, 0,
+                      static_cast<size_t>(equation_count) * sizeof(uint8_t));
+  if (status != cudaSuccess) {
+    SetCudaError(error_buffer, error_buffer_size,
+                 "unable to reset equation classifier flags", status);
+    return 1;
+  }
+
+  blocks = equation_count;
+  ClassifyEquationNegativityKernel<<<blocks, context->block_size>>>(
+      context->device_equation_batch, equation_count,
+      context->device_equation_points, point_count, point_dimension,
+      point_stride,
+      context->device_equation_negative_flags);
+  status = cudaGetLastError();
+  if (status != cudaSuccess) {
+    SetCudaError(error_buffer, error_buffer_size,
+                 "equation classifier kernel launch failed", status);
+    return 1;
+  }
+  status = cudaDeviceSynchronize();
+  if (status != cudaSuccess) {
+    SetCudaError(error_buffer, error_buffer_size,
+                 "equation classifier kernel failed", status);
+    return 1;
+  }
+
+  status = cudaMemcpy(has_negative, context->device_equation_negative_flags,
+                      static_cast<size_t>(equation_count) * sizeof(uint8_t),
+                      cudaMemcpyDeviceToHost);
+  if (status != cudaSuccess) {
+    SetCudaError(error_buffer, error_buffer_size,
+                 "unable to download equation classifier flags", status);
+    return 1;
+  }
+
+  if ((error_buffer != nullptr) && (error_buffer_size > 0))
+    error_buffer[0] = '\0';
+  return 0;
+}
+
+extern "C" int Type3BoundsCudaClassifyEquationTaskBatch(
+    Type3BoundsCudaContext *context,
+    const Type3BoundsCudaEquation *equations,
+    const Type3BoundsCudaEquationTask *tasks,
+    uint32_t equation_count,
+    const int64_t *points,
+    uint32_t point_count,
+    uint32_t point_stride,
+    uint8_t *has_negative,
+    char *error_buffer,
+    size_t error_buffer_size) {
+  cudaError_t status;
+  size_t point_value_count;
+  uint32_t blocks;
+  uint32_t uploaded_point_count;
+  uint32_t uploaded_point_stride;
+
+  if ((context == nullptr) || (equations == nullptr) || (tasks == nullptr) ||
+      (has_negative == nullptr)) {
+    SetError(error_buffer, error_buffer_size,
+             "invalid CUDA equation-task-classify args");
+    return 1;
+  }
+  if (equation_count == 0) {
+    if ((error_buffer != nullptr) && (error_buffer_size > 0))
+      error_buffer[0] = '\0';
+    return 0;
+  }
+
+  std::memset(has_negative, 0,
+              static_cast<size_t>(equation_count) * sizeof(uint8_t));
+  if (points != nullptr) {
+    if (point_stride < kType3BoundsRuntimeMaxDimension) {
+      SetError(error_buffer, error_buffer_size,
+               "invalid CUDA equation-task point stride");
+      return 1;
+    }
+    uploaded_point_count = point_count;
+    uploaded_point_stride = point_stride;
+    point_value_count = static_cast<size_t>(uploaded_point_count) *
+                        uploaded_point_stride;
+  } else {
+    uploaded_point_count = context->uploaded_equation_point_count;
+    uploaded_point_stride = context->uploaded_equation_point_stride;
+    if ((uploaded_point_count == 0) ||
+        (uploaded_point_stride < kType3BoundsRuntimeMaxDimension)) {
+      SetError(error_buffer, error_buffer_size,
+               "no cached CUDA equation-task point buffer");
+      return 1;
+    }
+    point_value_count = static_cast<size_t>(uploaded_point_count) *
+                        uploaded_point_stride;
+  }
+
+  status = cudaSetDevice(context->device_ordinal);
+  if (status != cudaSuccess) {
+    SetCudaError(error_buffer, error_buffer_size,
+                 "unable to select CUDA device", status);
+    return 1;
+  }
+  status = EnsureEquationClassificationCapacity(context, equation_count,
+                                                point_value_count);
+  if (status != cudaSuccess) {
+    SetCudaError(error_buffer, error_buffer_size,
+                 "unable to reserve equation task classifier buffers", status);
+    return 1;
+  }
+
+  status = cudaMemcpy(context->device_equation_batch, equations,
+                      static_cast<size_t>(equation_count) *
+                          sizeof(Type3BoundsCudaEquation),
+                      cudaMemcpyHostToDevice);
+  if (status != cudaSuccess) {
+    SetCudaError(error_buffer, error_buffer_size,
+                 "unable to upload equations to device", status);
+    return 1;
+  }
+  status = cudaMemcpy(context->device_equation_tasks, tasks,
+                      static_cast<size_t>(equation_count) *
+                          sizeof(Type3BoundsCudaEquationTask),
+                      cudaMemcpyHostToDevice);
+  if (status != cudaSuccess) {
+    SetCudaError(error_buffer, error_buffer_size,
+                 "unable to upload equation task metadata", status);
+    return 1;
+  }
+  if ((points != nullptr) && (point_value_count != 0)) {
+    status = cudaMemcpy(context->device_equation_points, points,
+                        point_value_count * sizeof(int64_t),
+                        cudaMemcpyHostToDevice);
+    if (status != cudaSuccess) {
+      SetCudaError(error_buffer, error_buffer_size,
+                   "unable to upload equation task points", status);
+      return 1;
+    }
+    context->uploaded_equation_point_count = uploaded_point_count;
+    context->uploaded_equation_point_stride = uploaded_point_stride;
+  }
+  status = cudaMemset(context->device_equation_negative_flags, 0,
+                      static_cast<size_t>(equation_count) * sizeof(uint8_t));
+  if (status != cudaSuccess) {
+    SetCudaError(error_buffer, error_buffer_size,
+                 "unable to reset equation task classifier flags", status);
+    return 1;
+  }
+
+  blocks = equation_count;
+  ClassifyEquationTaskBatchKernel<<<blocks, context->block_size>>>(
+      context->device_equation_batch, context->device_equation_tasks,
+      equation_count, context->device_equation_points, uploaded_point_stride,
+      context->device_equation_negative_flags);
+  status = cudaGetLastError();
+  if (status != cudaSuccess) {
+    SetCudaError(error_buffer, error_buffer_size,
+                 "equation task classifier kernel launch failed", status);
+    return 1;
+  }
+  status = cudaDeviceSynchronize();
+  if (status != cudaSuccess) {
+    SetCudaError(error_buffer, error_buffer_size,
+                 "equation task classifier kernel failed", status);
+    return 1;
+  }
+
+  status = cudaMemcpy(has_negative, context->device_equation_negative_flags,
+                      static_cast<size_t>(equation_count) * sizeof(uint8_t),
+                      cudaMemcpyDeviceToHost);
+  if (status != cudaSuccess) {
+    SetCudaError(error_buffer, error_buffer_size,
+                 "unable to download equation task classifier flags", status);
+    return 1;
+  }
+
+  if ((error_buffer != nullptr) && (error_buffer_size > 0))
+    error_buffer[0] = '\0';
+  return 0;
+}
+
+extern "C" int Type3BoundsCudaRunIPCheckBatch(
+    Type3BoundsCudaContext *context,
+    const Type3BoundsCudaIPState *states,
+    uint32_t state_count,
+    const Type3BoundsCudaPointBuffer *point_buffers,
+    uint32_t point_stride,
+    int *results,
+    char *error_buffer,
+    size_t error_buffer_size) {
+  cudaError_t status;
+  size_t point_value_count = 0;
+  uint32_t point_count = 0;
+  uint32_t block_size;
+  int device_error = 0;
+
+  if ((context == nullptr) || (states == nullptr) || (point_buffers == nullptr) ||
+      (results == nullptr)) {
+    SetError(error_buffer, error_buffer_size,
+             "invalid CUDA IP-check batch args");
+    return 1;
+  }
+  if (state_count == 0) {
+    if ((error_buffer != nullptr) && (error_buffer_size > 0))
+      error_buffer[0] = '\0';
+    return 0;
+  }
+  if (point_stride == 0) {
+    SetError(error_buffer, error_buffer_size,
+             "invalid CUDA IP-check point stride");
+    return 1;
+  }
+
+  for (uint32_t index = 0; index < state_count; index++) {
+    if ((states[index].point_dimension == 0) ||
+        (states[index].point_dimension > kType3BoundsRuntimeMaxDimension) ||
+      (states[index].point_dimension > point_stride) ||
+        (states[index].vertex_count > kType3BoundsRuntimeMaxIPVertices) ||
+        (states[index].facet_count > kType3BoundsRuntimeMaxIPEquations) ||
+        (states[index].ceq_count > kType3BoundsRuntimeMaxIPEquations) ||
+        (point_buffers[index].point_count != states[index].point_count) ||
+        ((point_buffers[index].point_count != 0) &&
+         (point_buffers[index].points == nullptr))) {
+      SetError(error_buffer, error_buffer_size,
+               "invalid CUDA IP-check state payload");
+      return 1;
+    }
+    if (states[index].point_offset + states[index].point_count > point_count)
+      point_count = states[index].point_offset + states[index].point_count;
+  }
+  point_value_count = static_cast<size_t>(point_count) * point_stride;
+
+  status = cudaSetDevice(context->device_ordinal);
+  if (status != cudaSuccess) {
+    SetCudaError(error_buffer, error_buffer_size,
+                 "unable to select CUDA device", status);
+    return 1;
+  }
+  status = EnsureEquationClassificationCapacity(
+      context, 1, point_value_count == 0 ? 1 : point_value_count);
+  if (status != cudaSuccess) {
+    SetCudaError(error_buffer, error_buffer_size,
+                 "unable to reserve CUDA IP-check point buffers", status);
+    return 1;
+  }
+  status = EnsureIPCheckBatchCapacity(context, state_count);
+  if (status != cudaSuccess) {
+    SetCudaError(error_buffer, error_buffer_size,
+                 "unable to reserve CUDA IP-check state buffers", status);
+    return 1;
+  }
+
+  for (uint32_t index = 0; index < state_count; index++) {
+    if (point_buffers[index].point_count == 0)
+      continue;
+    status = cudaMemcpy(
+        context->device_equation_points +
+            static_cast<size_t>(states[index].point_offset) * point_stride,
+        point_buffers[index].points,
+        static_cast<size_t>(point_buffers[index].point_count) * point_stride *
+            sizeof(int64_t),
+        cudaMemcpyHostToDevice);
+    if (status != cudaSuccess) {
+      SetCudaError(error_buffer, error_buffer_size,
+                   "unable to upload CUDA IP-check points", status);
+      return 1;
+    }
+  }
+  context->uploaded_equation_point_count = point_count;
+  context->uploaded_equation_point_stride = point_stride;
+
+  status = cudaMemcpy(context->device_ip_states, states,
+                      static_cast<size_t>(state_count) *
+                          sizeof(Type3BoundsCudaIPState),
+                      cudaMemcpyHostToDevice);
+  if (status != cudaSuccess) {
+    SetCudaError(error_buffer, error_buffer_size,
+                 "unable to upload CUDA IP-check state", status);
+    return 1;
+  }
+  status = cudaMemset(context->device_ip_error_flag, 0, sizeof(int));
+  if (status != cudaSuccess) {
+    SetCudaError(error_buffer, error_buffer_size,
+                 "unable to reset CUDA IP-check error flag", status);
+    return 1;
+  }
+
+  block_size = context->block_size;
+  if ((block_size == 0) || (block_size > 256))
+    block_size = 256;
+  RunIPCheckBatchKernel<<<state_count, block_size>>>(
+      context->device_ip_states, state_count, context->device_equation_points,
+      point_stride, context->device_ip_results, context->device_ip_error_flag);
+  status = cudaGetLastError();
+  if (status != cudaSuccess) {
+    SetCudaError(error_buffer, error_buffer_size,
+                 "CUDA IP-check kernel launch failed", status);
+    return 1;
+  }
+  status = cudaDeviceSynchronize();
+  if (status != cudaSuccess) {
+    SetCudaError(error_buffer, error_buffer_size,
+                 "CUDA IP-check kernel failed", status);
+    return 1;
+  }
+
+  status = cudaMemcpy(&device_error, context->device_ip_error_flag,
+                      sizeof(device_error), cudaMemcpyDeviceToHost);
+  if (status != cudaSuccess) {
+    SetCudaError(error_buffer, error_buffer_size,
+                 "unable to download CUDA IP-check error flag", status);
+    return 1;
+  }
+  if (device_error != 0) {
+    SetError(error_buffer, error_buffer_size,
+             "CUDA IP-check state machine overflowed bounded geometry state");
+    return 1;
+  }
+
+  status = cudaMemcpy(results, context->device_ip_results,
+                      static_cast<size_t>(state_count) * sizeof(int),
+                      cudaMemcpyDeviceToHost);
+  if (status != cudaSuccess) {
+    SetCudaError(error_buffer, error_buffer_size,
+                 "unable to download CUDA IP-check results", status);
+    return 1;
+  }
+
+  if ((error_buffer != nullptr) && (error_buffer_size > 0))
+    error_buffer[0] = '\0';
+  return 0;
+}
+
+extern "C" int Type3BoundsCudaRunIPCheckDeviceBatch(
+    Type3BoundsCudaContext *context,
+    const Type3BoundsCudaDevicePointBuffer *point_buffers,
+    uint32_t state_count,
+    int *results,
+    char *error_buffer,
+    size_t error_buffer_size) {
+  cudaError_t status;
+  uint32_t block_size;
+  int device_error = 0;
+
+  if ((context == nullptr) || (point_buffers == nullptr) ||
+      (results == nullptr)) {
+    SetError(error_buffer, error_buffer_size,
+             "invalid CUDA device IP-check batch args");
+    return 1;
+  }
+  if (state_count == 0) {
+    if ((error_buffer != nullptr) && (error_buffer_size > 0))
+      error_buffer[0] = '\0';
+    return 0;
+  }
+  for (uint32_t index = 0; index < state_count; index++)
+    if ((point_buffers[index].point_dimension == 0) ||
+        (point_buffers[index].point_dimension > kType3BoundsRuntimeMaxDimension) ||
+        (point_buffers[index].point_stride < point_buffers[index].point_dimension) ||
+        ((point_buffers[index].point_count != 0) &&
+         (point_buffers[index].points == nullptr))) {
+      SetError(error_buffer, error_buffer_size,
+               "invalid CUDA device IP-check point payload");
+      return 1;
+    }
+
+  status = cudaSetDevice(context->device_ordinal);
+  if (status != cudaSuccess) {
+    SetCudaError(error_buffer, error_buffer_size,
+                 "unable to select CUDA device", status);
+    return 1;
+  }
+  status = EnsureIPCheckBatchCapacity(context, state_count);
+  if (status != cudaSuccess) {
+    SetCudaError(error_buffer, error_buffer_size,
+                 "unable to reserve CUDA device IP-check buffers", status);
+    return 1;
+  }
+
+  status = cudaMemcpy(context->device_ip_point_buffers, point_buffers,
+                      static_cast<size_t>(state_count) *
+                          sizeof(Type3BoundsCudaDevicePointBuffer),
+                      cudaMemcpyHostToDevice);
+  if (status != cudaSuccess) {
+    SetCudaError(error_buffer, error_buffer_size,
+                 "unable to upload CUDA device IP-check descriptors", status);
+    return 1;
+  }
+  status = cudaMemset(context->device_ip_error_flag, 0, sizeof(int));
+  if (status != cudaSuccess) {
+    SetCudaError(error_buffer, error_buffer_size,
+                 "unable to reset CUDA device IP-check error flag", status);
+    return 1;
+  }
+
+  block_size = context->block_size;
+  if ((block_size == 0) || (block_size > 256))
+    block_size = 256;
+  RunIPCheckDeviceBatchKernel<<<state_count, block_size>>>(
+      context->device_ip_point_buffers, state_count,
+      context->device_ip_results, context->device_ip_error_flag);
+  status = cudaGetLastError();
+  if (status != cudaSuccess) {
+    SetCudaError(error_buffer, error_buffer_size,
+                 "CUDA device IP-check kernel launch failed", status);
+    return 1;
+  }
+  status = cudaDeviceSynchronize();
+  if (status != cudaSuccess) {
+    SetCudaError(error_buffer, error_buffer_size,
+                 "CUDA device IP-check kernel failed", status);
+    return 1;
+  }
+  status = cudaMemcpy(&device_error, context->device_ip_error_flag,
+                      sizeof(device_error), cudaMemcpyDeviceToHost);
+  if (status != cudaSuccess) {
+    SetCudaError(error_buffer, error_buffer_size,
+                 "unable to download CUDA device IP-check error flag", status);
+    return 1;
+  }
+  if (device_error != 0) {
+    SetError(error_buffer, error_buffer_size,
+             "CUDA device IP-check overflowed bounded geometry state");
+    return 1;
+  }
+  status = cudaMemcpy(results, context->device_ip_results,
+                      static_cast<size_t>(state_count) * sizeof(int),
+                      cudaMemcpyDeviceToHost);
+  if (status != cudaSuccess) {
+    SetCudaError(error_buffer, error_buffer_size,
+                 "unable to download CUDA device IP-check results", status);
+    return 1;
+  }
+
+  if ((error_buffer != nullptr) && (error_buffer_size > 0))
+    error_buffer[0] = '\0';
+  return 0;
+}
+
 extern "C" int Type3BoundsCudaEnumerate(Type3BoundsCudaContext *context,
                                          const Type3BoundsCudaProblem *problem,
                                          const Type3BoundsCudaReduction *reduction,
@@ -2351,7 +4512,7 @@ extern "C" int Type3BoundsCudaEnumerate(Type3BoundsCudaContext *context,
 
   return EnumerateSynchronously(context, &context->lanes[0], problem,
                                 reduction, point_capacity, points,
-                                point_count, stats, error_buffer,
+                                point_count, nullptr, stats, error_buffer,
                                 error_buffer_size);
 }
 
@@ -2376,7 +4537,7 @@ extern "C" int Type3BoundsCudaEnumerateCws(Type3BoundsCudaContext *context,
 
   return EnumerateCwsSynchronously(context, &context->lanes[0], candidate,
                                    reduction, point_capacity, points,
-                                   point_count, stats, error_buffer,
+                                   point_count, nullptr, stats, error_buffer,
                                    error_buffer_size);
 }
 
@@ -2434,6 +4595,9 @@ extern "C" int Type3BoundsCudaEnumerateBatch(Type3BoundsCudaContext *context,
     workers->point_capacity = point_capacity;
     workers->points = points;
     workers->point_counts = point_counts;
+    workers->compact_outputs = nullptr;
+    workers->device_outputs = nullptr;
+    workers->ip_results = nullptr;
     workers->stats = stats;
     workers->first_error.clear();
     workers->next_index.store(0);
@@ -2446,6 +4610,90 @@ extern "C" int Type3BoundsCudaEnumerateBatch(Type3BoundsCudaContext *context,
     workers->done_cv.wait(lock, [workers] { return !workers->batch_active; });
 
     if (workers->failed.load()) {
+      SetError(error_buffer, error_buffer_size,
+               workers->first_error.empty() ? "unknown batch failure"
+                                            : workers->first_error.c_str());
+      return 1;
+    }
+  }
+
+  if ((error_buffer != nullptr) && (error_buffer_size > 0))
+    error_buffer[0] = '\0';
+  return 0;
+}
+
+extern "C" int Type3BoundsCudaEnumerateBatchCompact(
+    Type3BoundsCudaContext *context,
+    const Type3BoundsCudaProblem *problems,
+    const Type3BoundsCudaReduction *reductions,
+    uint32_t problem_count,
+    uint32_t point_capacity,
+    Type3BoundsCudaPointBuffer *outputs,
+    Type3BoundsCudaStats *stats,
+    char *error_buffer,
+    size_t error_buffer_size) {
+  Type3BoundsCudaBatchWorkers *workers;
+
+  if ((context == nullptr) || (problems == nullptr) || (outputs == nullptr)) {
+    SetError(error_buffer, error_buffer_size,
+             "invalid CUDA compact enumerate-batch args");
+    return 1;
+  }
+  if (problem_count == 0) {
+    if ((error_buffer != nullptr) && (error_buffer_size > 0))
+      error_buffer[0] = '\0';
+    return 0;
+  }
+  if ((context->lanes == nullptr) || (context->lane_count == 0)) {
+    SetError(error_buffer, error_buffer_size,
+             "CUDA enumeration lane state not initialized");
+    return 1;
+  }
+  workers = context->batch_workers;
+  if ((workers == nullptr) || workers->threads.empty()) {
+    SetError(error_buffer, error_buffer_size,
+             "CUDA batch worker state not initialized");
+    return 1;
+  }
+
+  if (stats != nullptr)
+    std::memset(stats, 0,
+                static_cast<size_t>(problem_count) *
+                    sizeof(Type3BoundsCudaStats));
+  for (uint32_t index = 0; index < problem_count; index++) {
+    outputs[index].points = nullptr;
+    outputs[index].point_count = 0;
+  }
+
+  {
+    std::unique_lock<std::mutex> lock(workers->mutex);
+
+    while (workers->batch_active)
+      workers->done_cv.wait(lock);
+
+    workers->problems = problems;
+    workers->candidates = nullptr;
+    workers->problem_count = problem_count;
+    workers->reductions = reductions;
+    workers->point_capacity = point_capacity;
+    workers->points = nullptr;
+    workers->point_counts = nullptr;
+    workers->compact_outputs = outputs;
+    workers->device_outputs = nullptr;
+    workers->ip_results = nullptr;
+    workers->stats = stats;
+    workers->first_error.clear();
+    workers->next_index.store(0);
+    workers->failed.store(0);
+    workers->pending = static_cast<uint32_t>(workers->threads.size());
+    workers->generation++;
+    workers->batch_active = true;
+
+    workers->cv.notify_all();
+    workers->done_cv.wait(lock, [workers] { return !workers->batch_active; });
+
+    if (workers->failed.load()) {
+      FreeCompactPointBuffers(outputs, problem_count);
       SetError(error_buffer, error_buffer_size,
                workers->first_error.empty() ? "unknown batch failure"
                                             : workers->first_error.c_str());
@@ -2506,6 +4754,266 @@ extern "C" int Type3BoundsCudaEnumerateCwsBatch(Type3BoundsCudaContext *context,
       context, prepared_problems.data(), reductions, candidate_count,
       point_capacity, points, point_counts, stats, error_buffer,
       error_buffer_size);
+}
+
+extern "C" int Type3BoundsCudaEnumerateCwsBatchCompact(
+    Type3BoundsCudaContext *context,
+    const Type3BoundsCudaCwsCandidate *candidates,
+    const Type3BoundsCudaReduction *reductions,
+    uint32_t candidate_count,
+    uint32_t point_capacity,
+    Type3BoundsCudaPointBuffer *outputs,
+    Type3BoundsCudaStats *stats,
+    char *error_buffer,
+    size_t error_buffer_size) {
+  std::vector<Type3BoundsCudaProblem> prepared_problems;
+
+  if ((context == nullptr) || (candidates == nullptr) || (outputs == nullptr)) {
+    SetError(error_buffer, error_buffer_size,
+             "invalid CUDA compact enumerate-batch args");
+    return 1;
+  }
+  if (candidate_count == 0) {
+    if ((error_buffer != nullptr) && (error_buffer_size > 0))
+      error_buffer[0] = '\0';
+    return 0;
+  }
+  if ((context->lanes == nullptr) || (context->lane_count == 0)) {
+    SetError(error_buffer, error_buffer_size,
+             "CUDA enumeration lane state not initialized");
+    return 1;
+  }
+  try {
+    prepared_problems.resize(candidate_count);
+  } catch (const std::exception &error) {
+    SetError(error_buffer, error_buffer_size, error.what());
+    return 1;
+  } catch (...) {
+    SetError(error_buffer, error_buffer_size,
+             "unable to allocate prepared problem batch");
+    return 1;
+  }
+
+  if (PrepareProblemBatchFromCandidates(
+          context, candidates, candidate_count, point_capacity,
+          prepared_problems.data(), error_buffer, error_buffer_size) != 0)
+    return 1;
+
+  return Type3BoundsCudaEnumerateBatchCompact(
+      context, prepared_problems.data(), reductions, candidate_count,
+      point_capacity, outputs, stats, error_buffer, error_buffer_size);
+}
+
+extern "C" int Type3BoundsCudaEnumerateCwsBatchDeviceCompact(
+    Type3BoundsCudaContext *context,
+    const Type3BoundsCudaCwsCandidate *candidates,
+    const Type3BoundsCudaReduction *reductions,
+    uint32_t candidate_count,
+    uint32_t point_capacity,
+    Type3BoundsCudaDevicePointBuffer *outputs,
+    Type3BoundsCudaStats *stats,
+    char *error_buffer,
+    size_t error_buffer_size) {
+  std::vector<Type3BoundsCudaProblem> prepared_problems;
+  Type3BoundsCudaBatchWorkers *workers;
+
+  if ((context == nullptr) || (candidates == nullptr) || (outputs == nullptr)) {
+    SetError(error_buffer, error_buffer_size,
+             "invalid CUDA device enumerate-batch args");
+    return 1;
+  }
+  if (candidate_count == 0) {
+    if ((error_buffer != nullptr) && (error_buffer_size > 0))
+      error_buffer[0] = '\0';
+    return 0;
+  }
+  if ((context->lanes == nullptr) || (context->lane_count == 0)) {
+    SetError(error_buffer, error_buffer_size,
+             "CUDA enumeration lane state not initialized");
+    return 1;
+  }
+  try {
+    prepared_problems.resize(candidate_count);
+  } catch (const std::exception &error) {
+    SetError(error_buffer, error_buffer_size, error.what());
+    return 1;
+  } catch (...) {
+    SetError(error_buffer, error_buffer_size,
+             "unable to allocate prepared problem batch");
+    return 1;
+  }
+  if (PrepareProblemBatchFromCandidates(
+          context, candidates, candidate_count, point_capacity,
+          prepared_problems.data(), error_buffer, error_buffer_size) != 0)
+    return 1;
+
+  workers = context->batch_workers;
+  if ((workers == nullptr) || workers->threads.empty()) {
+    SetError(error_buffer, error_buffer_size,
+             "CUDA batch worker state not initialized");
+    return 1;
+  }
+
+  if (stats != nullptr)
+    std::memset(stats, 0,
+                static_cast<size_t>(candidate_count) *
+                    sizeof(Type3BoundsCudaStats));
+  for (uint32_t index = 0; index < candidate_count; index++) {
+    outputs[index].points = nullptr;
+    outputs[index].point_count = 0;
+    outputs[index].point_dimension = 0;
+    outputs[index].point_stride = 0;
+  }
+
+  {
+    std::unique_lock<std::mutex> lock(workers->mutex);
+
+    while (workers->batch_active)
+      workers->done_cv.wait(lock);
+
+    workers->problems = prepared_problems.data();
+    workers->candidates = nullptr;
+    workers->problem_count = candidate_count;
+    workers->reductions = reductions;
+    workers->point_capacity = point_capacity;
+    workers->points = nullptr;
+    workers->point_counts = nullptr;
+    workers->compact_outputs = nullptr;
+    workers->device_outputs = outputs;
+    workers->ip_results = nullptr;
+    workers->stats = stats;
+    workers->first_error.clear();
+    workers->next_index.store(0);
+    workers->failed.store(0);
+    workers->pending = static_cast<uint32_t>(workers->threads.size());
+    workers->generation++;
+    workers->batch_active = true;
+
+    workers->cv.notify_all();
+    workers->done_cv.wait(lock, [workers] { return !workers->batch_active; });
+
+    if (workers->failed.load()) {
+      for (uint32_t index = 0; index < candidate_count; index++) {
+        outputs[index].points = nullptr;
+        outputs[index].point_count = 0;
+        outputs[index].point_dimension = 0;
+        outputs[index].point_stride = 0;
+      }
+      SetError(error_buffer, error_buffer_size,
+               workers->first_error.empty() ? "unknown batch failure"
+                                            : workers->first_error.c_str());
+      return 1;
+    }
+  }
+
+  if ((error_buffer != nullptr) && (error_buffer_size > 0))
+    error_buffer[0] = '\0';
+  return 0;
+}
+
+extern "C" int Type3BoundsCudaEnumerateCwsBatchIPResident(
+    Type3BoundsCudaContext *context,
+    const Type3BoundsCudaCwsCandidate *candidates,
+    const Type3BoundsCudaReduction *reductions,
+    uint32_t candidate_count,
+    uint32_t point_capacity,
+    int *results,
+    Type3BoundsCudaStats *stats,
+    char *error_buffer,
+    size_t error_buffer_size) {
+  std::vector<Type3BoundsCudaProblem> prepared_problems;
+  Type3BoundsCudaBatchWorkers *workers;
+
+  if ((context == nullptr) || (candidates == nullptr) || (results == nullptr)) {
+    SetError(error_buffer, error_buffer_size,
+             "invalid resident CUDA enumerate-batch args");
+    return 1;
+  }
+  if (candidate_count == 0) {
+    if ((error_buffer != nullptr) && (error_buffer_size > 0))
+      error_buffer[0] = '\0';
+    return 0;
+  }
+  if ((context->lanes == nullptr) || (context->lane_count == 0)) {
+    SetError(error_buffer, error_buffer_size,
+             "CUDA enumeration lane state not initialized");
+    return 1;
+  }
+  try {
+    prepared_problems.resize(candidate_count);
+  } catch (const std::exception &error) {
+    SetError(error_buffer, error_buffer_size, error.what());
+    return 1;
+  } catch (...) {
+    SetError(error_buffer, error_buffer_size,
+             "unable to allocate prepared problem batch");
+    return 1;
+  }
+  if (PrepareProblemBatchFromCandidates(
+          context, candidates, candidate_count, point_capacity,
+          prepared_problems.data(), error_buffer, error_buffer_size) != 0)
+    return 1;
+
+  workers = context->batch_workers;
+  if ((workers == nullptr) || workers->threads.empty()) {
+    SetError(error_buffer, error_buffer_size,
+             "CUDA batch worker state not initialized");
+    return 1;
+  }
+
+  if (stats != nullptr)
+    std::memset(stats, 0,
+                static_cast<size_t>(candidate_count) *
+                    sizeof(Type3BoundsCudaStats));
+  std::memset(results, 0, static_cast<size_t>(candidate_count) * sizeof(int));
+
+  {
+    std::unique_lock<std::mutex> lock(workers->mutex);
+
+    while (workers->batch_active)
+      workers->done_cv.wait(lock);
+
+    workers->problems = prepared_problems.data();
+    workers->candidates = nullptr;
+    workers->problem_count = candidate_count;
+    workers->reductions = reductions;
+    workers->point_capacity = point_capacity;
+    workers->points = nullptr;
+    workers->point_counts = nullptr;
+    workers->compact_outputs = nullptr;
+    workers->device_outputs = nullptr;
+    workers->ip_results = results;
+    workers->stats = stats;
+    workers->first_error.clear();
+    workers->next_index.store(0);
+    workers->failed.store(0);
+    workers->pending = static_cast<uint32_t>(workers->threads.size());
+    workers->generation++;
+    workers->batch_active = true;
+
+    workers->cv.notify_all();
+    workers->done_cv.wait(lock, [workers] { return !workers->batch_active; });
+
+    if (workers->failed.load()) {
+      SetError(error_buffer, error_buffer_size,
+               workers->first_error.empty() ? "unknown batch failure"
+                                            : workers->first_error.c_str());
+      return 1;
+    }
+  }
+
+  if ((error_buffer != nullptr) && (error_buffer_size > 0))
+    error_buffer[0] = '\0';
+  return 0;
+}
+
+extern "C" void Type3BoundsCudaFreeHostBuffer(void *buffer) {
+  std::free(buffer);
+}
+
+extern "C" void Type3BoundsCudaFreeDeviceBuffer(void *buffer) {
+  if (buffer != nullptr)
+    cudaFree(buffer);
 }
 
 extern "C" int Type3BoundsCudaUploadDim5WeightPool(
