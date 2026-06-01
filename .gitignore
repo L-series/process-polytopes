@@ -1,6 +1,8 @@
 # Build artifacts
 src/classify/build/
+src/classify/build-cuda/
 src/sort/build/
+lean/.lake/
 *.o
 *.a
 *.x
@@ -10,6 +12,7 @@ gmon.out
 
 # Results (large binary files)
 results/
+logs/
 
 # Data files
 samples/reflexive/*.parquet
