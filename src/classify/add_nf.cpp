@@ -3,8 +3,9 @@
  * ═══════════════════════════════════════════════════════════════════════════
  *
  * Reads the output of classifier (unique_polytopes.parquet), re-runs PALP
- * for each unique polytope using its stored first_weight0..5, and appends
- * the NF vertex matrix as a new column to produce an enriched parquet.
+ * for each unique polytope using combined-CWS replay columns when present
+ * and legacy first_weight0..5 columns otherwise, then appends the NF vertex
+ * matrix as a new column to produce an enriched parquet.
  *
  * Normal-form representation
  * ──────────────────────────
@@ -54,6 +55,7 @@
  */
 
 #include <algorithm>
+#include <array>
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
@@ -130,7 +132,7 @@ static Hash128 hash_normal_form(const Long nf[POLY_Dmax][VERT_Nmax],
  * ═══════════════════════════════════════════════════════════════════════════ */
 
 struct InputRow {
-    int32_t  weights[6];
+    PalpCWSInput cws;
     int16_t  vertex_count;
     uint64_t hash_lo, hash_hi;   /* for verification */
 };
@@ -228,27 +230,61 @@ static std::vector<InputRow> extract_input_rows(
                    c->chunk(0))->raw_values();
     };
 
+    const int16_t  *vc  = get_i16("vertex_count");
+    const uint64_t *hlo = get_u64("hash_lo");
+    const uint64_t *hhi = get_u64("hash_hi");
+
+    const int32_t *first_nw = get_i32("first_nw");
+    const int32_t *first_N  = get_i32("first_N");
+    std::array<const int32_t *, PALP_API_MAX_CWS> degree{};
+    std::array<std::array<const int32_t *, PALP_API_MAX_COORDS>, PALP_API_MAX_CWS> weight{};
+    for (int r = 0; r < PALP_API_MAX_CWS; r++)
+        degree[r] = get_i32("first_degree" + std::to_string(r));
+    for (int r = 0; r < PALP_API_MAX_CWS; r++)
+        for (int c = 0; c < PALP_API_MAX_COORDS; c++)
+            weight[r][c] = get_i32("first_weight" + std::to_string(r) + "_" + std::to_string(c));
+
+    bool combined_schema = first_nw && first_N && degree[0] && weight[0][0];
     const int32_t  *w0  = get_i32("first_weight0");
     const int32_t  *w1  = get_i32("first_weight1");
     const int32_t  *w2  = get_i32("first_weight2");
     const int32_t  *w3  = get_i32("first_weight3");
     const int32_t  *w4  = get_i32("first_weight4");
     const int32_t  *w5  = get_i32("first_weight5");
-    const int16_t  *vc  = get_i16("vertex_count");
-    const uint64_t *hlo = get_u64("hash_lo");
-    const uint64_t *hhi = get_u64("hash_hi");
 
-    if (!w0 || !w1 || !w2 || !w3 || !w4 || !w5 || !vc)
+    if (!vc)
+        throw std::runtime_error("Input parquet missing required vertex_count column");
+    if (!combined_schema && (!w0 || !w1 || !w2 || !w3 || !w4 || !w5))
         throw std::runtime_error(
-            "Input parquet missing required weight / vertex_count columns");
+            "Input parquet missing combined replay columns and legacy first_weight0..5 columns");
 
     for (int64_t i = 0; i < n; i++) {
-        rows[i].weights[0]   = w0[i];
-        rows[i].weights[1]   = w1[i];
-        rows[i].weights[2]   = w2[i];
-        rows[i].weights[3]   = w3[i];
-        rows[i].weights[4]   = w4[i];
-        rows[i].weights[5]   = w5[i];
+        std::memset(&rows[i].cws, 0, sizeof(rows[i].cws));
+        rows[i].cws.index = 1;
+        if (combined_schema) {
+            rows[i].cws.nw = first_nw[i];
+            rows[i].cws.N  = first_N[i];
+            if (rows[i].cws.nw < 1 || rows[i].cws.nw > PALP_API_MAX_CWS ||
+                rows[i].cws.N < 1 || rows[i].cws.N > PALP_API_MAX_COORDS ||
+                rows[i].cws.N - rows[i].cws.nw != POLY_Dmax)
+                throw std::runtime_error("Invalid combined replay CWS at row " + std::to_string(i));
+            for (int r = 0; r < PALP_API_MAX_CWS; r++) {
+                rows[i].cws.degree[r] = degree[r] ? degree[r][i] : 0;
+                for (int c = 0; c < PALP_API_MAX_COORDS; c++)
+                    rows[i].cws.weights[r][c] = weight[r][c] ? weight[r][c][i] : 0;
+            }
+        } else {
+            rows[i].cws.nw = 1;
+            rows[i].cws.N = 6;
+            rows[i].cws.weights[0][0] = w0[i];
+            rows[i].cws.weights[0][1] = w1[i];
+            rows[i].cws.weights[0][2] = w2[i];
+            rows[i].cws.weights[0][3] = w3[i];
+            rows[i].cws.weights[0][4] = w4[i];
+            rows[i].cws.weights[0][5] = w5[i];
+            for (int c = 0; c < 6; c++)
+                rows[i].cws.degree[0] += rows[i].cws.weights[0][c];
+        }
         rows[i].vertex_count = vc[i];
         rows[i].hash_lo      = hlo ? hlo[i] : 0;
         rows[i].hash_hi      = hhi ? hhi[i] : 0;
@@ -259,7 +295,7 @@ static std::vector<InputRow> extract_input_rows(
 /* ═══════════════════════════════════════════════════════════════════════════
  *  Compute NF for all rows (multi-threaded)
  *
- *  Each element of nf_data[i] holds the int16 flat representation of the
+ *  Each element of nf_data[i] holds the int32 flat representation of the
  *  NF matrix for row i:  nf[dim][nv] stored row-major (dim varies slowest).
  *  If PALP fails for a row the vector is left empty and the error counter
  *  is incremented.
@@ -308,7 +344,7 @@ compute_all_nf(const std::vector<InputRow> &rows,
                 if (range_error.load(std::memory_order_relaxed)) { aborted = true; break; }
 
                 const InputRow &row = rows[i];
-                palp_compute_nf(ws, row.weights, &result);
+                palp_compute_nf_from_cws(ws, &row.cws, &result);
 
                 if (!result.ok) {
                     n_failed.fetch_add(1, std::memory_order_relaxed);
@@ -423,7 +459,7 @@ build_nf_column(const std::vector<std::vector<int32_t>> &nf_data)
         } else {
             CHECK_ARROW(builder.Append(
                 reinterpret_cast<const uint8_t *>(flat.data()),
-                static_cast<int64_t>(flat.size() * sizeof(int16_t))));
+                static_cast<int64_t>(flat.size() * sizeof(int32_t))));
         }
     }
 
@@ -472,11 +508,11 @@ static void usage(const char *argv0) {
         << "  --input  <path>   unique_polytopes.parquet (from classifier)\n"
         << "  --output <path>   enriched output parquet path\n"
         << " [--threads <n>]   worker threads (default: hardware_concurrency)\n"
-        << " [--no-range-check] skip int16 overflow check on NF entries\n"
+        << " [--no-range-check] skip int32 overflow check on NF entries\n"
         << " [--verify-hash]    verify recomputed NF hash matches stored hash\n"
         << "\n"
         << "Output adds one new column to the existing schema:\n"
-        << "  nf_vertices  LargeBinary — row-major int16 matrix [5 × vertex_count]\n"
+        << "  nf_vertices  LargeBinary — row-major int32 matrix [5 × vertex_count]\n"
         << "\n"
         << "Python usage:\n"
         << "  import numpy as np, pyarrow.parquet as pq\n"

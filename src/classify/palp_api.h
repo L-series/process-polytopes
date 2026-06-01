@@ -15,11 +15,21 @@
 extern "C" {
 #endif
 
+/* C library calls used by the inline wrapper implementation. */
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 /* ── Bring in the PALP type universe ────────────────────────────────────── */
 #include "../../PALP/Global.h"
 
 /* ── Forward declarations of PALP functions we call ─────────────────────── */
 void  Make_CWS_Points(CWS *C, PolyPointList *P);
+typedef struct {
+    Long x[AMBI_Dmax][AMBI_Dmax];
+    int n, N;
+} PalpCWLatticeBasis;
+void  Make_CWS_Basis(CWS *C, PalpCWLatticeBasis *B);
 int   Find_Equations(PolyPointList *P, VertexNumList *V, EqList *E);
 void  Sort_VL(VertexNumList *V);
 void  Make_VEPM(PolyPointList *P, VertexNumList *V, EqList *E, PairMat PM);
@@ -36,6 +46,18 @@ typedef struct {
     int  np;                            /* number of lattice points          */
     Long nf[POLY_Dmax][VERT_Nmax];     /* normal form vertex matrix         */
 } PalpNFResult;
+
+/* Maximum shape needed by the 5D minimal-polytope CWS profiles. */
+#define PALP_API_MAX_CWS     5
+#define PALP_API_MAX_COORDS 10
+
+typedef struct {
+    int nw;                                      /* number of weight systems */
+    int N;                                       /* ambient homogeneous coords */
+    int index;                                   /* PALP CWS index; default 1 */
+    int degree[PALP_API_MAX_CWS];
+    int weights[PALP_API_MAX_CWS][PALP_API_MAX_COORDS];
+} PalpCWSInput;
 
 /* ── Per-thread workspace ───────────────────────────────────────────────── */
 typedef struct {
@@ -72,6 +94,96 @@ static inline void palp_workspace_free(PalpWorkspace *ws) {
     free(ws->V_perm); free(ws);
 }
 
+static inline void palp_run_nf_from_current_points(PalpWorkspace *ws,
+                                                   PalpNFResult *result)
+{
+    PolyPointList *points = ws->P;
+    EqList *equations = ws->E;
+    VertexNumList vertices;
+    int sym_num;
+
+    result->ok = 0;
+    if (points->n == 0) return;
+
+    int ip = Find_Equations(points, &vertices, equations);
+    if (!ip) return;
+
+    Sort_VL(&vertices);
+
+    Make_Poly_Sym_NF(points, &vertices, equations, &sym_num, ws->V_perm,
+                     result->nf, 0, 0, 0);
+
+    result->ok  = 1;
+    result->dim = points->n;
+    result->nv  = vertices.nv;
+    result->ne  = equations->ne;
+    result->np  = points->np;
+}
+
+static inline void palp_run_nf_pipeline(PalpWorkspace *ws,
+                                        PalpNFResult *result)
+{
+    result->ok = 0;
+    Make_CWS_Points(ws->CW, ws->P);
+    palp_run_nf_from_current_points(ws, result);
+}
+
+static inline int palp_prepare_cws_from_input(CWS *cws,
+                                              const PalpCWSInput *input)
+{
+    if (!cws || !input) return 0;
+    if (input->nw < 1 || input->nw > PALP_API_MAX_CWS) return 0;
+    if (input->N < 1 || input->N > PALP_API_MAX_COORDS) return 0;
+    if (input->N - input->nw != POLY_Dmax) return 0;
+    if (input->nw > AMBI_Dmax || input->N > AMBI_Dmax) return 0;
+
+    memset(cws, 0, sizeof(CWS));
+    cws->nw    = input->nw;
+    cws->N     = input->N;
+    cws->index = input->index > 0 ? input->index : 1;
+    cws->nz    = 0;
+
+    for (int row = 0; row < input->nw; row++) {
+        int degree = input->degree[row];
+        Long weight_sum = 0;
+        for (int coord = 0; coord < input->N; coord++) {
+            int weight = input->weights[row][coord];
+            if (weight < 0) return 0;
+            cws->W[row][coord] = weight;
+            weight_sum += weight;
+        }
+        if (degree == 0) {
+            degree = (int)weight_sum;
+        } else if ((Long)degree != weight_sum) {
+            return 0;
+        }
+        if (degree <= 0) return 0;
+        cws->d[row] = degree;
+    }
+
+    return 1;
+}
+
+/**
+ * Compute the normal form of a general combined weight system.
+ *
+ * The input arrays are deliberately fixed to the 5D classification envelope:
+ * up to five weight-system rows and ten homogeneous coordinates.  Weight rows
+ * may contain zeros for coordinates not used by that row.  If degree[row] is
+ * zero, it is filled from the row sum; otherwise it must match that sum.
+ */
+static inline void palp_compute_nf_from_cws(PalpWorkspace *ws,
+                                            const PalpCWSInput *input,
+                                            PalpNFResult *result)
+{
+    if (!result) return;
+    result->ok = 0;
+    if (!ws || !input) return;
+    if (!palp_prepare_cws_from_input(ws->CW, input)) return;
+
+    palp_run_nf_pipeline(ws, result);
+}
+
 /**
  * Compute the normal form of the polytope defined by a single weight system.
  *
@@ -83,48 +195,16 @@ static inline void palp_compute_nf(PalpWorkspace *ws,
                                    const int weights[6],
                                    PalpNFResult *result)
 {
-    CWS *C           = ws->CW;
-    PolyPointList *P  = ws->P;
-    EqList *E         = ws->E;
-    VertexNumList V;
-    int SymNum;
-
-    result->ok = 0;
-
-    /* 1. Populate CWS struct */
-    memset(C, 0, sizeof(CWS));
-    C->nw    = 1;
-    C->N     = 6;       /* 6 homogeneous coordinates */
-    C->index = 1;       /* CY hypersurface           */
-    C->nz    = 0;
-
-    int degree = 0;
+    PalpCWSInput input;
+    memset(&input, 0, sizeof(input));
+    input.nw = 1;
+    input.N = 6;
+    input.index = 1;
     for (int i = 0; i < 6; i++) {
-        C->W[0][i] = weights[i];
-        degree += weights[i];
+        input.weights[0][i] = weights[i];
+        input.degree[0] += weights[i];
     }
-    C->d[0] = degree;
-
-    /* 2. Generate lattice points */
-    Make_CWS_Points(C, P);
-    if (P->n == 0) return;  /* degenerate */
-
-    /* 3. Find vertices and equations */
-    int ip = Find_Equations(P, &V, E);
-    if (!ip) return;  /* not interior point */
-
-    /* 4. Sort vertex list */
-    Sort_VL(&V);
-
-    /* 5. Compute normal form (t=0, S=0, N=0 → no output) */
-    Make_Poly_Sym_NF(P, &V, E, &SymNum, ws->V_perm,
-                     result->nf, 0, 0, 0);
-
-    result->ok  = 1;
-    result->dim = P->n;
-    result->nv  = V.nv;
-    result->ne  = E->ne;
-    result->np  = P->np;
+    palp_compute_nf_from_cws(ws, &input, result);
 }
 
 /**

@@ -18,6 +18,7 @@
  */
 
 #include <algorithm>
+#include <array>
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
@@ -31,6 +32,8 @@
 #include <mutex>
 #include <numeric>
 #include <queue>
+#include <stdexcept>
+#include <string>
 #include <thread>
 #include <unordered_map>
 #include <vector>
@@ -51,6 +54,7 @@
 
 /* ── PALP C API ──────────────────────────────────────────────────────────── */
 #include "palp_api.h"
+#include "geometry_backend.h"
 
 namespace fs = std::filesystem;
 
@@ -73,6 +77,8 @@ struct Config {
     bool        benchmark_only  = false;
     int64_t     benchmark_rows  = 0;   /* 0 = all rows in first file */
     int64_t     max_rows_per_file = 0; /* 0 = unlimited               */
+    GeometryBackendKind backend_kind = GeometryBackendKind::Cpu;
+    int         cuda_device     = 0;
 };
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -101,14 +107,21 @@ struct Hash128Hasher {
 
 struct PolytopeInfo {
     uint64_t count;               /* how many CWS generate this polytope    */
-    int32_t  first_weights[6];    /* weights of the first CWS encountered   */
+    int32_t  schema_version;      /* input schema used for first CWS        */
+    int32_t  first_structure_id;  /* 1 for legacy single-weight rows        */
+    int32_t  first_profile_id;    /* profile bucket for structure_id        */
+    int32_t  first_nw;            /* number of CWS rows                     */
+    int32_t  first_N;             /* ambient homogeneous coordinates        */
+    int64_t  first_source_index;  /* row index/provenance from input        */
+    int32_t  first_degrees[PALP_API_MAX_CWS];
+    int32_t  first_cws_weights[PALP_API_MAX_CWS][PALP_API_MAX_COORDS];
+    int32_t  first_weights[6];    /* legacy compatibility projection        */
     int16_t  vertex_count;
     int16_t  facet_count;
     int32_t  point_count;
     int32_t  dual_point_count;
     int16_t  h11, h12, h13;
 };
-/* sizeof ≈ 8 + 24 + 2 + 2 + 4 + 4 + 6 = 50 bytes */
 
 using PolytopeMap = std::unordered_map<Hash128, PolytopeInfo, Hash128Hasher>;
 
@@ -124,6 +137,48 @@ struct MergeRecord {
    (needs 8-alignment), so there is no inter-member padding.  Verify: */
 static_assert(sizeof(MergeRecord) == sizeof(Hash128) + sizeof(PolytopeInfo),
               "MergeRecord must have no padding (matches checkpoint I/O format)");
+
+static constexpr int32_t CLASSIFIER_SCHEMA_LEGACY = 1;
+static constexpr int32_t CLASSIFIER_SCHEMA_COMBINED = 2;
+static constexpr uint64_t CHECKPOINT_MAGIC = 0x4357533544434b50ULL; /* PKC5DSWC */
+static constexpr uint32_t CHECKPOINT_VERSION = 2;
+
+struct CheckpointHeader {
+    uint64_t magic;
+    uint32_t version;
+    uint32_t record_size;
+    uint64_t count;
+};
+
+static void write_checkpoint_header(std::ofstream &f, uint64_t count) {
+    CheckpointHeader header{CHECKPOINT_MAGIC, CHECKPOINT_VERSION,
+                            static_cast<uint32_t>(sizeof(MergeRecord)), count};
+    f.write(reinterpret_cast<const char *>(&header), sizeof(header));
+}
+
+static uint64_t read_checkpoint_header(std::ifstream &f, const fs::path &path) {
+    CheckpointHeader header{};
+    f.read(reinterpret_cast<char *>(&header), sizeof(header));
+    if (!f)
+        throw std::runtime_error("Cannot read checkpoint header: " + path.string());
+    if (header.magic != CHECKPOINT_MAGIC)
+        throw std::runtime_error("Unsupported unversioned checkpoint: " + path.string() +
+                                 " (rebuild checkpoints with schema v2)");
+    if (header.version != CHECKPOINT_VERSION || header.record_size != sizeof(MergeRecord))
+        throw std::runtime_error("Unsupported checkpoint version/layout: " + path.string());
+    return header.count;
+}
+
+static int profile_id_for_structure(int structure_id) {
+    if (structure_id <= 1) return 1;      /* [6] */
+    if (structure_id <= 3) return 2;      /* [5,2] */
+    if (structure_id <= 7) return 3;      /* [4,3] */
+    if (structure_id <= 14) return 4;     /* [4,2,2] */
+    if (structure_id <= 32) return 5;     /* [3,3,2] */
+    if (structure_id <= 45) return 6;     /* [3,2,2,2] */
+    if (structure_id <= 47) return 7;     /* [2,2,2,2,2] */
+    return 0;
+}
 
 static bool key_less(const Hash128 &a, const Hash128 &b) {
     if (a.hi != b.hi) return a.hi < b.hi;
@@ -253,13 +308,39 @@ struct Stats {
  * ═══════════════════════════════════════════════════════════════════════════ */
 
 struct CWSRow {
-    int32_t weights[6];
+    int32_t schema_version;
+    int32_t structure_id;
+    int32_t profile_id;
+    int64_t source_index;
+    PalpCWSInput cws;
     int32_t vertex_count;
     int32_t facet_count;
     int32_t point_count;
     int32_t dual_point_count;
     int32_t h11, h12, h13;
 };
+
+static void fill_first_cws_info(PolytopeInfo &info, const CWSRow &row) {
+    info.schema_version = row.schema_version;
+    info.first_structure_id = row.structure_id;
+    info.first_profile_id = row.profile_id;
+    info.first_nw = row.cws.nw;
+    info.first_N = row.cws.N;
+    info.first_source_index = row.source_index;
+
+    std::memset(info.first_degrees, 0, sizeof(info.first_degrees));
+    std::memset(info.first_cws_weights, 0, sizeof(info.first_cws_weights));
+    std::memset(info.first_weights, 0, sizeof(info.first_weights));
+
+    for (int r = 0; r < row.cws.nw && r < PALP_API_MAX_CWS; r++) {
+        info.first_degrees[r] = row.cws.degree[r];
+        for (int c = 0; c < row.cws.N && c < PALP_API_MAX_COORDS; c++) {
+            info.first_cws_weights[r][c] = row.cws.weights[r][c];
+            if (r == 0 && c < 6)
+                info.first_weights[c] = row.cws.weights[r][c];
+        }
+    }
+}
 
 static void process_batch(const std::vector<CWSRow> &rows,
                           PalpWorkspace *ws,
@@ -269,7 +350,7 @@ static void process_batch(const std::vector<CWSRow> &rows,
     PalpNFResult result;
 
     for (const auto &row : rows) {
-        palp_compute_nf(ws, row.weights, &result);
+        palp_compute_nf_from_cws(ws, &row.cws, &result);
 
         if (!result.ok) {
             stats.failed_cws.fetch_add(1, std::memory_order_relaxed);
@@ -286,7 +367,7 @@ static void process_batch(const std::vector<CWSRow> &rows,
         } else {
             PolytopeInfo info{};
             info.count = 1;
-            std::memcpy(info.first_weights, row.weights, sizeof(row.weights));
+            fill_first_cws_info(info, row);
             info.vertex_count     = static_cast<int16_t>(result.nv);
             info.facet_count      = static_cast<int16_t>(result.ne);
             info.point_count      = result.np;
@@ -341,14 +422,37 @@ static std::vector<CWSRow> read_parquet_file(const fs::path &path,
         CHECK_ARROW(builder.Build(&reader));
     }
 
-    /* Read only the columns we need */
+    /* Read only the columns we need.  Schema v1 is the historical single
+       six-weight format.  Schema v2 stores a true combined CWS matrix. */
     std::vector<int> col_indices;
     auto file_schema = reader->parquet_reader()->metadata()->schema();
-    std::vector<std::string> needed = {
-        "weight0", "weight1", "weight2", "weight3", "weight4", "weight5",
-        "vertex_count", "facet_count", "point_count", "dual_point_count",
-        "h11", "h12", "h13"
+    auto has_column = [&](const std::string &name) {
+        return file_schema->ColumnIndex(name) >= 0;
     };
+
+    bool combined_schema = has_column("nw") && has_column("N") &&
+                           has_column("degree0") && has_column("weight0_0");
+
+    std::vector<std::string> needed;
+    if (combined_schema) {
+        needed = {
+            "cws_schema_version", "structure_id", "profile_id",
+            "source_index", "nw", "N",
+            "vertex_count", "facet_count", "point_count", "dual_point_count",
+            "h11", "h12", "h13"
+        };
+        for (int r = 0; r < PALP_API_MAX_CWS; r++)
+            needed.push_back("degree" + std::to_string(r));
+        for (int r = 0; r < PALP_API_MAX_CWS; r++)
+            for (int c = 0; c < PALP_API_MAX_COORDS; c++)
+                needed.push_back("weight" + std::to_string(r) + "_" + std::to_string(c));
+    } else {
+        needed = {
+            "weight0", "weight1", "weight2", "weight3", "weight4", "weight5",
+            "vertex_count", "facet_count", "point_count", "dual_point_count",
+            "h11", "h12", "h13"
+        };
+    }
     for (const auto &name : needed) {
         int idx = file_schema->ColumnIndex(name);
         if (idx >= 0) col_indices.push_back(idx);
@@ -370,20 +474,21 @@ static std::vector<CWSRow> read_parquet_file(const fs::path &path,
     int64_t n = table->num_rows();
     std::vector<CWSRow> rows(n);
 
-    /* Extract columns as flat int32 arrays */
+    /* Extract columns as flat arrays.  The project schemas use int32 for CWS
+       values and int64 for source_index. */
     auto get_col = [&](const std::string &name) -> const int32_t * {
         auto col = table->GetColumnByName(name);
         if (!col || col->num_chunks() == 0) return nullptr;
         return std::static_pointer_cast<arrow::Int32Array>(
                    col->chunk(0))->raw_values();
     };
+    auto get_i64_col = [&](const std::string &name) -> const int64_t * {
+        auto col = table->GetColumnByName(name);
+        if (!col || col->num_chunks() == 0) return nullptr;
+        return std::static_pointer_cast<arrow::Int64Array>(
+                   col->chunk(0))->raw_values();
+    };
 
-    const int32_t *w0  = get_col("weight0");
-    const int32_t *w1  = get_col("weight1");
-    const int32_t *w2  = get_col("weight2");
-    const int32_t *w3  = get_col("weight3");
-    const int32_t *w4  = get_col("weight4");
-    const int32_t *w5  = get_col("weight5");
     const int32_t *vc  = get_col("vertex_count");
     const int32_t *fc  = get_col("facet_count");
     const int32_t *pc  = get_col("point_count");
@@ -392,13 +497,83 @@ static std::vector<CWSRow> read_parquet_file(const fs::path &path,
     const int32_t *h12 = get_col("h12");
     const int32_t *h13 = get_col("h13");
 
+    if (combined_schema) {
+        const int32_t *schema_version = get_col("cws_schema_version");
+        const int32_t *structure_id = get_col("structure_id");
+        const int32_t *profile_id = get_col("profile_id");
+        const int64_t *source_index = get_i64_col("source_index");
+        const int32_t *nw = get_col("nw");
+        const int32_t *N = get_col("N");
+        std::array<const int32_t *, PALP_API_MAX_CWS> degree{};
+        std::array<std::array<const int32_t *, PALP_API_MAX_COORDS>, PALP_API_MAX_CWS> weight{};
+
+        if (!nw || !N)
+            throw std::runtime_error(path.string() + ": combined CWS schema missing nw or N");
+
+        for (int r = 0; r < PALP_API_MAX_CWS; r++)
+            degree[r] = get_col("degree" + std::to_string(r));
+        for (int r = 0; r < PALP_API_MAX_CWS; r++)
+            for (int c = 0; c < PALP_API_MAX_COORDS; c++)
+                weight[r][c] = get_col("weight" + std::to_string(r) + "_" + std::to_string(c));
+
+        for (int64_t i = 0; i < n; i++) {
+            CWSRow &row = rows[i];
+            row.schema_version = schema_version ? schema_version[i] : CLASSIFIER_SCHEMA_COMBINED;
+            row.structure_id = structure_id ? structure_id[i] : 0;
+            row.profile_id = profile_id ? profile_id[i] : profile_id_for_structure(row.structure_id);
+            row.source_index = source_index ? source_index[i] : i;
+            std::memset(&row.cws, 0, sizeof(row.cws));
+            row.cws.nw = nw[i];
+            row.cws.N = N[i];
+            row.cws.index = 1;
+            if (row.cws.nw < 1 || row.cws.nw > PALP_API_MAX_CWS ||
+                row.cws.N < 1 || row.cws.N > PALP_API_MAX_COORDS ||
+                row.cws.N - row.cws.nw != POLY_Dmax)
+                throw std::runtime_error(path.string() + ": invalid combined CWS dimensions at row " +
+                                         std::to_string(i));
+            for (int r = 0; r < PALP_API_MAX_CWS; r++) {
+                row.cws.degree[r] = degree[r] ? degree[r][i] : 0;
+                for (int c = 0; c < PALP_API_MAX_COORDS; c++)
+                    row.cws.weights[r][c] = weight[r][c] ? weight[r][c][i] : 0;
+            }
+            row.vertex_count     = vc  ? vc[i]  : 0;
+            row.facet_count      = fc  ? fc[i]  : 0;
+            row.point_count      = pc  ? pc[i]  : 0;
+            row.dual_point_count = dpc ? dpc[i] : 0;
+            row.h11 = h11 ? h11[i] : 0;
+            row.h12 = h12 ? h12[i] : 0;
+            row.h13 = h13 ? h13[i] : 0;
+        }
+        return rows;
+    }
+
+    const int32_t *w0  = get_col("weight0");
+    const int32_t *w1  = get_col("weight1");
+    const int32_t *w2  = get_col("weight2");
+    const int32_t *w3  = get_col("weight3");
+    const int32_t *w4  = get_col("weight4");
+    const int32_t *w5  = get_col("weight5");
+    if (!w0 || !w1 || !w2 || !w3 || !w4 || !w5)
+        throw std::runtime_error(path.string() + ": legacy CWS schema missing weight0..weight5");
+
     for (int64_t i = 0; i < n; i++) {
-        rows[i].weights[0] = w0 ? w0[i] : 0;
-        rows[i].weights[1] = w1 ? w1[i] : 0;
-        rows[i].weights[2] = w2 ? w2[i] : 0;
-        rows[i].weights[3] = w3 ? w3[i] : 0;
-        rows[i].weights[4] = w4 ? w4[i] : 0;
-        rows[i].weights[5] = w5 ? w5[i] : 0;
+        CWSRow &row = rows[i];
+        row.schema_version = CLASSIFIER_SCHEMA_LEGACY;
+        row.structure_id = 1;
+        row.profile_id = 1;
+        row.source_index = i;
+        std::memset(&row.cws, 0, sizeof(row.cws));
+        row.cws.nw = 1;
+        row.cws.N = 6;
+        row.cws.index = 1;
+        row.cws.weights[0][0] = w0[i];
+        row.cws.weights[0][1] = w1[i];
+        row.cws.weights[0][2] = w2[i];
+        row.cws.weights[0][3] = w3[i];
+        row.cws.weights[0][4] = w4[i];
+        row.cws.weights[0][5] = w5[i];
+        for (int c = 0; c < 6; c++)
+            row.cws.degree[0] += row.cws.weights[0][c];
         rows[i].vertex_count     = vc  ? vc[i]  : 0;
         rows[i].facet_count      = fc  ? fc[i]  : 0;
         rows[i].point_count      = pc  ? pc[i]  : 0;
@@ -417,10 +592,24 @@ static std::vector<CWSRow> read_parquet_file(const fs::path &path,
 static void write_results(const PolytopeMap &global_map,
                           const fs::path &output_path) {
     /* Build schema */
-    auto schema = arrow::schema({
+    std::vector<std::shared_ptr<arrow::Field>> fields = {
         arrow::field("hash_lo",           arrow::uint64()),
         arrow::field("hash_hi",           arrow::uint64()),
         arrow::field("count",             arrow::uint64()),
+        arrow::field("schema_version",    arrow::int32()),
+        arrow::field("first_structure_id", arrow::int32()),
+        arrow::field("first_profile_id",  arrow::int32()),
+        arrow::field("first_nw",          arrow::int32()),
+        arrow::field("first_N",           arrow::int32()),
+        arrow::field("first_source_index", arrow::int64()),
+    };
+    for (int r = 0; r < PALP_API_MAX_CWS; r++)
+        fields.push_back(arrow::field("first_degree" + std::to_string(r), arrow::int32()));
+    for (int r = 0; r < PALP_API_MAX_CWS; r++)
+        for (int c = 0; c < PALP_API_MAX_COORDS; c++)
+            fields.push_back(arrow::field("first_weight" + std::to_string(r) + "_" +
+                                          std::to_string(c), arrow::int32()));
+    fields.insert(fields.end(), {
         arrow::field("first_weight0",     arrow::int32()),
         arrow::field("first_weight1",     arrow::int32()),
         arrow::field("first_weight2",     arrow::int32()),
@@ -435,9 +624,14 @@ static void write_results(const PolytopeMap &global_map,
         arrow::field("h12",               arrow::int16()),
         arrow::field("h13",               arrow::int16()),
     });
+    auto schema = arrow::schema(fields);
 
     /* Build arrays from the map */
     arrow::UInt64Builder  hash_lo_b, hash_hi_b, count_b;
+    arrow::Int32Builder   schema_b, sid_b, pid_b, nw_b, N_b;
+    arrow::Int64Builder   source_b;
+    std::array<arrow::Int32Builder, PALP_API_MAX_CWS> degree_b;
+    std::array<std::array<arrow::Int32Builder, PALP_API_MAX_COORDS>, PALP_API_MAX_CWS> cws_weight_b;
     arrow::Int32Builder   w0_b, w1_b, w2_b, w3_b, w4_b, w5_b;
     arrow::Int16Builder   vc_b, fc_b, h11_b, h12_b, h13_b;
     arrow::Int32Builder   pc_b, dpc_b;
@@ -445,6 +639,14 @@ static void write_results(const PolytopeMap &global_map,
     int64_t n = static_cast<int64_t>(global_map.size());
     CHECK_ARROW(hash_lo_b.Reserve(n));  CHECK_ARROW(hash_hi_b.Reserve(n));
     CHECK_ARROW(count_b.Reserve(n));
+    CHECK_ARROW(schema_b.Reserve(n)); CHECK_ARROW(sid_b.Reserve(n));
+    CHECK_ARROW(pid_b.Reserve(n)); CHECK_ARROW(nw_b.Reserve(n));
+    CHECK_ARROW(N_b.Reserve(n)); CHECK_ARROW(source_b.Reserve(n));
+    for (int r = 0; r < PALP_API_MAX_CWS; r++)
+        CHECK_ARROW(degree_b[r].Reserve(n));
+    for (int r = 0; r < PALP_API_MAX_CWS; r++)
+        for (int c = 0; c < PALP_API_MAX_COORDS; c++)
+            CHECK_ARROW(cws_weight_b[r][c].Reserve(n));
     CHECK_ARROW(w0_b.Reserve(n));  CHECK_ARROW(w1_b.Reserve(n));
     CHECK_ARROW(w2_b.Reserve(n));  CHECK_ARROW(w3_b.Reserve(n));
     CHECK_ARROW(w4_b.Reserve(n));  CHECK_ARROW(w5_b.Reserve(n));
@@ -457,6 +659,17 @@ static void write_results(const PolytopeMap &global_map,
         CHECK_ARROW(hash_lo_b.Append(key.lo));
         CHECK_ARROW(hash_hi_b.Append(key.hi));
         CHECK_ARROW(count_b.Append(info.count));
+        CHECK_ARROW(schema_b.Append(info.schema_version));
+        CHECK_ARROW(sid_b.Append(info.first_structure_id));
+        CHECK_ARROW(pid_b.Append(info.first_profile_id));
+        CHECK_ARROW(nw_b.Append(info.first_nw));
+        CHECK_ARROW(N_b.Append(info.first_N));
+        CHECK_ARROW(source_b.Append(info.first_source_index));
+        for (int r = 0; r < PALP_API_MAX_CWS; r++)
+            CHECK_ARROW(degree_b[r].Append(info.first_degrees[r]));
+        for (int r = 0; r < PALP_API_MAX_CWS; r++)
+            for (int c = 0; c < PALP_API_MAX_COORDS; c++)
+                CHECK_ARROW(cws_weight_b[r][c].Append(info.first_cws_weights[r][c]));
         CHECK_ARROW(w0_b.Append(info.first_weights[0]));
         CHECK_ARROW(w1_b.Append(info.first_weights[1]));
         CHECK_ARROW(w2_b.Append(info.first_weights[2]));
@@ -474,11 +687,22 @@ static void write_results(const PolytopeMap &global_map,
 
     std::shared_ptr<arrow::Array>
         a_hlo, a_hhi, a_cnt,
+        a_schema, a_sid, a_pid, a_nw, a_N, a_source,
         a_w0, a_w1, a_w2, a_w3, a_w4, a_w5,
         a_vc, a_fc, a_pc, a_dpc, a_h11, a_h12, a_h13;
+    std::array<std::shared_ptr<arrow::Array>, PALP_API_MAX_CWS> a_degree;
+    std::array<std::array<std::shared_ptr<arrow::Array>, PALP_API_MAX_COORDS>, PALP_API_MAX_CWS> a_cws_weight;
 
     CHECK_ARROW(hash_lo_b.Finish(&a_hlo)); CHECK_ARROW(hash_hi_b.Finish(&a_hhi));
     CHECK_ARROW(count_b.Finish(&a_cnt));
+    CHECK_ARROW(schema_b.Finish(&a_schema)); CHECK_ARROW(sid_b.Finish(&a_sid));
+    CHECK_ARROW(pid_b.Finish(&a_pid)); CHECK_ARROW(nw_b.Finish(&a_nw));
+    CHECK_ARROW(N_b.Finish(&a_N)); CHECK_ARROW(source_b.Finish(&a_source));
+    for (int r = 0; r < PALP_API_MAX_CWS; r++)
+        CHECK_ARROW(degree_b[r].Finish(&a_degree[r]));
+    for (int r = 0; r < PALP_API_MAX_CWS; r++)
+        for (int c = 0; c < PALP_API_MAX_COORDS; c++)
+            CHECK_ARROW(cws_weight_b[r][c].Finish(&a_cws_weight[r][c]));
     CHECK_ARROW(w0_b.Finish(&a_w0));  CHECK_ARROW(w1_b.Finish(&a_w1));
     CHECK_ARROW(w2_b.Finish(&a_w2));  CHECK_ARROW(w3_b.Finish(&a_w3));
     CHECK_ARROW(w4_b.Finish(&a_w4));  CHECK_ARROW(w5_b.Finish(&a_w5));
@@ -487,11 +711,19 @@ static void write_results(const PolytopeMap &global_map,
     CHECK_ARROW(h11_b.Finish(&a_h11)); CHECK_ARROW(h12_b.Finish(&a_h12));
     CHECK_ARROW(h13_b.Finish(&a_h13));
 
-    auto table = arrow::Table::Make(schema, {
-        a_hlo, a_hhi, a_cnt,
+    std::vector<std::shared_ptr<arrow::Array>> arrays = {
+        a_hlo, a_hhi, a_cnt, a_schema, a_sid, a_pid, a_nw, a_N, a_source,
+    };
+    for (int r = 0; r < PALP_API_MAX_CWS; r++)
+        arrays.push_back(a_degree[r]);
+    for (int r = 0; r < PALP_API_MAX_CWS; r++)
+        for (int c = 0; c < PALP_API_MAX_COORDS; c++)
+            arrays.push_back(a_cws_weight[r][c]);
+    arrays.insert(arrays.end(), {
         a_w0, a_w1, a_w2, a_w3, a_w4, a_w5,
         a_vc, a_fc, a_pc, a_dpc, a_h11, a_h12, a_h13
     });
+    auto table = arrow::Table::Make(schema, arrays);
 
     /* Write */
     std::shared_ptr<arrow::io::FileOutputStream> out;
@@ -514,7 +746,7 @@ static void write_results(const PolytopeMap &global_map,
 static void write_checkpoint(const PolytopeMap &map, const fs::path &path) {
     std::ofstream f(path, std::ios::binary);
     uint64_t n = map.size();
-    f.write(reinterpret_cast<const char *>(&n), sizeof(n));
+    write_checkpoint_header(f, n);
     for (const auto &[key, info] : map) {
         f.write(reinterpret_cast<const char *>(&key), sizeof(key));
         f.write(reinterpret_cast<const char *>(&info), sizeof(info));
@@ -525,8 +757,7 @@ static void write_checkpoint(const PolytopeMap &map, const fs::path &path) {
 static void read_checkpoint(PolytopeMap &map, const fs::path &path) {
     std::ifstream f(path, std::ios::binary);
     if (!f.is_open()) return;
-    uint64_t n;
-    f.read(reinterpret_cast<char *>(&n), sizeof(n));
+    uint64_t n = read_checkpoint_header(f, path);
     map.reserve(n);
     for (uint64_t i = 0; i < n; i++) {
         Hash128 key;
@@ -565,8 +796,7 @@ static std::vector<MergeRecord> load_and_sort_shard(
     std::ifstream f(path, std::ios::binary);
     if (!f.is_open())
         throw std::runtime_error("Cannot open: " + path.string());
-    uint64_t n;
-    f.read(reinterpret_cast<char *>(&n), sizeof(n));
+    uint64_t n = read_checkpoint_header(f, path);
     std::vector<MergeRecord> records(n);
     f.read(reinterpret_cast<char *>(records.data()),
            static_cast<std::streamsize>(n * sizeof(MergeRecord)));
@@ -640,7 +870,7 @@ public:
         file_.open(path, std::ios::binary);
         if (!file_.is_open())
             throw std::runtime_error("Cannot open: " + path.string());
-        file_.read(reinterpret_cast<char *>(&remaining_), sizeof(remaining_));
+        remaining_ = read_checkpoint_header(file_, path);
         advance();
     }
     void advance() {
@@ -683,7 +913,7 @@ static uint64_t merge_batch_to_file(
 
     std::ofstream out(out_path, std::ios::binary);
     uint64_t count = 0;
-    out.write(reinterpret_cast<const char *>(&count), sizeof(count)); /* placeholder */
+    write_checkpoint_header(out, count); /* placeholder */
 
     constexpr size_t WBUF = 256 * 1024;
     std::vector<MergeRecord> wbuf; wbuf.reserve(WBUF);
@@ -709,7 +939,7 @@ static uint64_t merge_batch_to_file(
         out.write(reinterpret_cast<const char *>(wbuf.data()),
                   static_cast<std::streamsize>(wbuf.size() * sizeof(MergeRecord)));
     out.seekp(0);
-    out.write(reinterpret_cast<const char *>(&count), sizeof(count));
+    write_checkpoint_header(out, count);
     out.close();
     return count;
 }
@@ -746,7 +976,7 @@ static void merge_checkpoints(const std::vector<fs::path> &shard_paths,
     for (size_t i = 0; i < n_shards; i++) {
         std::ifstream f(shard_paths[i], std::ios::binary);
         if (!f) throw std::runtime_error("Cannot open: " + shard_paths[i].string());
-        f.read(reinterpret_cast<char *>(&shard_counts[i]), sizeof(uint64_t));
+        shard_counts[i] = read_checkpoint_header(f, shard_paths[i]);
         total_input_records += shard_counts[i];
     }
 
@@ -821,7 +1051,7 @@ static void merge_checkpoints(const std::vector<fs::path> &shard_paths,
             std::ofstream out(tmp_path, std::ios::binary);
             if (!out) throw std::runtime_error("Cannot write: " + tmp_path.string());
             uint64_t n = records.size();
-            out.write(reinterpret_cast<const char *>(&n), sizeof(n));
+            write_checkpoint_header(out, n);
             out.write(reinterpret_cast<const char *>(records.data()),
                       static_cast<std::streamsize>(n * sizeof(MergeRecord)));
         }
@@ -865,10 +1095,24 @@ static void merge_checkpoints(const std::vector<fs::path> &shard_paths,
             heap.push({readers[i]->current.key, i});
 
     /* ── Parquet writer ─────────────────────────────────────────────────── */
-    auto schema = arrow::schema({
+    std::vector<std::shared_ptr<arrow::Field>> merge_fields = {
         arrow::field("hash_lo",          arrow::uint64()),
         arrow::field("hash_hi",          arrow::uint64()),
         arrow::field("count",            arrow::uint64()),
+        arrow::field("schema_version",   arrow::int32()),
+        arrow::field("first_structure_id", arrow::int32()),
+        arrow::field("first_profile_id", arrow::int32()),
+        arrow::field("first_nw",         arrow::int32()),
+        arrow::field("first_N",          arrow::int32()),
+        arrow::field("first_source_index", arrow::int64()),
+    };
+    for (int r = 0; r < PALP_API_MAX_CWS; r++)
+        merge_fields.push_back(arrow::field("first_degree" + std::to_string(r), arrow::int32()));
+    for (int r = 0; r < PALP_API_MAX_CWS; r++)
+        for (int c = 0; c < PALP_API_MAX_COORDS; c++)
+            merge_fields.push_back(arrow::field("first_weight" + std::to_string(r) + "_" +
+                                                std::to_string(c), arrow::int32()));
+    merge_fields.insert(merge_fields.end(), {
         arrow::field("first_weight0",    arrow::int32()),
         arrow::field("first_weight1",    arrow::int32()),
         arrow::field("first_weight2",    arrow::int32()),
@@ -883,6 +1127,7 @@ static void merge_checkpoints(const std::vector<fs::path> &shard_paths,
         arrow::field("h12",              arrow::int16()),
         arrow::field("h13",              arrow::int16()),
     });
+    auto schema = arrow::schema(merge_fields);
     auto writer_props = parquet::WriterProperties::Builder()
         .compression(parquet::Compression::ZSTD)
         ->max_row_group_length(1024 * 1024)->build();
@@ -896,6 +1141,10 @@ static void merge_checkpoints(const std::vector<fs::path> &shard_paths,
     auto pq_writer = std::move(pq_r).ValueOrDie();
 
     arrow::UInt64Builder hash_lo_b, hash_hi_b, count_b;
+    arrow::Int32Builder  schema_b, sid_b, pid_b, nw_b, N_b;
+    arrow::Int64Builder  source_b;
+    std::array<arrow::Int32Builder, PALP_API_MAX_CWS> degree_b;
+    std::array<std::array<arrow::Int32Builder, PALP_API_MAX_COORDS>, PALP_API_MAX_CWS> cws_weight_b;
     arrow::Int32Builder  w0_b, w1_b, w2_b, w3_b, w4_b, w5_b, pc_b, dpc_b;
     arrow::Int16Builder  vc_b, fc_b, h11_b, h12_b, h13_b;
     int64_t pq_n = 0;
@@ -904,10 +1153,21 @@ static void merge_checkpoints(const std::vector<fs::path> &shard_paths,
     auto flush_pq = [&]() {
         if (pq_n == 0) return;
         std::shared_ptr<arrow::Array>
-            a_hlo, a_hhi, a_cnt, a_w0, a_w1, a_w2, a_w3, a_w4, a_w5,
+            a_hlo, a_hhi, a_cnt, a_schema, a_sid, a_pid, a_nw, a_N, a_source,
+            a_w0, a_w1, a_w2, a_w3, a_w4, a_w5,
             a_vc, a_fc, a_pc, a_dpc, a_h11, a_h12, a_h13;
+        std::array<std::shared_ptr<arrow::Array>, PALP_API_MAX_CWS> a_degree;
+        std::array<std::array<std::shared_ptr<arrow::Array>, PALP_API_MAX_COORDS>, PALP_API_MAX_CWS> a_cws_weight;
         CHECK_ARROW(hash_lo_b.Finish(&a_hlo)); CHECK_ARROW(hash_hi_b.Finish(&a_hhi));
         CHECK_ARROW(count_b.Finish(&a_cnt));
+        CHECK_ARROW(schema_b.Finish(&a_schema)); CHECK_ARROW(sid_b.Finish(&a_sid));
+        CHECK_ARROW(pid_b.Finish(&a_pid)); CHECK_ARROW(nw_b.Finish(&a_nw));
+        CHECK_ARROW(N_b.Finish(&a_N)); CHECK_ARROW(source_b.Finish(&a_source));
+        for (int r = 0; r < PALP_API_MAX_CWS; r++)
+            CHECK_ARROW(degree_b[r].Finish(&a_degree[r]));
+        for (int r = 0; r < PALP_API_MAX_CWS; r++)
+            for (int c = 0; c < PALP_API_MAX_COORDS; c++)
+                CHECK_ARROW(cws_weight_b[r][c].Finish(&a_cws_weight[r][c]));
         CHECK_ARROW(w0_b.Finish(&a_w0)); CHECK_ARROW(w1_b.Finish(&a_w1));
         CHECK_ARROW(w2_b.Finish(&a_w2)); CHECK_ARROW(w3_b.Finish(&a_w3));
         CHECK_ARROW(w4_b.Finish(&a_w4)); CHECK_ARROW(w5_b.Finish(&a_w5));
@@ -915,15 +1175,35 @@ static void merge_checkpoints(const std::vector<fs::path> &shard_paths,
         CHECK_ARROW(pc_b.Finish(&a_pc)); CHECK_ARROW(dpc_b.Finish(&a_dpc));
         CHECK_ARROW(h11_b.Finish(&a_h11)); CHECK_ARROW(h12_b.Finish(&a_h12));
         CHECK_ARROW(h13_b.Finish(&a_h13));
-        auto batch = arrow::RecordBatch::Make(schema, pq_n, {
-            a_hlo, a_hhi, a_cnt, a_w0, a_w1, a_w2, a_w3, a_w4, a_w5,
+        std::vector<std::shared_ptr<arrow::Array>> batch_arrays = {
+            a_hlo, a_hhi, a_cnt, a_schema, a_sid, a_pid, a_nw, a_N, a_source,
+        };
+        for (int r = 0; r < PALP_API_MAX_CWS; r++)
+            batch_arrays.push_back(a_degree[r]);
+        for (int r = 0; r < PALP_API_MAX_CWS; r++)
+            for (int c = 0; c < PALP_API_MAX_COORDS; c++)
+                batch_arrays.push_back(a_cws_weight[r][c]);
+        batch_arrays.insert(batch_arrays.end(), {
+            a_w0, a_w1, a_w2, a_w3, a_w4, a_w5,
             a_vc, a_fc, a_pc, a_dpc, a_h11, a_h12, a_h13});
+        auto batch = arrow::RecordBatch::Make(schema, pq_n, batch_arrays);
         CHECK_ARROW(pq_writer->WriteRecordBatch(*batch));
         pq_n = 0;
     };
     auto emit = [&](const Hash128 &key, const PolytopeInfo &info) {
         CHECK_ARROW(hash_lo_b.Append(key.lo));   CHECK_ARROW(hash_hi_b.Append(key.hi));
         CHECK_ARROW(count_b.Append(info.count));
+        CHECK_ARROW(schema_b.Append(info.schema_version));
+        CHECK_ARROW(sid_b.Append(info.first_structure_id));
+        CHECK_ARROW(pid_b.Append(info.first_profile_id));
+        CHECK_ARROW(nw_b.Append(info.first_nw));
+        CHECK_ARROW(N_b.Append(info.first_N));
+        CHECK_ARROW(source_b.Append(info.first_source_index));
+        for (int r = 0; r < PALP_API_MAX_CWS; r++)
+            CHECK_ARROW(degree_b[r].Append(info.first_degrees[r]));
+        for (int r = 0; r < PALP_API_MAX_CWS; r++)
+            for (int c = 0; c < PALP_API_MAX_COORDS; c++)
+                CHECK_ARROW(cws_weight_b[r][c].Append(info.first_cws_weights[r][c]));
         CHECK_ARROW(w0_b.Append(info.first_weights[0]));
         CHECK_ARROW(w1_b.Append(info.first_weights[1]));
         CHECK_ARROW(w2_b.Append(info.first_weights[2]));
@@ -1023,6 +1303,8 @@ static void process_file(const fs::path &input_path,
                          std::mutex &global_mtx,
                          Stats &stats,
                          int n_threads,
+                         GeometryBackendKind backend_kind,
+                         int cuda_device,
                          int64_t max_rows = 0)
 {
     /* Read all CWS from the parquet file */
@@ -1045,10 +1327,13 @@ static void process_file(const fs::path &input_path,
      * reasonable load balance across threads.  We use dynamic work-stealing
      * with small blocks so that if one thread hits an expensive polytope,
      * the others continue processing lighter ones from the shared queue. */
-    int actual_threads = std::min(n_threads, (int)((n + 999) / 1000));
-    constexpr int64_t BLOCK_SIZE = 1024;
+    bool cuda_or_auto = backend_kind != GeometryBackendKind::Cpu;
+    int actual_threads = cuda_or_auto
+        ? std::min(n_threads, static_cast<int>(n))
+        : std::min(n_threads, (int)((n + 999) / 1000));
+    int64_t block_size = cuda_or_auto ? 32 : 1024;
 
-    int64_t n_blocks = (n + BLOCK_SIZE - 1) / BLOCK_SIZE;
+    int64_t n_blocks = (n + block_size - 1) / block_size;
     std::atomic<int64_t> next_block{0};
 
     /* Each thread gets its own workspace and local map */
@@ -1064,25 +1349,26 @@ static void process_file(const fs::path &input_path,
 
     for (int t = 0; t < actual_threads; t++) {
         futures.push_back(pool.enqueue([&, t] {
-            PalpWorkspace *ws = palp_workspace_alloc();
-            if (!ws) {
-                std::cerr << "Failed to allocate PALP workspace\n";
-                return;
-            }
-
-            PalpNFResult result;
+            std::unique_ptr<GeometryBackend> backend =
+                make_geometry_backend(backend_kind, cuda_device);
+            std::vector<PalpNFResult> block_results(static_cast<std::size_t>(block_size));
 
             /* Dynamic work-stealing: grab next block from shared counter */
             for (;;) {
                 int64_t b = next_block.fetch_add(1, std::memory_order_relaxed);
                 if (b >= n_blocks) break;
 
-                int64_t bstart = b * BLOCK_SIZE;
-                int64_t bend = std::min(bstart + BLOCK_SIZE, n);
+                int64_t bstart = b * block_size;
+                int64_t bend = std::min(bstart + block_size, n);
+                int64_t block_count = bend - bstart;
+
+                backend->compute_batch(&rows[bstart].cws, sizeof(CWSRow),
+                                       static_cast<std::size_t>(block_count),
+                                       block_results.data());
 
                 for (int64_t i = bstart; i < bend; i++) {
                     const CWSRow &row = rows[i];
-                    palp_compute_nf(ws, row.weights, &result);
+                    const PalpNFResult &result = block_results[static_cast<std::size_t>(i - bstart)];
 
                     if (!result.ok) {
                         stats.failed_cws.fetch_add(1, std::memory_order_relaxed);
@@ -1099,7 +1385,7 @@ static void process_file(const fs::path &input_path,
                     } else {
                         PolytopeInfo info{};
                         info.count = 1;
-                        std::memcpy(info.first_weights, row.weights, sizeof(row.weights));
+                        fill_first_cws_info(info, row);
                         info.vertex_count     = static_cast<int16_t>(result.nv);
                         info.facet_count      = static_cast<int16_t>(result.ne);
                         info.point_count      = result.np;
@@ -1112,8 +1398,6 @@ static void process_file(const fs::path &input_path,
                     stats.processed_cws.fetch_add(1, std::memory_order_relaxed);
                 }
             }
-
-            palp_workspace_free(ws);
         }));
     }
 
@@ -1161,6 +1445,8 @@ static void usage(const char *argv0) {
         << " [--checkpoint <dir>] Directory for checkpoint files\n"
         << " [--offset <n>]    Global index offset for checkpoint file naming\n"
         << " [--threads <n>]   Thread count (default: hardware_concurrency)\n"
+        << " [--backend <b>]   Geometry backend: cpu, cuda, or auto (default: cpu)\n"
+        << " [--cuda-device n] CUDA device index for --backend cuda/auto (default: 0)\n"
         << " [--start <n>]     First file index (default: 0)\n"
         << " [--end <n>]       Last file index (inclusive, default: last)\n"
         << " [--resume]        Resume from checkpoint\n"
@@ -1190,6 +1476,8 @@ int main(int argc, char **argv) {
         else if (a == "--output"      && i+1 < argc) cfg.output_dir     = argv[++i];
         else if (a == "--checkpoint"  && i+1 < argc) cfg.checkpoint_dir  = argv[++i];
         else if (a == "--threads"     && i+1 < argc) cfg.n_threads      = std::stoi(argv[++i]);
+        else if (a == "--backend"     && i+1 < argc) cfg.backend_kind   = parse_geometry_backend_kind(argv[++i]);
+        else if (a == "--cuda-device" && i+1 < argc) cfg.cuda_device    = std::stoi(argv[++i]);
         else if (a == "--start"       && i+1 < argc) cfg.start_file     = std::stoi(argv[++i]);
         else if (a == "--end"         && i+1 < argc) cfg.end_file       = std::stoi(argv[++i]);
         else if (a == "--offset"      && i+1 < argc) cfg.name_offset    = std::stoi(argv[++i]);
@@ -1230,6 +1518,17 @@ int main(int argc, char **argv) {
     if (cfg.checkpoint_dir.empty())
         cfg.checkpoint_dir = cfg.output_dir + "/checkpoints";
 
+    if (cfg.backend_kind == GeometryBackendKind::Cuda) {
+        std::string reason;
+        if (!cuda_geometry_available(&reason)) {
+            std::cerr << "CUDA backend unavailable: " << reason << "\n";
+            return 1;
+        }
+    }
+
+    std::string cuda_reason;
+    bool cuda_visible = cuda_geometry_available(&cuda_reason);
+
     /* ── Initialize PALP ─────────────────────────────────────────────────── */
     palp_init();
 
@@ -1267,6 +1566,13 @@ int main(int argc, char **argv) {
               << "Output:     " << cfg.output_dir << "\n"
               << "Files:      " << input_files.size() << "\n"
               << "Threads:    " << cfg.n_threads << "\n"
+              << "Backend:    " << geometry_backend_kind_name(cfg.backend_kind);
+    if (cfg.backend_kind == GeometryBackendKind::Auto) {
+        std::cerr << " (" << (cuda_visible ? "cuda visible" : "cpu fallback: " + cuda_reason) << ")";
+    } else if (cfg.backend_kind == GeometryBackendKind::Cuda) {
+        std::cerr << " device " << cfg.cuda_device;
+    }
+    std::cerr << "\n"
               << "CPU:        ";
     {
         std::ifstream cpuinfo("/proc/cpuinfo");
@@ -1319,7 +1625,7 @@ int main(int argc, char **argv) {
                            : cfg.max_rows_per_file;
 
         process_file(input_files[fi], global_map, global_mtx, stats,
-                     cfg.n_threads, max_rows);
+                 cfg.n_threads, cfg.backend_kind, cfg.cuda_device, max_rows);
 
         /* Memory monitoring */
         size_t rss = get_rss_bytes();
@@ -1393,7 +1699,8 @@ int main(int argc, char **argv) {
            << "  \"total_seconds\": " << total_secs << ",\n"
            << "  \"throughput_cws_per_sec\": " << stats.processed_cws.load() / total_secs << ",\n"
            << "  \"files_processed\": " << stats.files_done.load() << ",\n"
-           << "  \"threads\": " << cfg.n_threads << "\n"
+           << "  \"threads\": " << cfg.n_threads << ",\n"
+           << "  \"backend\": \"" << geometry_backend_kind_name(cfg.backend_kind) << "\"\n"
            << "}\n";
     }
 
