@@ -25,3 +25,7 @@ __pycache__/
 # Editor
 .vscode/
 *.swp
+
+# Local working files / AI session artifacts
+notes
+memory.md

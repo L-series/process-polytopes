@@ -500,6 +500,105 @@ scans within each candidate, especially for type 3. A gated one-block-per-CWS
 cooperative IP experiment was attempted during this pass, but it did not pass
 structure-5 parity/stability and was removed from the production path.
 
+### 2026-06-01 Cooperative Block IP Tuning Pass
+
+The dim-5 CUDA scanner now has a gated cooperative IP path:
+
+```bash
+scripts/benchmark_dim5_cws_cuda_scan.sh \
+  --stream-ip --block-ip --ip-max-points 4096
+```
+
+`--block-ip` assigns one CUDA block to each active CWS candidate. The block
+cooperatively splits PALP point generation over the top coordinate range,
+parallelizes the all-point bad-equation and new-vertex scans, and keeps the
+serial PALP equation bookkeeping on thread 0. This preserves PALP semantics while
+removing the worst per-candidate serial all-point loops. No Parquet is used in
+the generator/IP hot path; accepted rows are still optional text output for
+validation/post-processing.
+
+Mathematical early rejects added in this pass are intentionally conservative:
+row weight sums must equal degrees, all weights must be nonnegative, every
+coordinate must have support in at least one row, the CWS must satisfy
+`ambient_vertices - nw == 5`, and the coordinate-choice upper bound must allow
+at least six generated points before PALP simplex construction is attempted.
+These checks are algebraic consequences of the CWS/IP setup and are not
+statistical heuristics. On the tuned samples, `precheck_fail` was `0`; the
+selected PALP pools already satisfy these constraints, so the real win came from
+parallel point/equation work rather than early rejection.
+
+Regression and replay gates passed:
+
+| Gate | Result |
+|---|---:|
+| structure 5 exact block-IP smoke | 285 candidates, 285 IP, 0 rejects |
+| structure 12 serial/block parity sample | 25552 checked, both accepted 15379 |
+| type 3 serial/block parity sample | 200631 checked, both accepted 8 |
+| structure 12 accepted-row replay | 15379 rows, 0 CPU classifier failures |
+| `scripts/test_cuda_backend.sh` | PASS; head-node CUDA smoke still reports driver/runtime fallback before SLURM GPU tests |
+
+RTX PRO 6000 Blackwell Max-Q tuning used the CUDA cc 12.0 limits: 48 resident
+warps/SM, 64K 32-bit registers/SM, 32 blocks/SM, and 128KB shared memory/SM.
+The block kernel uses one warp per candidate in the tuned configuration.
+`cuobjdump` on `sm_120` reports:
+
+| Kernel | Registers/thread | Stack/thread | Shared/block |
+|---|---:|---:|---:|
+| serial `cws_ip_filter_kernel` | 153 | 4352 B | 0 B |
+| block `cws_ip_filter_block_kernel` | 128 | 3680 B | 13888 B |
+
+Parameter sweep summary on one RTX PRO 6000 Blackwell Max-Q:
+
+| Structure | Shard | Candidates | Serial baseline | Tuned block IP | Speedup |
+|---:|---|---:|---:|---:|---:|
+| 12 | `10000000:0` | 25552 | 0.111080 s, 230031/s | 0.044743 s, 571090/s | 2.48x |
+| 3 | `50000000:25000000` | 200631 | 3.552384 s, 56478/s | 1.218429 s, 164664/s | 2.92x |
+
+The final default for `--block-ip` on this 188-SM GPU is `48128` blocks and `32`
+threads per block (`256` launched blocks/SM, one warp per block). The default
+serial path remains `128` threads per block and `16` blocks/SM. A sweep over
+`32/64/128/256` threads and `4/8/16/32+` launched blocks/SM showed one-warp
+blocks consistently winning; `256`-thread blocks were worst. Oversubscribing the
+grid beyond resident block count helps load balance irregular CWS point counts;
+the win flattened near `160-256` launched blocks/SM. With `--ip-max-points 4096`,
+the tuned block path uses about `7.9 GiB` for point workspace at 48128 blocks.
+
+Tuned block-IP timing samples:
+
+| Structure | Shard count | Shard index | Point cap | Blocks | Threads | Prefix candidates | Accepted IP | IP seconds | IP throughput |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 5 | 1 | 0 | 4096 | 48128 | 32 | 285 | 285 | 0.002711 | 105135/s |
+| 12 | 10000000 | 0 | 4096 | 48128 | 32 | 25552 | 15379 | 0.044743 | 571090/s |
+| 3 | 50000000 | 25000000 | 4096 | 48128 | 32 | 200631 | 8 | 1.218429 | 164664/s |
+
+Internal `clock64()` profiling of the tuned type-3 shard still shows point
+generation as the dominant cost:
+
+| Stage | Cycles | Share |
+|---|---:|---:|
+| point generation | 3204460755588 | 93.6% |
+| IP/facet checks | 217934830633 | 6.4% |
+| average generated points | 46.9 | |
+| max generated points in sample | 1684 | |
+
+Updated full combined-CWS generation+IP estimate, using the exact pre-IP counts
+`10046036135619` for type 3 and `2094499152885` for non-type-3 structures, and
+using the tuned type-3 and structure-12 rates above:
+
+| Work | One RTX PRO 6000 |
+|---|---:|
+| type 3 at 164664/s | 706.1 days |
+| non-type-3 at 571090/s | 42.4 days |
+| total one-GPU estimate | 748.6 days, about 2.05 years |
+| four ideal GPUs | 187.1 days |
+| eight ideal GPUs | 93.6 days |
+
+This is a real speedup over the serial-per-thread IP path, but it is not yet a
+days-scale full classification. The remaining bottleneck is still PALP point
+generation for type 3; the next meaningful optimization is a deeper split of the
+point-generation recursion or a different mathematically exact enumeration of
+the lattice points, not more host/GPU batching or Parquet avoidance.
+
 ### 2026-06-01 Dim-5 Structure Count Probe
 
 Generator command:

@@ -87,6 +87,7 @@ struct DeviceCwsCandidate {
 
 struct DeviceIpStats {
     unsigned long long processed = 0;
+    unsigned long long precheck_fail = 0;
     unsigned long long point_overflow = 0;
     unsigned long long point_fail = 0;
     unsigned long long simplex_fail = 0;
@@ -95,6 +96,23 @@ struct DeviceIpStats {
     unsigned long long ip_reject = 0;
     unsigned long long ip_count = 0;
     unsigned long long accepted_stored_count = 0;
+};
+
+struct DeviceIpStageStats {
+    unsigned long long point_cycles = 0;
+    unsigned long long ip_cycles = 0;
+    unsigned long long glz_cycles = 0;
+    unsigned long long initial_inci_cycles = 0;
+    unsigned long long search_bad_eq_cycles = 0;
+    unsigned long long search_new_vertex_cycles = 0;
+    unsigned long long make_new_ceqs_cycles = 0;
+    unsigned long long point_candidates = 0;
+    unsigned long long ip_candidates = 0;
+    unsigned long long search_bad_eq_calls = 0;
+    unsigned long long search_new_vertex_calls = 0;
+    unsigned long long make_new_ceqs_calls = 0;
+    unsigned long long total_points = 0;
+    unsigned long long max_points = 0;
 };
 
 struct DeviceEquation5 {
@@ -135,6 +153,7 @@ struct HostScanResult {
 struct HostIpResult {
     std::uint64_t candidate_count = 0;
     std::uint64_t processed = 0;
+    std::uint64_t precheck_fail = 0;
     std::uint64_t point_overflow = 0;
     std::uint64_t point_fail = 0;
     std::uint64_t simplex_fail = 0;
@@ -143,6 +162,7 @@ struct HostIpResult {
     std::uint64_t ip_reject = 0;
     std::uint64_t ip_count = 0;
     std::uint64_t accepted_stored_count = 0;
+    DeviceIpStageStats stage{};
     double seconds = 0.0;
 };
 
@@ -155,6 +175,7 @@ struct HostStreamIpResult {
 
 struct DeviceIpWorkspace {
     DeviceIpStats *stats = nullptr;
+    DeviceIpStageStats *stage_stats = nullptr;
     DeviceCwsCandidate *accepted = nullptr;
     long long *points = nullptr;
     DeviceIpScratch *scratch = nullptr;
@@ -170,13 +191,23 @@ struct Config {
     int structure_id = 0;
     int blocks = 0;
     int threads = 128;
+    bool threads_explicit = false;
     int shard_count = 1;
     int shard_index = 0;
     std::uint64_t emit_capacity = 0;
     int print_candidates = 0;
     bool ip_check = false;
     bool stream_ip = false;
-    int ip_max_points = 4096;
+    bool block_ip = false;
+    bool ip_stage_profile = false;
+    // Per-candidate lattice-point buffer capacity. Defaults to PALP's POINT_Nmax
+    // for POLY_Dmax==5 (see PALP/Global.h) so the GPU IP filter can hold every
+    // lattice point any valid 5D CWS produces and never silently drops a
+    // candidate. CORRECTNESS: a candidate that would exceed this is treated as a
+    // hard error, not dropped. NOTE: at this size the device point workspace is
+    // ~80 MB/slot, so the launch grid is capped to fit VRAM in main(); raising
+    // throughput again is a separate (two-tier buffer / requeue) optimization.
+    int ip_max_points = 2000000;  // == PALP POINT_Nmax (POLY_Dmax==5)
     std::string accepted_output_path;
     bool all = false;
 };
@@ -221,13 +252,15 @@ void usage(const char *argv0) {
         << "  --cuda-device <n>        CUDA device index, default 0\n"
         << "  --shard-count <n>        Split each structure selection-product range\n"
         << "  --shard-index <n>        Zero-based shard index\n"
-        << "  --blocks <n>             CUDA block count, default SM count * 16\n"
-        << "  --threads <n>            CUDA threads per block, default 128\n"
+        << "  --blocks <n>             CUDA block count, default SM count * 16, or *256 with --block-ip\n"
+        << "  --threads <n>            CUDA threads per block, default 128, or 32 with --block-ip\n"
         << "  --emit-capacity <n>      Store up to n generated CWS candidates on device\n"
         << "  --print-candidates <n>   Print up to n stored CWS candidates\n"
         << "  --ip-check               Run GPU IP check over the stored candidate buffer\n"
         << "  --stream-ip              Stream the full shard through chunked GPU IP filtering\n"
-        << "  --ip-max-points <n>      Per-candidate device point workspace, default 4096\n"
+        << "  --block-ip               Use one CUDA block per active CWS for parallel points/equation scans\n"
+        << "  --ip-stage-profile      Collect clock64 timing counters inside the GPU IP kernel\n"
+        << "  --ip-max-points <n>      Per-candidate device point buffer, default 2000000 (== PALP POINT_Nmax); overflow is a hard error\n"
         << "  --accepted-output <path> Write accepted GPU-IP CWS rows to a text file\n";
 }
 
@@ -248,11 +281,16 @@ Config parse_args(int argc, char **argv) {
         else if (arg == "--shard-count") config.shard_count = parse_i32(require_value("--shard-count"));
         else if (arg == "--shard-index") config.shard_index = parse_i32(require_value("--shard-index"));
         else if (arg == "--blocks") config.blocks = parse_i32(require_value("--blocks"));
-        else if (arg == "--threads") config.threads = parse_i32(require_value("--threads"));
+        else if (arg == "--threads") {
+            config.threads = parse_i32(require_value("--threads"));
+            config.threads_explicit = true;
+        }
         else if (arg == "--emit-capacity") config.emit_capacity = parse_u64(require_value("--emit-capacity"));
         else if (arg == "--print-candidates") config.print_candidates = parse_i32(require_value("--print-candidates"));
         else if (arg == "--ip-check") config.ip_check = true;
         else if (arg == "--stream-ip") config.stream_ip = true;
+        else if (arg == "--block-ip") config.block_ip = true;
+        else if (arg == "--ip-stage-profile") config.ip_stage_profile = true;
         else if (arg == "--ip-max-points") config.ip_max_points = parse_i32(require_value("--ip-max-points"));
         else if (arg == "--accepted-output") config.accepted_output_path = require_value("--accepted-output");
         else if (arg == "-h" || arg == "--help") {
@@ -1128,6 +1166,45 @@ __device__ int device_make_cws_basis(const DeviceCwsCandidate &candidate,
     return 1;
 }
 
+__device__ int device_candidate_basic_precheck(const DeviceCwsCandidate &candidate,
+                                               long long x_upper[10]) {
+    if (candidate.nw < 1 || candidate.nw > kMaxSlots) return 0;
+    if (candidate.ambient_vertices < 1 || candidate.ambient_vertices > 10) return 0;
+    if (candidate.ambient_vertices - candidate.nw != 5) return 0;
+
+    for (int row = 0; row < candidate.nw; ++row) {
+        long long sum = 0;
+        for (int coord = 0; coord < candidate.ambient_vertices; ++coord) {
+            int weight = candidate.weights[row][coord];
+            if (weight < 0) return 0;
+            sum += weight;
+        }
+        if (candidate.degree[row] <= 0 || sum != candidate.degree[row]) return 0;
+    }
+
+    unsigned long long point_upper_bound = 1;
+    for (int coord = 0; coord < candidate.ambient_vertices; ++coord) {
+        long long bound = 0;
+        int support = 0;
+        for (int row = 0; row < candidate.nw; ++row) {
+            int weight = candidate.weights[row][coord];
+            if (weight) {
+                long long limit = candidate.degree[row] / weight;
+                bound = support ? (bound < limit ? bound : limit) : limit;
+                support = 1;
+            }
+        }
+        if (!support) return 0;
+        x_upper[coord] = bound;
+        if (point_upper_bound < 6ULL) {
+            unsigned long long choices = static_cast<unsigned long long>(bound + 1);
+            point_upper_bound *= choices;
+            if (point_upper_bound > 6ULL) point_upper_bound = 6ULL;
+        }
+    }
+    return point_upper_bound >= 6ULL;
+}
+
 __device__ long long device_eval_eq(const DeviceEquation5 &equation,
                                     const long long *point) {
     return equation.c + equation.a[0] * point[0] + equation.a[1] * point[1] +
@@ -1157,8 +1234,9 @@ __device__ int device_make_points_serial(const DeviceCwsCandidate &candidate,
                                          int *point_count) {
     long long basis[5][10];
     int basis_dim = 0;
-    if (!device_make_cws_basis(candidate, &basis_dim, basis)) return 0;
     long long x_upper[10] = {0};
+    if (!device_candidate_basic_precheck(candidate, x_upper)) return 0;
+    if (!device_make_cws_basis(candidate, &basis_dim, basis)) return 0;
     long long x0[10] = {0};
     int amin[6] = {0};
     for (int coord = 0; coord < candidate.ambient_vertices; ++coord) x0[coord] = 1;
@@ -1169,15 +1247,6 @@ __device__ int device_make_points_serial(const DeviceCwsCandidate &candidate,
     while (--i) {
         while (j > 0 && !basis[i - 1][--j]) {}
         amin[i] = ++j;
-    }
-    for (int coord = 0; coord < candidate.ambient_vertices; ++coord) {
-        x_upper[coord] = 0;
-        for (int row = 0; row < candidate.nw; ++row) {
-            if (candidate.weights[row][coord]) {
-                long long limit = candidate.degree[row] / candidate.weights[row][coord];
-                x_upper[coord] = x_upper[coord] ? (x_upper[coord] < limit ? x_upper[coord] : limit) : limit;
-            }
-        }
     }
     int top_dim = basis_dim - 1;
     i = amin[top_dim + 1] - 1;
@@ -1260,6 +1329,170 @@ __device__ int device_make_points_serial(const DeviceCwsCandidate &candidate,
         }
     }
     return *point_count > 0 ? 1 : 0;
+}
+
+__device__ void device_append_ip_point_atomic(const long long x[5],
+                                              long long *points,
+                                              int max_points,
+                                              int *point_count,
+                                              int *overflow) {
+    int index = atomicAdd(point_count, 1);
+    if (index >= max_points) {
+        atomicExch(overflow, 1);
+        return;
+    }
+    for (int coord = 0; coord < 5; ++coord) points[index * 5 + coord] = x[coord];
+}
+
+__device__ void device_make_points_walk_seed(long long top_value,
+                                             const long long basis[5][10],
+                                             const long long x_upper[10],
+                                             const int amin[6],
+                                             long long *points,
+                                             int max_points,
+                                             int *point_count,
+                                             int *overflow) {
+    constexpr int basis_dim = 5;
+    long long x0[10] = {0};
+    for (int coord = 0; coord < 10; ++coord) x0[coord] = 1;
+
+    long long xmin[5] = {0};
+    long long xmax[5] = {0};
+    long long x[5] = {0};
+    int top_dim = basis_dim - 1;
+    xmin[top_dim] = top_value;
+    xmax[top_dim] = top_value;
+    x[top_dim] = top_value;
+    int walk_dim = top_dim;
+
+    while (walk_dim < basis_dim && atomicAdd(overflow, 0) == 0) {
+        if (x[walk_dim] > xmax[walk_dim]) {
+            ++walk_dim;
+            if (basis_dim == walk_dim) break;
+            ++x[walk_dim];
+        } else {
+            int source_coord = amin[walk_dim] - 1;
+            --walk_dim;
+            long long upper = x_upper[source_coord];
+            long long low = -x0[source_coord];
+            int range_flag = 0;
+            for (int k = walk_dim + 1; k < basis_dim; ++k) low -= x[k] * basis[k][source_coord];
+            upper += low;
+            long long divisor = basis[walk_dim][source_coord];
+            xmin[walk_dim] = -device_pd_floor(-low, divisor);
+            xmax[walk_dim] = device_pd_floor(upper, divisor);
+            int i = source_coord;
+            while ((i--) > amin[walk_dim]) {
+                divisor = basis[walk_dim][i];
+                if (divisor) {
+                    low = -x0[i];
+                    upper = x_upper[i];
+                    for (int k = walk_dim + 1; k < basis_dim; ++k) low -= x[k] * basis[k][i];
+                    upper += low;
+                    if (divisor > 0) {
+                        long long limit = device_pd_floor(upper, divisor);
+                        if (xmax[walk_dim] > limit) xmax[walk_dim] = limit;
+                        limit = -device_pd_floor(-low, divisor);
+                        if (xmin[walk_dim] < limit) xmin[walk_dim] = limit;
+                    } else {
+                        long long limit = device_pd_floor(-low, -divisor);
+                        if (xmax[walk_dim] > limit) xmax[walk_dim] = limit;
+                        limit = -device_pd_floor(upper, -divisor);
+                        if (xmin[walk_dim] < limit) xmin[walk_dim] = limit;
+                    }
+                } else {
+                    long long ambient = 1;
+                    for (int k = walk_dim + 1; k < basis_dim; ++k) ambient += x[k] * basis[k][i];
+                    if (ambient < 0 || ambient > x_upper[i]) range_flag = 1;
+                }
+            }
+            if (range_flag) ++x[++walk_dim];
+            else x[walk_dim] = xmin[walk_dim];
+            if (walk_dim == 0) {
+                while (x[0] <= xmax[0] && atomicAdd(overflow, 0) == 0) {
+                    device_append_ip_point_atomic(x, points, max_points, point_count, overflow);
+                    ++x[0];
+                }
+                walk_dim = 1;
+                ++x[walk_dim];
+            }
+        }
+    }
+}
+
+__device__ int device_make_points_block(const DeviceCwsCandidate &candidate,
+                                        long long *points,
+                                        int max_points,
+                                        int *out_point_count,
+                                        int *precheck_failed) {
+    __shared__ long long basis[5][10];
+    __shared__ long long x_upper[10];
+    __shared__ int amin[6];
+    __shared__ long long top_min;
+    __shared__ long long top_max;
+    __shared__ int point_count;
+    __shared__ int overflow;
+    __shared__ int ok;
+
+    if (threadIdx.x == 0) {
+        point_count = 0;
+        overflow = 0;
+        ok = 1;
+        *precheck_failed = 0;
+        int basis_dim = 0;
+        if (!device_candidate_basic_precheck(candidate, x_upper)) {
+            ok = 0;
+            *precheck_failed = 1;
+        } else if (!device_make_cws_basis(candidate, &basis_dim, basis) || basis_dim != 5) {
+            ok = 0;
+        } else {
+            int i = basis_dim;
+            int j = candidate.ambient_vertices;
+            amin[0] = 0;
+            amin[basis_dim] = candidate.ambient_vertices;
+            while (--i) {
+                while (j > 0 && !basis[i - 1][--j]) {}
+                amin[i] = ++j;
+            }
+            int top_dim = basis_dim - 1;
+            i = amin[top_dim + 1] - 1;
+            long long divisor = basis[top_dim][i];
+            top_min = -device_pd_floor(1, divisor);
+            top_max = device_pd_floor(x_upper[i] - 1, divisor);
+            while ((i--) > amin[top_dim]) {
+                long long low = -1;
+                long long upper = low + x_upper[i];
+                divisor = basis[top_dim][i];
+                if (divisor > 0) {
+                    long long limit = device_pd_floor(upper, divisor);
+                    if (top_max > limit) top_max = limit;
+                    limit = -device_pd_floor(-low, divisor);
+                    if (top_min < limit) top_min = limit;
+                } else {
+                    long long limit = device_pd_floor(-low, -divisor);
+                    if (top_max > limit) top_max = limit;
+                    limit = -device_pd_floor(upper, -divisor);
+                    if (top_min < limit) top_min = limit;
+                }
+            }
+            if (top_max < top_min) ok = 0;
+        }
+    }
+    __syncthreads();
+
+    if (ok) {
+        long long seed_count = top_max - top_min + 1;
+        for (long long seed = threadIdx.x; seed < seed_count; seed += blockDim.x) {
+            device_make_points_walk_seed(top_min + seed, basis, x_upper, amin,
+                                         points, max_points, &point_count, &overflow);
+        }
+    }
+    __syncthreads();
+
+    if (threadIdx.x == 0) *out_point_count = point_count;
+    __syncthreads();
+    if (overflow) return -1;
+    return ok && point_count > 0 ? 1 : 0;
 }
 
 __device__ int device_inci_abs(unsigned long long value) {
@@ -1618,31 +1851,150 @@ __device__ int device_ip_search_bad_eq(DeviceCEqList5 *candidate_equations,
     return 0;
 }
 
+__device__ int device_block_equation_has_negative(const DeviceEquation5 &equation,
+                                                  const long long *points,
+                                                  int point_count) {
+    __shared__ int has_negative;
+    if (threadIdx.x == 0) has_negative = 0;
+    __syncthreads();
+    for (int point_index = threadIdx.x; point_index < point_count; point_index += blockDim.x) {
+        if (device_eval_eq(equation, points + point_index * 5) < 0) atomicExch(&has_negative, 1);
+    }
+    __syncthreads();
+    return has_negative;
+}
+
+__device__ int device_search_new_vertex_block(const DeviceEquation5 &equation,
+                                              const long long *points,
+                                              int point_count) {
+    __shared__ long long shared_value[1024];
+    __shared__ int shared_index[1024];
+    int local_index = -1;
+    long long local_value = 0;
+    for (int point_index = threadIdx.x; point_index < point_count; point_index += blockDim.x) {
+        const long long *point = points + point_index * 5;
+        long long value = device_eval_eq(equation, point);
+        if (local_index < 0 || value < local_value ||
+            (value == local_value && device_vec_greater_than(point, points + local_index * 5))) {
+            local_index = point_index;
+            local_value = value;
+        }
+    }
+    shared_value[threadIdx.x] = local_value;
+    shared_index[threadIdx.x] = local_index;
+    __syncthreads();
+    for (int stride = blockDim.x / 2; stride > 0; stride >>= 1) {
+        if (threadIdx.x < stride) {
+            int other_index = shared_index[threadIdx.x + stride];
+            if (other_index >= 0) {
+                long long other_value = shared_value[threadIdx.x + stride];
+                int current_index = shared_index[threadIdx.x];
+                if (current_index < 0 || other_value < shared_value[threadIdx.x] ||
+                    (other_value == shared_value[threadIdx.x] &&
+                     device_vec_greater_than(points + other_index * 5, points + current_index * 5))) {
+                    shared_value[threadIdx.x] = other_value;
+                    shared_index[threadIdx.x] = other_index;
+                }
+            }
+        }
+        __syncthreads();
+    }
+    return shared_index[0];
+}
+
+__device__ int device_ip_search_bad_eq_block(DeviceCEqList5 *candidate_equations,
+                                             DeviceEqList5 *facets,
+                                             unsigned long long ceq_inci[64],
+                                             unsigned long long facet_inci[64],
+                                             const long long *points,
+                                             int point_count,
+                                             int *ip) {
+    __shared__ int eq_index;
+    __shared__ int done;
+    __shared__ int result;
+    while (true) {
+        if (threadIdx.x == 0) {
+            if (candidate_equations->ne <= 0) {
+                candidate_equations->ne = -1;
+                done = 1;
+                result = 0;
+                eq_index = -1;
+            } else {
+                eq_index = --candidate_equations->ne;
+                done = 0;
+                result = 0;
+            }
+        }
+        __syncthreads();
+        if (done) return result;
+
+        int bad = device_block_equation_has_negative(candidate_equations->e[eq_index], points, point_count);
+        if (threadIdx.x == 0) {
+            if (bad) {
+                result = ++candidate_equations->ne;
+                done = 1;
+            } else if (candidate_equations->e[eq_index].c < 1) {
+                *ip = 0;
+                result = 1;
+                done = 1;
+            } else {
+                if (facets->ne < 64) {
+                    facets->e[facets->ne] = candidate_equations->e[eq_index];
+                    facet_inci[facets->ne++] = ceq_inci[eq_index];
+                }
+            }
+        }
+        __syncthreads();
+        if (done) return result;
+    }
+}
+
 __device__ int device_ip_check(const long long *points,
                                int point_count,
                                DeviceIpScratch *scratch,
-                               int *reject_reason) {
+                               int *reject_reason,
+                               DeviceIpStageStats *stage_stats) {
     int *vertices = scratch->vertices;
     int vertex_count = 0;
     DeviceCEqList5 *candidate_equations = &scratch->candidate_equations;
     DeviceEqList5 *facets = &scratch->facets;
     unsigned long long *ceq_inci = scratch->ceq_inci;
     unsigned long long *facet_inci = scratch->facet_inci;
+    unsigned long long tick = stage_stats ? clock64() : 0ULL;
     if (device_glz_start_simplex(points, point_count, vertices, &vertex_count, candidate_equations)) {
+        if (stage_stats) atomicAdd(&stage_stats->glz_cycles, clock64() - tick);
         *reject_reason = 1;
         return 0;
+    }
+    if (stage_stats) {
+        unsigned long long now = clock64();
+        atomicAdd(&stage_stats->glz_cycles, now - tick);
+        tick = now;
     }
     for (int index = 0; index < candidate_equations->ne; ++index) {
         ceq_inci[index] = device_eq_to_inci(candidate_equations->e[index], points, vertices, vertex_count);
         if (device_inci_abs(ceq_inci[index]) < 5) {
+            if (stage_stats) atomicAdd(&stage_stats->initial_inci_cycles, clock64() - tick);
             *reject_reason = 2;
             return 0;
         }
     }
+    if (stage_stats) {
+        unsigned long long now = clock64();
+        atomicAdd(&stage_stats->initial_inci_cycles, now - tick);
+        tick = now;
+    }
     facets->ne = 0;
     int ip = 1;
     while (candidate_equations->ne >= 0) {
+        if (stage_stats) tick = clock64();
         if (device_ip_search_bad_eq(candidate_equations, facets, ceq_inci, facet_inci, points, point_count, &ip)) {
+            if (stage_stats) {
+                unsigned long long now = clock64();
+                atomicAdd(&stage_stats->search_bad_eq_cycles, now - tick);
+                atomicAdd(&stage_stats->search_bad_eq_calls, 1ULL);
+                tick = now;
+            }
             if (!ip) {
                 *reject_reason = 4;
                 return 0;
@@ -1651,13 +2003,114 @@ __device__ int device_ip_check(const long long *points,
                 *reject_reason = 3;
                 return 0;
             }
+            if (stage_stats) tick = clock64();
             vertices[vertex_count++] = device_search_new_vertex(candidate_equations->e[candidate_equations->ne - 1], points, point_count);
+            if (stage_stats) {
+                unsigned long long now = clock64();
+                atomicAdd(&stage_stats->search_new_vertex_cycles, now - tick);
+                atomicAdd(&stage_stats->search_new_vertex_calls, 1ULL);
+                tick = now;
+            }
             device_make_new_ceqs(points, vertices, vertex_count, candidate_equations,
                                  facets, ceq_inci, facet_inci,
                                  &scratch->bad_equations, scratch->bad_inci);
+            if (stage_stats) {
+                atomicAdd(&stage_stats->make_new_ceqs_cycles, clock64() - tick);
+                atomicAdd(&stage_stats->make_new_ceqs_calls, 1ULL);
+            }
+        } else if (stage_stats) {
+            atomicAdd(&stage_stats->search_bad_eq_cycles, clock64() - tick);
+            atomicAdd(&stage_stats->search_bad_eq_calls, 1ULL);
         }
     }
     return 1;
+}
+
+__device__ int device_ip_check_block(const long long *points,
+                                     int point_count,
+                                     DeviceIpScratch *scratch,
+                                     int *reject_reason) {
+    __shared__ int vertex_count;
+    __shared__ int done;
+    __shared__ int result;
+    __shared__ int shared_reject_reason;
+    int *vertices = scratch->vertices;
+    DeviceCEqList5 *candidate_equations = &scratch->candidate_equations;
+    DeviceEqList5 *facets = &scratch->facets;
+    unsigned long long *ceq_inci = scratch->ceq_inci;
+    unsigned long long *facet_inci = scratch->facet_inci;
+
+    if (threadIdx.x == 0) {
+        vertex_count = 0;
+        done = 0;
+        result = 0;
+        shared_reject_reason = 0;
+        if (device_glz_start_simplex(points, point_count, vertices, &vertex_count, candidate_equations)) {
+            shared_reject_reason = 1;
+            done = 1;
+        } else {
+            for (int index = 0; index < candidate_equations->ne; ++index) {
+                ceq_inci[index] = device_eq_to_inci(candidate_equations->e[index], points, vertices, vertex_count);
+                if (device_inci_abs(ceq_inci[index]) < 5) {
+                    shared_reject_reason = 2;
+                    done = 1;
+                    break;
+                }
+            }
+            facets->ne = 0;
+        }
+    }
+    __syncthreads();
+    if (done) {
+        if (threadIdx.x == 0) *reject_reason = shared_reject_reason;
+        return 0;
+    }
+
+    __shared__ int ip;
+    if (threadIdx.x == 0) ip = 1;
+    __syncthreads();
+
+    while (true) {
+        if (threadIdx.x == 0) done = candidate_equations->ne < 0;
+        __syncthreads();
+        if (done) {
+            if (threadIdx.x == 0) *reject_reason = 0;
+            return 1;
+        }
+
+        int found_bad = device_ip_search_bad_eq_block(candidate_equations, facets, ceq_inci,
+                                                      facet_inci, points, point_count, &ip);
+        if (found_bad) {
+            if (threadIdx.x == 0) {
+                if (!ip) {
+                    shared_reject_reason = 4;
+                    done = 1;
+                    result = 0;
+                } else if (vertex_count >= 64) {
+                    shared_reject_reason = 3;
+                    done = 1;
+                    result = 0;
+                } else {
+                    done = 0;
+                }
+            }
+            __syncthreads();
+            if (done) {
+                if (threadIdx.x == 0) *reject_reason = shared_reject_reason;
+                return result;
+            }
+
+            int new_vertex = device_search_new_vertex_block(candidate_equations->e[candidate_equations->ne - 1],
+                                                            points, point_count);
+            if (threadIdx.x == 0) {
+                vertices[vertex_count++] = new_vertex;
+                device_make_new_ceqs(points, vertices, vertex_count, candidate_equations,
+                                     facets, ceq_inci, facet_inci,
+                                     &scratch->bad_equations, scratch->bad_inci);
+            }
+            __syncthreads();
+        }
+    }
 }
 
 __global__ void cws_ip_filter_kernel(const DeviceCwsCandidate *candidates,
@@ -1666,6 +2119,7 @@ __global__ void cws_ip_filter_kernel(const DeviceCwsCandidate *candidates,
                                      long long *point_workspace,
                                      DeviceIpScratch *scratch_workspace,
                                      DeviceIpStats *stats,
+                                     DeviceIpStageStats *stage_stats,
                                      DeviceCwsCandidate *accepted_output,
                                      unsigned long long accepted_capacity) {
     unsigned long long index = blockIdx.x * blockDim.x + threadIdx.x;
@@ -1676,7 +2130,14 @@ __global__ void cws_ip_filter_kernel(const DeviceCwsCandidate *candidates,
         long long *points = point_workspace + workspace_slot * static_cast<unsigned long long>(max_points_per_candidate) * 5ULL;
         DeviceIpScratch *scratch = scratch_workspace + workspace_slot;
         int point_count = 0;
+        unsigned long long tick = stage_stats ? clock64() : 0ULL;
         int point_status = device_make_points_serial(candidate, points, max_points_per_candidate, &point_count);
+        if (stage_stats) {
+            atomicAdd(&stage_stats->point_cycles, clock64() - tick);
+            atomicAdd(&stage_stats->point_candidates, 1ULL);
+            atomicAdd(&stage_stats->total_points, static_cast<unsigned long long>(point_count > 0 ? point_count : 0));
+            if (point_count > 0) atomicMax(&stage_stats->max_points, static_cast<unsigned long long>(point_count));
+        }
         atomicAdd(&stats->processed, 1ULL);
         if (point_status < 0) {
             atomicAdd(&stats->point_overflow, 1ULL);
@@ -1686,7 +2147,12 @@ __global__ void cws_ip_filter_kernel(const DeviceCwsCandidate *candidates,
             atomicAdd(&stats->simplex_fail, 1ULL);
         } else {
             int reject_reason = 0;
-            int is_ip = device_ip_check(points, point_count, scratch, &reject_reason);
+            if (stage_stats) tick = clock64();
+            int is_ip = device_ip_check(points, point_count, scratch, &reject_reason, stage_stats);
+            if (stage_stats) {
+                atomicAdd(&stage_stats->ip_cycles, clock64() - tick);
+                atomicAdd(&stage_stats->ip_candidates, 1ULL);
+            }
             if (!is_ip && reject_reason == 1) atomicAdd(&stats->simplex_fail, 1ULL);
             else if (!is_ip && reject_reason == 2) atomicAdd(&stats->initial_inci_fail, 1ULL);
             else if (!is_ip && reject_reason == 3) atomicAdd(&stats->vertex_overflow, 1ULL);
@@ -1700,6 +2166,74 @@ __global__ void cws_ip_filter_kernel(const DeviceCwsCandidate *candidates,
             }
         }
         index += stride;
+    }
+}
+
+__global__ void cws_ip_filter_block_kernel(const DeviceCwsCandidate *candidates,
+                                           unsigned long long candidate_count,
+                                           int max_points_per_candidate,
+                                           long long *point_workspace,
+                                           DeviceIpScratch *scratch_workspace,
+                                           DeviceIpStats *stats,
+                                           DeviceIpStageStats *stage_stats,
+                                           DeviceCwsCandidate *accepted_output,
+                                           unsigned long long accepted_capacity) {
+    __shared__ int block_point_count;
+    __shared__ int block_point_status;
+    __shared__ int block_precheck_failed;
+    unsigned long long workspace_slot = blockIdx.x;
+    unsigned long long index = blockIdx.x;
+    while (index < candidate_count) {
+        const DeviceCwsCandidate &candidate = candidates[index];
+        long long *points = point_workspace + workspace_slot * static_cast<unsigned long long>(max_points_per_candidate) * 5ULL;
+        DeviceIpScratch *scratch = scratch_workspace + workspace_slot;
+        int point_count = 0;
+        int precheck_failed = 0;
+        unsigned long long tick = (stage_stats && threadIdx.x == 0) ? clock64() : 0ULL;
+        int point_status = device_make_points_block(candidate, points, max_points_per_candidate,
+                                                    &point_count, &precheck_failed);
+        if (threadIdx.x == 0) {
+            block_point_count = point_count;
+            block_point_status = point_status;
+            block_precheck_failed = precheck_failed;
+            if (stage_stats) {
+                atomicAdd(&stage_stats->point_cycles, clock64() - tick);
+                atomicAdd(&stage_stats->point_candidates, 1ULL);
+                atomicAdd(&stage_stats->total_points, static_cast<unsigned long long>(point_count > 0 ? point_count : 0));
+                if (point_count > 0) atomicMax(&stage_stats->max_points, static_cast<unsigned long long>(point_count));
+            }
+            atomicAdd(&stats->processed, 1ULL);
+            if (block_precheck_failed) atomicAdd(&stats->precheck_fail, 1ULL);
+            if (block_point_status < 0) atomicAdd(&stats->point_overflow, 1ULL);
+            else if (block_point_status == 0 || block_point_count <= 0) atomicAdd(&stats->point_fail, 1ULL);
+            else if (block_point_count < 6) atomicAdd(&stats->simplex_fail, 1ULL);
+        }
+        __syncthreads();
+
+        if (block_point_status > 0 && block_point_count >= 6) {
+            int reject_reason = 0;
+            if (threadIdx.x == 0 && stage_stats) tick = clock64();
+            int is_ip = device_ip_check_block(points, block_point_count, scratch, &reject_reason);
+            if (threadIdx.x == 0) {
+                if (stage_stats) {
+                    atomicAdd(&stage_stats->ip_cycles, clock64() - tick);
+                    atomicAdd(&stage_stats->ip_candidates, 1ULL);
+                }
+                if (!is_ip && reject_reason == 1) atomicAdd(&stats->simplex_fail, 1ULL);
+                else if (!is_ip && reject_reason == 2) atomicAdd(&stats->initial_inci_fail, 1ULL);
+                else if (!is_ip && reject_reason == 3) atomicAdd(&stats->vertex_overflow, 1ULL);
+                else if (!is_ip) atomicAdd(&stats->ip_reject, 1ULL);
+                if (is_ip) {
+                    unsigned long long accepted_index = atomicAdd(&stats->ip_count, 1ULL);
+                    if (accepted_index < accepted_capacity && accepted_output) {
+                        accepted_output[accepted_index] = candidate;
+                        atomicAdd(&stats->accepted_stored_count, 1ULL);
+                    }
+                }
+            }
+        }
+        __syncthreads();
+        index += gridDim.x;
     }
 }
 
@@ -1879,6 +2413,8 @@ void allocate_ip_workspace(DeviceIpWorkspace *workspace,
     workspace->max_points = max_points_per_candidate;
     std::uint64_t point_values = workspace->point_slots * static_cast<std::uint64_t>(max_points_per_candidate) * 5ULL;
     check_cuda(cudaMalloc(&workspace->stats, sizeof(DeviceIpStats)), "cudaMalloc ip stats");
+    check_cuda(cudaMalloc(&workspace->stage_stats, sizeof(DeviceIpStageStats)),
+               "cudaMalloc ip stage stats");
     check_cuda(cudaMalloc(&workspace->accepted, capacity * sizeof(DeviceCwsCandidate)),
                "cudaMalloc accepted candidates");
     check_cuda(cudaMalloc(&workspace->points, point_values * sizeof(long long)),
@@ -1888,6 +2424,7 @@ void allocate_ip_workspace(DeviceIpWorkspace *workspace,
 }
 
 void free_ip_workspace(DeviceIpWorkspace *workspace) {
+    cudaFree(workspace->stage_stats);
     cudaFree(workspace->scratch);
     cudaFree(workspace->points);
     cudaFree(workspace->accepted);
@@ -1907,6 +2444,7 @@ void accumulate_scan_result(HostScanResult *total, const HostScanResult &chunk) 
 void accumulate_ip_result(HostIpResult *total, const HostIpResult &chunk) {
     total->candidate_count += chunk.candidate_count;
     total->processed += chunk.processed;
+    total->precheck_fail += chunk.precheck_fail;
     total->point_overflow += chunk.point_overflow;
     total->point_fail += chunk.point_fail;
     total->simplex_fail += chunk.simplex_fail;
@@ -1915,10 +2453,28 @@ void accumulate_ip_result(HostIpResult *total, const HostIpResult &chunk) {
     total->ip_reject += chunk.ip_reject;
     total->ip_count += chunk.ip_count;
     total->accepted_stored_count += chunk.accepted_stored_count;
+    total->stage.point_cycles += chunk.stage.point_cycles;
+    total->stage.ip_cycles += chunk.stage.ip_cycles;
+    total->stage.glz_cycles += chunk.stage.glz_cycles;
+    total->stage.initial_inci_cycles += chunk.stage.initial_inci_cycles;
+    total->stage.search_bad_eq_cycles += chunk.stage.search_bad_eq_cycles;
+    total->stage.search_new_vertex_cycles += chunk.stage.search_new_vertex_cycles;
+    total->stage.make_new_ceqs_cycles += chunk.stage.make_new_ceqs_cycles;
+    total->stage.point_candidates += chunk.stage.point_candidates;
+    total->stage.ip_candidates += chunk.stage.ip_candidates;
+    total->stage.search_bad_eq_calls += chunk.stage.search_bad_eq_calls;
+    total->stage.search_new_vertex_calls += chunk.stage.search_new_vertex_calls;
+    total->stage.make_new_ceqs_calls += chunk.stage.make_new_ceqs_calls;
+    total->stage.total_points += chunk.stage.total_points;
+    total->stage.max_points = std::max(total->stage.max_points, chunk.stage.max_points);
     total->seconds += chunk.seconds;
 }
 
 std::uint64_t ip_workspace_slots(const Config &config, std::uint64_t candidate_count) {
+    if (config.block_ip) {
+        return std::min<std::uint64_t>(candidate_count,
+                                       std::max<std::uint64_t>(static_cast<std::uint64_t>(config.blocks), 1));
+    }
     std::uint64_t launch_threads =
         static_cast<std::uint64_t>(config.blocks) * static_cast<std::uint64_t>(config.threads);
     return std::min<std::uint64_t>(candidate_count, std::max<std::uint64_t>(launch_threads, 1));
@@ -1935,12 +2491,27 @@ HostIpResult run_ip_filter_with_workspace(DeviceCwsCandidate *device_candidates,
     if (candidate_count == 0) return result;
 
     check_cuda(cudaMemset(workspace->stats, 0, sizeof(DeviceIpStats)), "cudaMemset ip stats");
+    if (config.ip_stage_profile) {
+        check_cuda(cudaMemset(workspace->stage_stats, 0, sizeof(DeviceIpStageStats)),
+                   "cudaMemset ip stage stats");
+    }
 
     auto start = std::chrono::steady_clock::now();
-    cws_ip_filter_kernel<<<config.blocks, config.threads>>>(
-        device_candidates, candidate_count, config.ip_max_points, workspace->points,
-        workspace->scratch, workspace->stats, workspace->accepted, candidate_count);
-    check_cuda(cudaGetLastError(), "cws_ip_filter_kernel launch");
+    if (config.block_ip) {
+        cws_ip_filter_block_kernel<<<config.blocks, config.threads>>>(
+            device_candidates, candidate_count, config.ip_max_points, workspace->points,
+            workspace->scratch, workspace->stats,
+            config.ip_stage_profile ? workspace->stage_stats : nullptr,
+            workspace->accepted, candidate_count);
+        check_cuda(cudaGetLastError(), "cws_ip_filter_block_kernel launch");
+    } else {
+        cws_ip_filter_kernel<<<config.blocks, config.threads>>>(
+            device_candidates, candidate_count, config.ip_max_points, workspace->points,
+            workspace->scratch, workspace->stats,
+            config.ip_stage_profile ? workspace->stage_stats : nullptr,
+            workspace->accepted, candidate_count);
+        check_cuda(cudaGetLastError(), "cws_ip_filter_kernel launch");
+    }
     check_cuda(cudaDeviceSynchronize(), "cudaDeviceSynchronize ip filter");
     auto end = std::chrono::steady_clock::now();
 
@@ -1948,6 +2519,7 @@ HostIpResult run_ip_filter_with_workspace(DeviceCwsCandidate *device_candidates,
     check_cuda(cudaMemcpy(&stats, workspace->stats, sizeof(DeviceIpStats), cudaMemcpyDeviceToHost),
                "cudaMemcpy ip stats");
     result.processed = stats.processed;
+    result.precheck_fail = stats.precheck_fail;
     result.point_overflow = stats.point_overflow;
     result.point_fail = stats.point_fail;
     result.simplex_fail = stats.simplex_fail;
@@ -1957,6 +2529,22 @@ HostIpResult run_ip_filter_with_workspace(DeviceCwsCandidate *device_candidates,
     result.ip_count = stats.ip_count;
     result.accepted_stored_count = stats.accepted_stored_count;
     result.seconds = std::chrono::duration<double>(end - start).count();
+    if (config.ip_stage_profile) {
+        check_cuda(cudaMemcpy(&result.stage, workspace->stage_stats,
+                              sizeof(DeviceIpStageStats), cudaMemcpyDeviceToHost),
+                   "cudaMemcpy ip stage stats");
+    }
+
+    // CORRECTNESS: a point-buffer overflow means one or more candidates were not
+    // IP-checked. We must never silently drop a candidate, so this is fatal.
+    // Re-run with a larger --ip-max-points (PALP's reference ceiling is 2,000,000).
+    if (result.point_overflow > 0) {
+        throw std::runtime_error(
+            "ip point-buffer overflow on " + std::to_string(result.point_overflow) +
+            " candidate(s): they exceeded --ip-max-points (" +
+            std::to_string(config.ip_max_points) +
+            "); increase --ip-max-points to avoid dropping candidates");
+    }
 
     if (accepted_output && result.accepted_stored_count > 0) {
         std::vector<DeviceCwsCandidate> accepted(static_cast<std::size_t>(result.accepted_stored_count));
@@ -2062,6 +2650,7 @@ void print_ip_result(int structure_id, const HostIpResult &result) {
               << " candidates: " << result.candidate_count
               << " processed: " << result.processed
               << " ip: " << result.ip_count
+              << " precheck_fail: " << result.precheck_fail
               << " point_overflow: " << result.point_overflow
               << " point_fail: " << result.point_fail
               << " simplex_fail: " << result.simplex_fail
@@ -2072,6 +2661,41 @@ void print_ip_result(int structure_id, const HostIpResult &result) {
               << " seconds: " << std::fixed << std::setprecision(6) << result.seconds
               << " candidates_per_second: " << std::fixed << std::setprecision(1) << processed_rate
               << '\n';
+    if (result.stage.point_candidates > 0 || result.stage.ip_candidates > 0) {
+        double top_total = static_cast<double>(result.stage.point_cycles + result.stage.ip_cycles);
+        auto pct = [&](unsigned long long cycles, double denominator) {
+            return denominator > 0.0 ? 100.0 * static_cast<double>(cycles) / denominator : 0.0;
+        };
+        double ip_total = static_cast<double>(result.stage.ip_cycles);
+        double avg_points = result.stage.point_candidates > 0
+            ? static_cast<double>(result.stage.total_points) / static_cast<double>(result.stage.point_candidates)
+            : 0.0;
+        std::cerr << "  ip_stage_profile structure " << structure_id
+                  << " point_cycles: " << result.stage.point_cycles
+                  << " (" << std::fixed << std::setprecision(1) << pct(result.stage.point_cycles, top_total) << "% top)"
+                  << " ip_cycles: " << result.stage.ip_cycles
+                  << " (" << std::fixed << std::setprecision(1) << pct(result.stage.ip_cycles, top_total) << "% top)"
+                  << " point_candidates: " << result.stage.point_candidates
+                  << " ip_candidates: " << result.stage.ip_candidates
+                  << " avg_points: " << std::fixed << std::setprecision(1) << avg_points
+                  << " max_points: " << result.stage.max_points
+                  << '\n'
+                  << "    ip_substages glz: " << result.stage.glz_cycles
+                  << " (" << std::fixed << std::setprecision(1) << pct(result.stage.glz_cycles, ip_total) << "% ip)"
+                  << " initial_inci: " << result.stage.initial_inci_cycles
+                  << " (" << std::fixed << std::setprecision(1) << pct(result.stage.initial_inci_cycles, ip_total) << "% ip)"
+                  << " search_bad_eq: " << result.stage.search_bad_eq_cycles
+                  << " (" << std::fixed << std::setprecision(1) << pct(result.stage.search_bad_eq_cycles, ip_total) << "% ip)"
+                  << " search_new_vertex: " << result.stage.search_new_vertex_cycles
+                  << " (" << std::fixed << std::setprecision(1) << pct(result.stage.search_new_vertex_cycles, ip_total) << "% ip)"
+                  << " make_new_ceqs: " << result.stage.make_new_ceqs_cycles
+                  << " (" << std::fixed << std::setprecision(1) << pct(result.stage.make_new_ceqs_cycles, ip_total) << "% ip)"
+                  << '\n'
+                  << "    ip_calls search_bad_eq: " << result.stage.search_bad_eq_calls
+                  << " search_new_vertex: " << result.stage.search_new_vertex_calls
+                  << " make_new_ceqs: " << result.stage.make_new_ceqs_calls
+                  << '\n';
+    }
 }
 
 void print_candidate(const DeviceCwsCandidate &candidate, int index) {
@@ -2100,7 +2724,41 @@ int main(int argc, char **argv) {
 
         cudaDeviceProp properties{};
         check_cuda(cudaGetDeviceProperties(&properties, config.cuda_device), "cudaGetDeviceProperties");
-        if (config.blocks == 0) config.blocks = properties.multiProcessorCount * 16;
+        if (config.block_ip && !config.threads_explicit) config.threads = 32;
+        if (config.blocks == 0) {
+            config.blocks = properties.multiProcessorCount * (config.block_ip ? 256 : 16);
+        }
+
+        // The IP point workspace dominates VRAM: one slot per block (--block-ip)
+        // or one slot per launched thread (serial), each holding
+        // ip_max_points * 5 * 8 bytes plus a DeviceIpScratch. With ip_max_points
+        // defaulting to PALP's POINT_Nmax (2,000,000 -> ~80 MB/slot) the default
+        // grid cannot fit, so cap the launch grid to what free VRAM can hold. We
+        // only ever reduce the grid: every candidate is still processed, just
+        // fewer concurrently. (Restoring throughput at this buffer size is a
+        // separate two-tier-buffer / overflow-requeue optimization.)
+        if (config.ip_check) {
+            std::size_t free_bytes = 0;
+            std::size_t total_bytes = 0;
+            check_cuda(cudaMemGetInfo(&free_bytes, &total_bytes), "cudaMemGetInfo");
+            std::size_t budget = static_cast<std::size_t>(static_cast<double>(free_bytes) * 0.70);
+            std::size_t bytes_per_slot =
+                static_cast<std::size_t>(config.ip_max_points) * 5ULL * sizeof(long long) +
+                sizeof(DeviceIpScratch);
+            std::size_t affordable_slots =
+                bytes_per_slot ? std::max<std::size_t>(budget / bytes_per_slot, 1) : 1;
+            std::size_t affordable_blocks = config.block_ip
+                ? affordable_slots
+                : std::max<std::size_t>(affordable_slots / static_cast<std::size_t>(config.threads), 1);
+            if (affordable_blocks < static_cast<std::size_t>(config.blocks)) {
+                int capped = static_cast<int>(std::max<std::size_t>(affordable_blocks, 1));
+                std::cerr << "  vram_cap: reducing blocks from " << config.blocks
+                          << " to " << capped << " so the " << config.ip_max_points
+                          << "-point workspace fits in VRAM (free "
+                          << (free_bytes >> 20) << " MiB)\n";
+                config.blocks = capped;
+            }
+        }
 
         auto pool_start = std::chrono::steady_clock::now();
         std::vector<BaseWeight> w5_pool = load_w5_pool(config.w5_path);
@@ -2133,6 +2791,8 @@ int main(int argc, char **argv) {
                   << "  emit_capacity: " << config.emit_capacity << '\n'
                   << "  ip_check: " << (config.ip_check ? "yes" : "no") << '\n'
                   << "  stream_ip: " << (config.stream_ip ? "yes" : "no") << '\n'
+                  << "  block_ip: " << (config.block_ip ? "yes" : "no") << '\n'
+                  << "  ip_stage_profile: " << (config.ip_stage_profile ? "yes" : "no") << '\n'
                   << "  ip_max_points: " << config.ip_max_points << '\n'
                   << "  pool_build_seconds: " << std::fixed << std::setprecision(3)
                   << std::chrono::duration<double>(pool_end - pool_start).count() << '\n';

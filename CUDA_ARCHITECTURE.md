@@ -68,15 +68,45 @@ The `[6]` single-weight path remains supported as compatibility data with `nw=1`
 - Append accepted IP CWS rows to a large device output ring/buffer.
 - Flush only full accepted-row chunks to host storage.
 
-Current status: `cuda_dim5_cws_scan --ip-check` implements the first bounded
-device-resident IP filter, and `--stream-ip` implements the first chunked
-full-shard GPU IP path. The scanner constructs CWS rows on GPU, builds the CWS
-lattice basis and lattice points on GPU, runs a 5D PALP-style integer
-`IP_Check`, stores accepted CWS rows on GPU, and can flush accepted rows to a
-text file. It still uses one serial thread per candidate and a fixed point cap,
-but the persistent IP bookkeeping now lives in explicit reusable device scratch
-instead of the CUDA thread stack. The production performance gap is now true
-intra-candidate parallel point/equation work and compact accepted-output chunks.
+Current status: `cuda_dim5_cws_scan --ip-check` implements bounded
+device-resident IP filtering, and `--stream-ip` implements chunked full-shard GPU
+IP filtering. The scanner constructs CWS rows on GPU, builds the CWS lattice
+basis and lattice points on GPU, runs a 5D PALP-style integer `IP_Check`, stores
+accepted CWS rows on GPU, and can flush accepted rows to a text file. The default
+path remains the validated serial-per-candidate GPU IP checker. The gated
+`--block-ip` path assigns one CUDA block per CWS candidate, splits point
+generation over the top PALP coordinate range, parallelizes all-point bad
+equation/new-vertex scans, and keeps PALP's candidate-equation bookkeeping on
+thread 0 for exactness. On the RTX PRO 6000 Blackwell Max-Q this tuned path uses
+one-warp blocks and an oversubscribed grid by default. The production performance
+gap is now deeper point-generation parallelism and compact accepted-output
+chunks, not descriptor enumeration or Parquet conversion.
+
+### Correctness: point-buffer sizing (`--ip-max-points`)
+
+`--ip-max-points` is the per-candidate lattice-point buffer capacity, **not** an
+accuracy/precision dial: `Make_CWS_Points` produces a fixed point set; this value
+only bounds how many of those points the buffer can hold. It must therefore be at
+least as large as the largest point count any valid 5D CWS produces, or a
+candidate is not IP-checked.
+
+Correctness rules (enforced in `cuda_dim5_cws_scan.cu`):
+
+1. The default equals PALP's reference ceiling `POINT_Nmax = 2,000,000` for
+   `POLY_Dmax==5` (see `PALP/Global.h`). The CUDA filter is then "as correct as
+   the reference": if PALP would not overflow, neither does the GPU.
+2. A buffer overflow is a **hard error**, never a silent drop. The run aborts and
+   asks for a larger `--ip-max-points`, so no candidate is ever missed.
+3. Because each slot is ~80 MB at 2,000,000 points, the launch grid is capped to
+   fit free VRAM (`cudaMemGetInfo`). The grid is only ever reduced; every
+   candidate is still processed, just fewer concurrently.
+
+Consequence: the correct default is memory-bound and runs at far lower
+concurrency than the earlier (unsafe) 4096 default. Recovering throughput while
+keeping this guarantee is a separate optimization — a two-tier scheme that runs
+the bulk pass with a small buffer at high concurrency, detects the rare
+overflowing candidates, and requeues only those through a large-buffer,
+low-concurrency pass.
 
 ### Stage C: Post-Processing
 
@@ -159,7 +189,7 @@ Publish speedups only together with the regression corpus hash and parity result
 2. Use the CUDA descriptor scanner to measure exact prefix-pruned pre-IP counts for all combined structures.
 3. Extend the current bounded GPU-resident candidate construction and IP filter into a streaming shard worker for all 46 combined types.
 4. Replace text accepted-row output with compact chunked host flush; keep Parquet out of the generation/IP hot path.
-5. Parallelize point generation/equation scans within heavy candidates, then run normal form and global dedup as post-processing until the accepted-CWS volume justifies a dedicated GPU NF pipeline.
+5. Keep improving mathematically exact point generation within heavy type-3 candidates, then run normal form and global dedup as post-processing until the accepted-CWS volume justifies a dedicated GPU NF pipeline.
 
 ## Implementation Status
 
@@ -207,6 +237,12 @@ Implemented now:
 	`--stream-ip` scans a full shard in bounded device chunks, IP-filters each
 	chunk, and writes accepted rows only. Point workspace is allocated per launched
 	CUDA thread and reused across candidates, not allocated per generated CWS row.
+	`--block-ip` is a gated cooperative-block path: one block handles one CWS,
+	threads split point generation over the top coordinate range, all-point
+	equation/new-vertex scans are parallel reductions, and PALP equation-list
+	bookkeeping remains serial on thread 0. On Blackwell it defaults to 32 threads
+	per block and `SM count * 256` launched blocks when the user has not specified
+	launch geometry.
 	Structure 5 validates exactly against
 	`./PALP/cws-5d.x -c5 -s5`: 285 GPU-accepted rows, 285 PALP rows, empty
 	normalized diff. A corrected structure-12 sample checked 500000 generated
@@ -218,6 +254,11 @@ Implemented now:
 	IP scratch out of the thread stack (`STACK:12048` to `STACK:4352` on `sm_120`),
 	changed the default launch geometry to 128 threads per block, and added a safe
 	point-count early reject for fewer than 6 generated points.
+	The cooperative block tuning pass validated structure 5 exactly, matched serial
+	GPU IP aggregate counts on structure 12 and type 3 samples, replayed 15379
+	accepted structure-12 rows through CPU PALP with 0 failures, and improved the
+	measured type-3 slow shard from 56478 candidates/s to 164664 candidates/s with
+	`--block-ip --ip-max-points 4096`.
 	`scripts/test_cuda_backend.sh` includes bounded and streaming structure-5 GPU
 	IP smokes.
 - Verified generic all-structure descriptor scan on `n32`: exact prefix-pruned
@@ -278,19 +319,17 @@ Performance implication:
 	46 combined structures in 3.72 min, and a sharded four-GPU run should be on the
 	order of one minute for prefix counting.
 	The remaining bottleneck is the GPU IP filter over the exact
-	12140535288504 pre-IP candidate rows. The current streaming GPU IP path checks
-	structure-12 samples at roughly 336k candidates/s/GPU, but interior type-3
-	`(5,5)` samples reached only about 63k-161k candidates/s/GPU after launch
-	tuning. Type 3 dominates the full count, so the current full generation+IP
-	estimate is roughly 2.17-5.27 years on one GPU, 198-481 days on four ideal
-	GPUs, or 99-241 days on eight ideal GPUs before true intra-candidate
-	parallelization.
+	12140535288504 pre-IP candidate rows. The cooperative `--block-ip` path checks
+	the tuned structure-12 sample at about 571k candidates/s/GPU and the slow
+	interior type-3 `(5,5)` sample at about 165k candidates/s/GPU. Type 3 dominates
+	the full count, so the current full generation+IP estimate is about 2.05 years
+	on one GPU, 187 days on four ideal GPUs, or 94 days on eight ideal GPUs before
+	a deeper point-generation redesign.
 	The W5 selected pool is too large for CUDA shared memory, so it lives in
 	persistent device global memory and uses the GPU caches; shared memory should
 	be reserved for per-block/per-warp point/equation/IP workspaces. The next
-	kernel should parallelize point generation and equation checks within each
-	candidate, especially for type 3, and replace text accepted rows with compact
-	chunks.
+	kernel should further split the exact point-generation recursion, especially
+	for type 3, and replace text accepted rows with compact chunks.
 
 The CUDA backend now reports itself as
 `cuda-points+equation-scans+canonical-nf`.
