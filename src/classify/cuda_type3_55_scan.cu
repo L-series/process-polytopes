@@ -16,6 +16,21 @@
 
 namespace {
 
+// Return the CUDA device index allocated to this process by SLURM.
+// When SLURM sets CUDA_VISIBLE_DEVICES the runtime remaps the physical
+// GPU(s) to indices 0, 1, ..., so device 0 is always the right choice.
+// When only SLURM_JOB_GPUS is present (no CUDA_VISIBLE_DEVICES remapping),
+// use the first physical ordinal listed there.
+static int slurm_default_cuda_device() {
+    if (const char *cvd = std::getenv("CUDA_VISIBLE_DEVICES"))
+        if (cvd[0] != '\0' && std::string(cvd) != "NoDevFiles")
+            return 0;
+    if (const char *sjg = std::getenv("SLURM_JOB_GPUS"))
+        if (sjg[0] != '\0')
+            try { return std::stoi(std::string(sjg)); } catch (...) {}
+    return 0;
+}
+
 struct Weight5 {
     int degree = 0;
     int w[5] = {0, 0, 0, 0, 0};
@@ -43,7 +58,7 @@ struct DeviceScanStats {
 
 struct Config {
     std::string w5_path = "/tmp/process-polytopes-counts/w5.ip";
-    int cuda_device = 0;
+    int cuda_device = slurm_default_cuda_device();
     int blocks = 0;
     int threads = 256;
     unsigned long long start_pair = 0;

@@ -65,7 +65,7 @@ fi
     --output "$OUTPUT_DIR" \
     --threads "$THREADS" \
     --backend cuda \
-    --cuda-device 0 2>&1 | tee "$LOG_DIR/classifier.log"
+    --cuda-device "$(_slurm_cuda_device)" 2>&1 | tee "$LOG_DIR/classifier.log"
 
 "$BUILD_DIR/add_nf" \
     --input "$OUTPUT_DIR/unique_polytopes.parquet" \

@@ -12,7 +12,7 @@ W5_POOL="${W5_POOL:-$REPO_ROOT/results/cache/w5.ip}"
 STRUCTURE_ID="${STRUCTURE_ID:-}"
 SHARD_COUNT="${SHARD_COUNT:-1}"
 SHARD_INDEX="${SHARD_INDEX:-0}"
-CUDA_DEVICE="${CUDA_DEVICE:-0}"
+CUDA_DEVICE="${CUDA_DEVICE:-$(_slurm_cuda_device)}"
 THREADS="${THREADS:-$(nproc)}"
 
 mkdir -p "$(dirname "$W5_POOL")"

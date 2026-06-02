@@ -17,6 +17,21 @@
 
 namespace {
 
+// Return the CUDA device index allocated to this process by SLURM.
+// When SLURM sets CUDA_VISIBLE_DEVICES the runtime remaps the physical
+// GPU(s) to indices 0, 1, ..., so device 0 is always the right choice.
+// When only SLURM_JOB_GPUS is present (no CUDA_VISIBLE_DEVICES remapping),
+// use the first physical ordinal listed there.
+static int slurm_default_cuda_device() {
+    if (const char *cvd = std::getenv("CUDA_VISIBLE_DEVICES"))
+        if (cvd[0] != '\0' && std::string(cvd) != "NoDevFiles")
+            return 0;
+    if (const char *sjg = std::getenv("SLURM_JOB_GPUS"))
+        if (sjg[0] != '\0')
+            try { return std::stoi(std::string(sjg)); } catch (...) {}
+    return 0;
+}
+
 static constexpr int kMaxSlots = 5;
 static constexpr int kMaxSize = 5;
 static constexpr int kPoolKeyStride = 6;
@@ -187,7 +202,7 @@ struct DeviceIpWorkspace {
 struct Config {
     std::string w5_path = "results/cache/w5.ip";
     std::string palp_cws_path = "PALP/cws.c";
-    int cuda_device = 0;
+    int cuda_device = slurm_default_cuda_device();
     int structure_id = 0;
     int blocks = 0;
     int threads = 128;

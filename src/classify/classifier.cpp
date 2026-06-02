@@ -20,6 +20,7 @@
 #include <algorithm>
 #include <array>
 #include <atomic>
+#include <cstdlib>
 #include <chrono>
 #include <condition_variable>
 #include <cstdint>
@@ -59,6 +60,25 @@
 namespace fs = std::filesystem;
 
 /* ═══════════════════════════════════════════════════════════════════════════
+ *  SLURM GPU helper
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+// Return the CUDA device index allocated to this process by SLURM.
+// When SLURM sets CUDA_VISIBLE_DEVICES the runtime remaps the physical
+// GPU(s) to indices 0, 1, ..., so device 0 is always the right choice.
+// When only SLURM_JOB_GPUS is present (no CUDA_VISIBLE_DEVICES remapping),
+// use the first physical ordinal listed there.
+static int slurm_default_cuda_device() {
+    if (const char *cvd = std::getenv("CUDA_VISIBLE_DEVICES"))
+        if (cvd[0] != '\0' && std::string(cvd) != "NoDevFiles")
+            return 0;
+    if (const char *sjg = std::getenv("SLURM_JOB_GPUS"))
+        if (sjg[0] != '\0')
+            try { return std::stoi(std::string(sjg)); } catch (...) {}
+    return 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
  *  Configuration
  * ═══════════════════════════════════════════════════════════════════════════ */
 
@@ -78,7 +98,7 @@ struct Config {
     int64_t     benchmark_rows  = 0;   /* 0 = all rows in first file */
     int64_t     max_rows_per_file = 0; /* 0 = unlimited               */
     GeometryBackendKind backend_kind = GeometryBackendKind::Cpu;
-    int         cuda_device     = 0;
+    int         cuda_device     = slurm_default_cuda_device();
 };
 
 /* ═══════════════════════════════════════════════════════════════════════════
