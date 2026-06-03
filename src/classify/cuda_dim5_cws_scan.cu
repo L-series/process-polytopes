@@ -224,6 +224,17 @@ struct Config {
     // throughput again is a separate (two-tier buffer / requeue) optimization.
     int ip_max_points = 2000000;  // == PALP POINT_Nmax (POLY_Dmax==5)
     std::string accepted_output_path;
+    // ── Split bucketed IP pipeline (--ip-bucketed) ────────────────────────
+    // Decouples the per-candidate point buffer from the launch grid: a lean
+    // point-enumeration kernel writes each candidate's points into a COMPACT
+    // np_cap-sized slot (memory scales with work, not the grid), so the grid
+    // can cover every SM. ~98% of type-3 CWS have <=64 points; candidates that
+    // exceed np_cap are NOT dropped -- they are written to --overflow-output for
+    // the CPU (PALP) to finish, preserving dataset completeness. A second
+    // (np-sorted) IP-check kernel then runs only over the valid candidates.
+    bool ip_bucketed = false;
+    int np_cap = 64;
+    std::string overflow_output_path;
     bool all = false;
 };
 
@@ -276,7 +287,12 @@ void usage(const char *argv0) {
         << "  --block-ip               Use one CUDA block per active CWS for parallel points/equation scans\n"
         << "  --ip-stage-profile      Collect clock64 timing counters inside the GPU IP kernel\n"
         << "  --ip-max-points <n>      Per-candidate device point buffer, default 2000000 (== PALP POINT_Nmax); overflow is a hard error\n"
-        << "  --accepted-output <path> Write accepted GPU-IP CWS rows to a text file\n";
+        << "  --accepted-output <path> Write accepted GPU-IP CWS rows to a text file\n"
+        << "  --ip-bucketed            Split point-enum and IP-check into two kernels with a\n"
+        << "                           compact np_cap point buffer (full-grid, low divergence)\n"
+        << "  --np-cap <n>             Bucketed per-candidate point cap, default 64; candidates\n"
+        << "                           exceeding it are shipped to --overflow-output for the CPU\n"
+        << "  --overflow-output <path> Write np>np_cap CWS rows here for CPU (PALP) completion\n";
 }
 
 Config parse_args(int argc, char **argv) {
@@ -308,6 +324,9 @@ Config parse_args(int argc, char **argv) {
         else if (arg == "--ip-stage-profile") config.ip_stage_profile = true;
         else if (arg == "--ip-max-points") config.ip_max_points = parse_i32(require_value("--ip-max-points"));
         else if (arg == "--accepted-output") config.accepted_output_path = require_value("--accepted-output");
+        else if (arg == "--ip-bucketed") config.ip_bucketed = true;
+        else if (arg == "--np-cap") config.np_cap = parse_i32(require_value("--np-cap"));
+        else if (arg == "--overflow-output") config.overflow_output_path = require_value("--overflow-output");
         else if (arg == "-h" || arg == "--help") {
             usage(argv[0]);
             std::exit(0);
@@ -331,6 +350,18 @@ Config parse_args(int argc, char **argv) {
     if (config.print_candidates < 0) throw std::runtime_error("invalid --print-candidates");
     if (config.ip_max_points <= 0) throw std::runtime_error("invalid --ip-max-points");
     if (config.stream_ip) config.ip_check = true;
+    if (config.ip_bucketed) {
+        config.ip_check = true;  // bucketing IS the IP filter
+        if (config.np_cap < 6) {
+            throw std::runtime_error("--np-cap must be >= 6 (need >=6 points for a 5D simplex)");
+        }
+        if (config.stream_ip) {
+            throw std::runtime_error("--ip-bucketed is incompatible with --stream-ip; use --ip-check");
+        }
+        if (config.block_ip) {
+            throw std::runtime_error("--ip-bucketed runs its own split kernels; do not combine with --block-ip");
+        }
+    }
     if (config.ip_check && config.emit_capacity == 0) {
         throw std::runtime_error("--ip-check requires --emit-capacity > 0");
     }
@@ -2252,6 +2283,110 @@ __global__ void cws_ip_filter_block_kernel(const DeviceCwsCandidate *candidates,
     }
 }
 
+// ── Split bucketed IP pipeline ────────────────────────────────────────────
+// np_out[] values written by point_enum_kernel:
+//   >= 6           valid candidate: lattice-point count (6..np_cap), IP-checked
+//   1..5           degenerate (simplex_fail): too few points for a 5D simplex
+//   0              point_fail: precheck/basis failed or produced no points
+//   kNpOverflow    candidate exceeds np_cap; shipped to the CPU for completeness
+static constexpr int kNpOverflow = -1;
+
+// Kernel 1: lean point enumeration. One thread per candidate (grid-stride).
+// Each candidate's points go into a COMPACT slot (points + index*np_cap*5), so
+// device memory scales with the candidate count rather than the launch grid --
+// the grid can therefore cover every SM (no VRAM cap). The kernel carries no IP
+// scratch, keeping its register footprint (and thus occupancy) low. With a small
+// np_cap the lattice walk is also bounded to ~np_cap iterations, which removes
+// most of the heavy-np-tail warp divergence for free. Candidates that exceed
+// np_cap are recorded (and copied out) for CPU (PALP) completion -- never dropped.
+__global__ void point_enum_kernel(const DeviceCwsCandidate *candidates,
+                                  unsigned long long candidate_count,
+                                  int np_cap,
+                                  long long *points,
+                                  int *np_out,
+                                  DeviceIpStats *stats,
+                                  DeviceIpStageStats *stage_stats,
+                                  DeviceCwsCandidate *overflow_output,
+                                  unsigned long long *overflow_count,
+                                  unsigned long long overflow_capacity) {
+    unsigned long long index = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned long long stride = blockDim.x * gridDim.x;
+    while (index < candidate_count) {
+        const DeviceCwsCandidate &candidate = candidates[index];
+        long long *slot = points + index * static_cast<unsigned long long>(np_cap) * 5ULL;
+        int np = 0;
+        unsigned long long tick = stage_stats ? clock64() : 0ULL;
+        int status = device_make_points_serial(candidate, slot, np_cap, &np);
+        if (stage_stats) {
+            atomicAdd(&stage_stats->point_cycles, clock64() - tick);
+            atomicAdd(&stage_stats->point_candidates, 1ULL);
+            atomicAdd(&stage_stats->total_points,
+                      static_cast<unsigned long long>(np > 0 ? np : 0));
+            if (np > 0)
+                atomicMax(&stage_stats->max_points, static_cast<unsigned long long>(np));
+        }
+        atomicAdd(&stats->processed, 1ULL);
+        if (status < 0) {
+            np_out[index] = kNpOverflow;
+            atomicAdd(&stats->point_overflow, 1ULL);
+            unsigned long long slot_index = atomicAdd(overflow_count, 1ULL);
+            if (slot_index < overflow_capacity && overflow_output)
+                overflow_output[slot_index] = candidate;
+        } else if (status == 0) {
+            np_out[index] = 0;
+            atomicAdd(&stats->point_fail, 1ULL);
+        } else {
+            np_out[index] = np;
+            if (np < 6) atomicAdd(&stats->simplex_fail, 1ULL);
+        }
+        index += stride;
+    }
+}
+
+// Kernel 2: IP check over the candidates that produced 6..np_cap points, given
+// as a host-built index list (counting-sorted by np so a warp's 32 lanes run
+// near-identical IP loops -> low divergence). One thread per candidate
+// (grid-stride). Per-thread DeviceIpScratch lives in global memory sized to the
+// launch (blocks*threads), independent of the candidate count.
+__global__ void ip_check_bucketed_kernel(const DeviceCwsCandidate *candidates,
+                                         const long long *points,
+                                         const int *np_out,
+                                         int np_cap,
+                                         const int *valid_index,
+                                         unsigned long long valid_count,
+                                         DeviceIpScratch *scratch_workspace,
+                                         DeviceIpStats *stats,
+                                         DeviceIpStageStats *stage_stats,
+                                         DeviceCwsCandidate *accepted_output,
+                                         unsigned long long accepted_capacity) {
+    unsigned long long tid = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned long long stride = blockDim.x * gridDim.x;
+    DeviceIpScratch *scratch = scratch_workspace + tid;
+    for (unsigned long long j = tid; j < valid_count; j += stride) {
+        unsigned long long index = static_cast<unsigned long long>(valid_index[j]);
+        const long long *slot = points + index * static_cast<unsigned long long>(np_cap) * 5ULL;
+        int np = np_out[index];
+        int reject_reason = 0;
+        unsigned long long tick = stage_stats ? clock64() : 0ULL;
+        int is_ip = device_ip_check(slot, np, scratch, &reject_reason, stage_stats);
+        if (stage_stats) {
+            atomicAdd(&stage_stats->ip_cycles, clock64() - tick);
+            atomicAdd(&stage_stats->ip_candidates, 1ULL);
+        }
+        if (!is_ip && reject_reason == 1) atomicAdd(&stats->simplex_fail, 1ULL);
+        else if (!is_ip && reject_reason == 2) atomicAdd(&stats->initial_inci_fail, 1ULL);
+        else if (!is_ip && reject_reason == 3) atomicAdd(&stats->vertex_overflow, 1ULL);
+        else if (!is_ip) atomicAdd(&stats->ip_reject, 1ULL);
+        if (is_ip) {
+            unsigned long long accepted_index = atomicAdd(&stats->ip_count, 1ULL);
+            if (accepted_index < accepted_capacity && accepted_output) {
+                accepted_output[accepted_index] = candidates[index];
+                atomicAdd(&stats->accepted_stored_count, 1ULL);
+            }
+        }
+    }
+}
+
 __global__ void descriptor_scan_kernel(const SelectedEntry *entries,
                                        DeviceDescriptor descriptor,
                                        unsigned long long start_tuple,
@@ -2588,6 +2723,156 @@ HostIpResult run_ip_filter(DeviceCwsCandidate *device_candidates,
     return result;
 }
 
+// Split + bucketed IP filter. Stage 1 enumerates points into a compact np_cap
+// buffer over a full grid; the host classifies the np_out vector and counting-
+// sorts the valid candidates by np; stage 2 IP-checks that sorted bucket. np>cap
+// candidates are written to overflow_output for the CPU (never dropped).
+HostIpResult run_ip_filter_bucketed(DeviceCwsCandidate *device_candidates,
+                                    std::uint64_t generated_count,
+                                    const Config &config,
+                                    std::ostream *accepted_output,
+                                    std::ostream *overflow_output) {
+    std::uint64_t candidate_count = std::min<std::uint64_t>(generated_count, config.emit_capacity);
+    HostIpResult result;
+    result.candidate_count = candidate_count;
+    if (candidate_count == 0) return result;
+
+    const std::uint64_t np_cap = static_cast<std::uint64_t>(config.np_cap);
+    const std::uint64_t point_values = candidate_count * np_cap * 5ULL;
+    const std::uint64_t launch_threads = std::max<std::uint64_t>(
+        static_cast<std::uint64_t>(config.blocks) * static_cast<std::uint64_t>(config.threads), 1);
+    const bool profile = config.ip_stage_profile;
+
+    long long *d_points = nullptr;
+    int *d_np_out = nullptr;
+    int *d_valid_index = nullptr;
+    DeviceCwsCandidate *d_overflow = nullptr;
+    unsigned long long *d_overflow_count = nullptr;
+    DeviceCwsCandidate *d_accepted = nullptr;
+    DeviceIpScratch *d_scratch = nullptr;
+    DeviceIpStats *d_stats = nullptr;
+    DeviceIpStageStats *d_stage = nullptr;
+
+    check_cuda(cudaMalloc(&d_points, point_values * sizeof(long long)), "cudaMalloc bucket points");
+    check_cuda(cudaMalloc(&d_np_out, candidate_count * sizeof(int)), "cudaMalloc np_out");
+    check_cuda(cudaMalloc(&d_valid_index, candidate_count * sizeof(int)), "cudaMalloc valid_index");
+    check_cuda(cudaMalloc(&d_overflow, candidate_count * sizeof(DeviceCwsCandidate)), "cudaMalloc overflow");
+    check_cuda(cudaMalloc(&d_overflow_count, sizeof(unsigned long long)), "cudaMalloc overflow count");
+    check_cuda(cudaMalloc(&d_accepted, candidate_count * sizeof(DeviceCwsCandidate)), "cudaMalloc accepted");
+    check_cuda(cudaMalloc(&d_scratch, launch_threads * sizeof(DeviceIpScratch)), "cudaMalloc bucket scratch");
+    check_cuda(cudaMalloc(&d_stats, sizeof(DeviceIpStats)), "cudaMalloc bucket stats");
+    check_cuda(cudaMalloc(&d_stage, sizeof(DeviceIpStageStats)), "cudaMalloc bucket stage");
+
+    check_cuda(cudaMemset(d_stats, 0, sizeof(DeviceIpStats)), "cudaMemset bucket stats");
+    check_cuda(cudaMemset(d_overflow_count, 0, sizeof(unsigned long long)), "cudaMemset overflow count");
+    if (profile) check_cuda(cudaMemset(d_stage, 0, sizeof(DeviceIpStageStats)), "cudaMemset bucket stage");
+
+    auto free_all = [&]() {
+        cudaFree(d_stage); cudaFree(d_stats); cudaFree(d_scratch); cudaFree(d_accepted);
+        cudaFree(d_overflow_count); cudaFree(d_overflow); cudaFree(d_valid_index);
+        cudaFree(d_np_out); cudaFree(d_points);
+    };
+
+    auto start = std::chrono::steady_clock::now();
+
+    // Stage 1: point enumeration (full grid, no VRAM cap).
+    point_enum_kernel<<<config.blocks, config.threads>>>(
+        device_candidates, candidate_count, config.np_cap, d_points, d_np_out,
+        d_stats, profile ? d_stage : nullptr, d_overflow, d_overflow_count, candidate_count);
+    check_cuda(cudaGetLastError(), "point_enum_kernel launch");
+    check_cuda(cudaDeviceSynchronize(), "cudaDeviceSynchronize point_enum_kernel");
+
+    // Host: classify np_out and counting-sort the valid (6..np_cap) candidates
+    // by np so each warp's lanes run near-identical IP loops.
+    std::vector<int> np_host(static_cast<std::size_t>(candidate_count));
+    check_cuda(cudaMemcpy(np_host.data(), d_np_out, candidate_count * sizeof(int),
+                          cudaMemcpyDeviceToHost), "cudaMemcpy np_out");
+
+    std::vector<std::uint64_t> bucket(static_cast<std::size_t>(np_cap) + 1, 0);
+    std::uint64_t valid_total = 0;
+    for (std::uint64_t i = 0; i < candidate_count; ++i) {
+        int np = np_host[static_cast<std::size_t>(i)];
+        if (np >= 6) { ++bucket[static_cast<std::size_t>(np)]; ++valid_total; }
+    }
+    std::uint64_t running = 0;
+    for (std::size_t b = 0; b < bucket.size(); ++b) {
+        std::uint64_t here = bucket[b];
+        bucket[b] = running;  // bucket[b] now = start offset for np==b
+        running += here;
+    }
+    std::vector<int> valid_index(static_cast<std::size_t>(valid_total));
+    for (std::uint64_t i = 0; i < candidate_count; ++i) {
+        int np = np_host[static_cast<std::size_t>(i)];
+        if (np >= 6) valid_index[static_cast<std::size_t>(bucket[static_cast<std::size_t>(np)]++)] = static_cast<int>(i);
+    }
+
+    // Stage 2: IP-check the np-sorted valid bucket.
+    if (valid_total > 0) {
+        check_cuda(cudaMemcpy(d_valid_index, valid_index.data(), valid_total * sizeof(int),
+                              cudaMemcpyHostToDevice), "cudaMemcpy valid_index");
+        ip_check_bucketed_kernel<<<config.blocks, config.threads>>>(
+            device_candidates, d_points, d_np_out, config.np_cap, d_valid_index,
+            valid_total, d_scratch, d_stats, profile ? d_stage : nullptr,
+            d_accepted, candidate_count);
+        check_cuda(cudaGetLastError(), "ip_check_bucketed_kernel launch");
+        check_cuda(cudaDeviceSynchronize(), "cudaDeviceSynchronize ip_check_bucketed_kernel");
+    }
+    auto end = std::chrono::steady_clock::now();
+
+    DeviceIpStats stats{};
+    check_cuda(cudaMemcpy(&stats, d_stats, sizeof(DeviceIpStats), cudaMemcpyDeviceToHost),
+               "cudaMemcpy bucket stats");
+    result.processed = stats.processed;
+    result.precheck_fail = stats.precheck_fail;
+    result.point_overflow = stats.point_overflow;
+    result.point_fail = stats.point_fail;
+    result.simplex_fail = stats.simplex_fail;
+    result.initial_inci_fail = stats.initial_inci_fail;
+    result.vertex_overflow = stats.vertex_overflow;
+    result.ip_reject = stats.ip_reject;
+    result.ip_count = stats.ip_count;
+    result.accepted_stored_count = stats.accepted_stored_count;
+    result.seconds = std::chrono::duration<double>(end - start).count();
+    if (profile) {
+        check_cuda(cudaMemcpy(&result.stage, d_stage, sizeof(DeviceIpStageStats),
+                              cudaMemcpyDeviceToHost), "cudaMemcpy bucket stage");
+    }
+
+    // CORRECTNESS: ship np>np_cap candidates to the CPU; never drop them.
+    unsigned long long overflow_count = 0;
+    check_cuda(cudaMemcpy(&overflow_count, d_overflow_count, sizeof(unsigned long long),
+                          cudaMemcpyDeviceToHost), "cudaMemcpy overflow count");
+    if (overflow_count > 0) {
+        if (!overflow_output) {
+            free_all();
+            throw std::runtime_error(
+                std::to_string(overflow_count) + " candidate(s) exceeded --np-cap (" +
+                std::to_string(config.np_cap) + "); pass --overflow-output to hand them to the "
+                "CPU instead of dropping them (dataset completeness is required)");
+        }
+        std::vector<DeviceCwsCandidate> overflow(static_cast<std::size_t>(overflow_count));
+        check_cuda(cudaMemcpy(overflow.data(), d_overflow,
+                              overflow_count * sizeof(DeviceCwsCandidate),
+                              cudaMemcpyDeviceToHost), "cudaMemcpy overflow candidates");
+        for (const DeviceCwsCandidate &candidate : overflow) write_candidate_row(*overflow_output, candidate);
+        overflow_output->flush();
+        std::cerr << "  overflow_to_cpu structure " << config.structure_id
+                  << " count: " << overflow_count
+                  << " (np>" << config.np_cap << ", written to --overflow-output for CPU)\n";
+    }
+
+    if (accepted_output && stats.accepted_stored_count > 0) {
+        std::vector<DeviceCwsCandidate> accepted(static_cast<std::size_t>(stats.accepted_stored_count));
+        check_cuda(cudaMemcpy(accepted.data(), d_accepted,
+                              stats.accepted_stored_count * sizeof(DeviceCwsCandidate),
+                              cudaMemcpyDeviceToHost), "cudaMemcpy accepted candidates");
+        for (const DeviceCwsCandidate &candidate : accepted) write_candidate_row(*accepted_output, candidate);
+    }
+
+    free_all();
+    return result;
+}
+
 HostStreamIpResult stream_descriptor_ip(const DeviceDescriptor &descriptor,
                                         const SelectedEntry *device_entries,
                                         DeviceScanStats *device_stats,
@@ -2752,7 +3037,11 @@ int main(int argc, char **argv) {
         // only ever reduce the grid: every candidate is still processed, just
         // fewer concurrently. (Restoring throughput at this buffer size is a
         // separate two-tier-buffer / overflow-requeue optimization.)
-        if (config.ip_check) {
+        //
+        // --ip-bucketed is exactly that optimization: its point buffer is the
+        // compact np_cap buffer (sized to the candidate count, not the grid), so
+        // it never needs this cap and keeps the full grid.
+        if (config.ip_check && !config.ip_bucketed) {
             std::size_t free_bytes = 0;
             std::size_t total_bytes = 0;
             check_cuda(cudaMemGetInfo(&free_bytes, &total_bytes), "cudaMemGetInfo");
@@ -2807,6 +3096,8 @@ int main(int argc, char **argv) {
                   << "  ip_check: " << (config.ip_check ? "yes" : "no") << '\n'
                   << "  stream_ip: " << (config.stream_ip ? "yes" : "no") << '\n'
                   << "  block_ip: " << (config.block_ip ? "yes" : "no") << '\n'
+                  << "  ip_bucketed: " << (config.ip_bucketed ? "yes" : "no") << '\n'
+                  << "  np_cap: " << config.np_cap << '\n'
                   << "  ip_stage_profile: " << (config.ip_stage_profile ? "yes" : "no") << '\n'
                   << "  ip_max_points: " << config.ip_max_points << '\n'
                   << "  pool_build_seconds: " << std::fixed << std::setprecision(3)
@@ -2816,6 +3107,12 @@ int main(int argc, char **argv) {
         if (!config.accepted_output_path.empty()) {
             accepted_output.open(config.accepted_output_path, std::ios::out | std::ios::trunc);
             if (!accepted_output) throw std::runtime_error("failed to open accepted output: " + config.accepted_output_path);
+        }
+
+        std::ofstream overflow_output;
+        if (!config.overflow_output_path.empty()) {
+            overflow_output.open(config.overflow_output_path, std::ios::out | std::ios::trunc);
+            if (!overflow_output) throw std::runtime_error("failed to open overflow output: " + config.overflow_output_path);
         }
 
         print_result_header();
@@ -2866,9 +3163,14 @@ int main(int argc, char **argv) {
                     }
                 }
                 if (config.ip_check) {
-                    HostIpResult ip_result = run_ip_filter(
-                        device_candidates, result.stored_candidate_count, config,
-                        accepted_output ? &accepted_output : nullptr);
+                    HostIpResult ip_result = config.ip_bucketed
+                        ? run_ip_filter_bucketed(
+                              device_candidates, result.stored_candidate_count, config,
+                              accepted_output ? &accepted_output : nullptr,
+                              overflow_output ? &overflow_output : nullptr)
+                        : run_ip_filter(
+                              device_candidates, result.stored_candidate_count, config,
+                              accepted_output ? &accepted_output : nullptr);
                     print_ip_result(result.structure_id, ip_result);
                 }
             }
@@ -2882,6 +3184,7 @@ int main(int argc, char **argv) {
                   << "  total_scan_seconds: " << std::fixed << std::setprecision(6) << total_seconds << '\n';
 
         if (accepted_output) accepted_output.close();
+        if (overflow_output) overflow_output.close();
 
         cudaFree(device_candidates);
         cudaFree(device_stats);
