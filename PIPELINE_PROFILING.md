@@ -238,3 +238,170 @@ sbatch scripts/profile_gpu_pipeline.sh        # gpu partition, 1× RTX6000BW
 ```
 Env knobs: CPU `W_SPREAD`, `T_WIN`, `ANCHOR_TMO`, `NCORES`; GPU `SHARDS`,
 `SHARD_IDX`, `EMIT_DEFAULT`, `EMIT_SMALL`, `RUN_TMO`.
+
+---
+
+## 9. Inside `Make_CWS_Points` / `point_enum_kernel` — what eats the time
+
+> §2 showed point enumeration is ~99 % of the pipeline. This section opens that
+> 99 % up. Measured 2026-06-03 with a dedicated sub-stage profiler:
+> `scripts/profile_makepoints_substages.sh` (CPU, rdtsc + op-counts via the
+> `MKPTS_PROFILE` build of `Coord.c`) and `scripts/profile_pointenum_gpu.sh`
+> (GPU, `clock64` basis-vs-walk split, instrumented `cws_gpu_prof`). Raw:
+> `results/aristotle-validation/mkpts/raw.txt`.
+
+### 9.1 `Make_CWS_Points` decomposes into three parts — one dominates
+
+```
+Make_CWS_Points(candidate):
+  ├─ PROLOGUE  CWS_to_PermCWS + Make_CWS_Basis + Compute_X0 + Amin/Xmax setup
+  ├─ WALK      5 nested loops (x4→x3→x2→x1→x0); each node calls CLB(level)
+  │              CLB = compute [xmin,xmax] for that level via PD_Floor divisions
+  └─ STORE     batch-write the x0 sweep into the point list
+```
+
+CPU, 16 spread anchors, 1.50 M candidates (heavy-weighted: avg np 14.5):
+
+| part | share of `Make_CWS_Points` cycles |
+|---|---|
+| **PROLOGUE** (incl. `Make_CWS_Basis`) | **0.17 %** |
+| **WALK** (CLB bounds + loop control) | **99.83 %** |
+| **STORE** (point writes) | ⊂ walk, negligible (~14.5 writes/cand) |
+
+**The walk is the whole story; basis construction and point storage are noise.**
+
+### 9.2 Inside the walk: it is almost entirely integer division
+
+Per candidate (same sample):
+
+| quantity | value |
+|---|---|
+| `PD_Floor` (64-bit integer **divisions**) | **176,068** |
+| `CLB` calls (per-level bound computations) | 30,195  (**5.8 divisions / CLB**) |
+| loop trips | x4 = 5.9 → x3 = 206 → x2 = 1,062 → **x1 = 28,921** |
+| lattice points **produced** | **14.5** |
+| effective cost per `PD_Floor` (Zen4) | **~6.2 cycles** → 176 k × 6.2 ≈ 100 % of walk |
+
+So the walk is **≈100 % bound computation, and bound computation is ≈100 %
+`PD_Floor` (integer division).** The five-deep loop visits ~29 k innermost
+nodes, runs ~176 k divisions to tighten the per-level ranges, and almost every
+node is pruned — only ~14.5 survive as points.
+
+### 9.3 The core inefficiency: ~12,000 divisions per point produced
+
+```
+divisions per output point = 176,068 / 14.5 ≈ 12,100   (this heavy-weighted sample)
+per-anchor range: 177  (low-degree, points-dense)  →  127,251  (high-degree, points-sparse)
+```
+
+The enumerator walks a **bounding box that is far larger than the actual point
+set** and narrows it with a division at every tree node. For high-degree weight
+systems (large `Xmax`) the box dwarfs the ~handful of real points, so it burns
+tens of thousands of divisions pruning empty lattice space per point found. The
+cost is **searching, not emitting** — `div/point` (not points themselves) is the
+work metric.
+
+> Mix note: this sample equal-weights 16 anchors at a fixed candidate cap, so it
+> over-weights heavy candidates (avg np 14.5 vs the representative 8.86, and
+> 288 k cyc/cand representative — §2/§5). The *structure* (walk ≫ prologue;
+> division-dominated; thousands of div/point) holds across every anchor
+> (walk share 94.8–99.96 %); only the absolute magnitudes scale with np.
+
+### 9.4 GPU `point_enum_kernel`: same shape, division is even costlier
+
+`scripts/profile_pointenum_gpu.sh` (n31, mid shard, `--ip-bucketed --np-cap 64`):
+
+* `point_cycles` = **99.9 %** of the IP-filter kernel (clean `clock64` stage split);
+  IP check 0.1 %.
+* basis-vs-walk inside the point kernel: **basis ≈ 0 %, walk ≈ 100 %**
+  (same as CPU; absolute cycle counts are atomic-contention-distorted so only the
+  ratio is cited), avg points/cand ≈ 15.6 — the op-counts of §9.2 transfer
+  unchanged (identical deterministic algorithm).
+* **Each `PD_Floor` is far more expensive on the GPU.** sm_120 has *no hardware
+  integer divider* — 64-bit signed division is emulated as a multi-instruction
+  sequence, where the CPU spends ~6 cycles on a hardware `idiv`. So the same
+  ~176 k divisions/candidate cost proportionally *more* of the GPU's budget.
+* The basis (`basis[5][10]`, the 4,160-byte stack frame → local memory) is
+  re-read in the inner loop; memory-controller util is 0 % (§4) so these hit
+  L1/L2 — it is **division latency + local-mem latency + warp divergence**, not
+  DRAM bandwidth.
+
+**Headline:** on both devices the point walk is dominated by **integer division
+inside per-level bound tightening**, run ~12 k× per point because the search box
+≫ the point set. Everything else (basis build, point storage, IP check) is
+negligible. Optimisation must attack *the divisions and the over-search* — see
+§10.
+
+---
+
+## 10. Is the walk parallelizable beyond the outer loop? Better algorithms?
+
+### 10.1 The walk is a wide, data-dependent DFS tree
+
+`x4 → x3 → x2 → x1 → x0`: each level's range `[xmin_j,xmax_j]` depends on the
+outer levels' chosen values (offset `Σ_{k>j} x_k·B[k][A]`). So a **root-to-leaf
+path is sequential**, but **sibling subtrees are independent** and the tree is
+wide (≈6 → 206 → 1,062 → 28,921 nodes by level). That width — not just the outer
+candidate loop — is exploitable parallelism.
+
+### 10.2 CPU / AVX
+
+* **AVX cannot do integer division** (no vector `idiv` in AVX2/AVX-512). You
+  cannot SIMD `PD_Floor` directly — which is exactly the hot op.
+* **But the divisors repeat massively**: the pivot `R = B[j][A]` is constant for
+  an entire level sweep. Replacing `PD_Floor` with a **precomputed
+  reciprocal-multiply** (libdivide-style `mulhi`+shift) turns each division into
+  a multiply+shift — *and that is vectorizable*. This is the single biggest CPU
+  lever (helps even scalar, because of divisor reuse): est. **~2–4× on the walk**.
+* SIMD width is then usable across the ≤10 ambient coords in `CLB`, or across
+  sibling `x` values, once division is multiply-based. Realistic combined CPU
+  gain **~1.5–3×** beyond the current scalar code; **int32** arithmetic (coords
+  and products fit in 32-bit for valid candidates, with an overflow guard) stacks
+  on top (smaller data, cheaper multiply, better ILP).
+* Aristotle-1's restructuring already captured branch/accumulator gains (~1.2–1.3×);
+  reciprocal-multiply + int32 are the *next* and larger CPU steps.
+
+### 10.3 GPU / whole-block
+
+* **Block-cooperative enumeration is the right model and is already partly
+  proven**: the legacy `--block-ip` kernel (1 candidate/block, 32 lanes split the
+  top-level seed range, atomic-append points) ran **3.7× the serial kernel at
+  np 4096**. Generalize it: split the wide x4/x3 frontier across a whole block
+  (256–1024 threads), each lane walking an independent subtree.
+* Two structural wins fall out:
+  1. **Basis in shared memory** (built once per block) eliminates the
+     ~4 KB/thread local-mem spill → big occupancy gain (the §-confirmed
+     occupancy/latency bound). Today every thread carries its own `basis[5][10]`.
+  2. **Dynamic load balancing** (work queue / persistent threads pulling
+     subtrees) handles the 177→127,251 div/point imbalance that static
+     seed-splitting suffers.
+* **int32 coordinates** are even more valuable on the GPU: 32-bit emulated
+  division is ~2–4× cheaper than 64-bit *and* halves register/local-mem pressure
+  (the §-noted 78→occupancy bottleneck; adding state regressed throughput 4–10 %,
+  so the lever is *less* per-thread state). Stacking block-cooperative + shared
+  basis + int32 is the path to the §6 estimate of **0.5–1 M cand/s/GPU**.
+
+### 10.4 A more efficient algorithm?
+
+The current walk is a **Fincke–Pohst-style lattice-point enumeration** (tighten
+per-coordinate bounds with division, DFS, prune). Levers, in increasing depth:
+
+1. **Cheaper division primitive** (reciprocal-multiply + int32) — same algorithm,
+   2–4× on the hot op. Lowest risk, both devices.
+2. **LLL-reduce the basis before enumerating.** The 177→127,251 div/point spread
+   is a symptom of a *skewed* bounding box (box ≫ point set). An LLL/size-reduced
+   basis makes the box tighter → far fewer pruned nodes → fewer divisions per
+   point. Potentially **orders of magnitude** on the heavy (high-degree) tail
+   that dominates the mean. This is the highest-upside algorithmic change.
+3. **Don't enumerate all lattice points at all.** The IP check only needs the
+   convex hull / whether the origin is strictly interior — a property of the
+   polytope's *vertices and facets*, a tiny subset of the enumerated points. For
+   the dim-5 CWS polytope (positive-orthant box ∩ weight hyperplanes) the
+   vertices are computable directly from the weight system; emitting only the
+   hull would bypass the point walk — the deepest rethink, the largest payoff,
+   and the one that breaks the "~99 % in the walk" wall entirely.
+
+> Counting interior points (Barvinok) does **not** apply — PALP needs the points
+> *listed* for the hull, not just counted. The win is fewer points to list
+> (LLL/tighter box) or listing only the hull (vertex enumeration), plus a cheaper
+> division primitive for whatever enumeration remains.
