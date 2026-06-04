@@ -349,4 +349,72 @@ int64 106k = **3.9×**. Production bonus: E makes the *low-overflow* np_cap-64
 regime competitive (now only 1.7× slower than np_cap 16 instead of 2.6×), so the
 hybrid can run a higher cap → **less CPU offload** for the same GPU throughput.
 This is the recommended production kernel: **int32 walk + `--vol-sort` at
-np_cap ≈ 48–64.**
+np_cap ≈ 48–64.** *(Superseded by Exp G below.)*
+
+### Exp G — LLL + Fincke–Pohst point walk on GPU ★★ DECISIVE WINNER (branch `gpu-opt-G-lllfp-gpu`)
+Jobs 66786/66793/66794/66797, n31 RTX6000BW, type-3 (s3), on top of B (int32) +
+E (vol-sort). The full port the Exp-D prototype justified: `device_make_points_fp`
+replaces the triangular walk with a box-scaled **LLL reduction** (tracking the
+unimodular `U`) + a **Fincke–Pohst** general walk — circumscribed-ellipsoid root
+box (Gram + FP32 Gauss–Jordan), longest-GSO-outermost order, iterative DFS with
+exact integer box-propagation. Flags: `--fp-walk` (all candidates), `--fp-gate N`
+(FP only when box-volume score ≥ N, else fall back to the proven int32 triangular
+walk). All FP/ellipsoid math is **FP32** — safe because LLL row-ops/swaps are
+unimodular *by construction* (lattice invariant to rounding), the ellipsoid box is
+a re-checked superset (±4 integer guard), and a node cap ships runaways to the CPU.
+
+**Correctness — bit-exact ✓.** On a non-truncating clean shard, `--fp-walk` and
+`--fp-walk --fp-gate 20` both reproduce the triangular reference *exactly*:
+accepted **105 == 105**, overflow **2955 == 2955**, accepted∪overflow identical.
+Leaves are mapped back through `U` to the same 5-D B-coordinate vectors, so the
+downstream IP check is unchanged. (The clean shard is 96.6% overflow = heavy, so
+heavy candidates are directly stress-tested.)
+
+**Throughput (cand/s, IP-filter stage, vol-sort, np_cap 64):**
+| walk | np16 | np32 | np64 | np128 | np256 |
+|---|---|---|---|---|---|
+| triangular (B+E) | 753k | 493k | 450k | — | — |
+| **FP (Exp G)** | **7.37M** | **6.24M** | **5.94M** | 5.76M | 5.36M |
+| speedup | 9.8× | 12.6× | **13.2×** | | |
+
+Corroborated at the mechanism level by **enum-only `point_cycles`**: tri/fp =
+8.0× (np16), 11.3× (np32), **14.6× (np64)** — and tri's cycles climb steeply with
+np_cap (40→83e12, its over-search hunting more points through the skewed basis)
+while **FP's barely move** (5.1→5.7e12). That is the node-reduction thesis
+confirmed on GPU.
+
+**Not a heavy-bias artifact (the CPU §6.2 trap — explicitly audited, job 66797).**
+- *Gate sweep @ np_cap16:* lowering `--fp-gate` moves progressively lighter
+  candidates onto FP. `point_cycles` collapses 41.6e12→5.10e12 by gate 22 then is
+  **flat** (5.10e12) for gates 18/14/10/0 — adding light candidates to FP costs
+  **zero** extra enum cycles. On CPU, FP *lost* on light candidates; here it is
+  cycle-neutral. (Only a ~5% *wall* cost to FP-on-everything vs gating, the FP32
+  setup overhead → light gate score≈18–22 is marginally optimal, echoing the
+  CPU's `PALP_LF_LOGVOL_MIN≈20`.)
+- *Heaviness sweep:* speedup is **8–14× across the whole spectrum**, including
+  light regions (avg_points 3.4 → 14.1×; 5.5 → 8.1×; real type-3 mean np≈8.7). Not
+  confined to a heavy anchor. The monster tail (4000/3999) hits **274×** (tri
+  collapses to 21k/s). Near-empty prefix regions show ~1× (no real work either way).
+
+**Why it transfers on GPU when it didn't on CPU:** throughput is governed by the
+heavy tail (one heavy lane stalls its 32-lane warp), the FP overhead is cheap FP32,
+and the aggregate is heavy-tail-dominated — so crushing the tail (FP's 8–14× node
+cut) sets the rate, while the light bulk rides along neutrally.
+
+**Higher np_cap nearly for free** (FP enum is no longer the bottleneck):
+np_cap 64→256 drops throughput only 5.94M→5.36M while overflow falls
+**4.4% → 0.1%** — so the GPU can run np_cap 256 and ship **~0.1%** to the CPU,
+nearly eliminating the hybrid CPU dependency.
+
+**Cost:** `point_enum_kernel` frame grew 4272→5952 B, 96 regs (the big FP frame),
+**0 spill** — and it wins anyway because nodes, not occupancy, dominate this
+workload (refutes the plan's per-thread-occupancy worry for this case). The new
+bottleneck is no longer enumeration: `point_cycles` is still ~95% of the IP-filter
+top, but the IP-filter rate (~5.5M/s) now approaches the (unmeasured) CWS-
+**generation** ceiling — measuring/optimizing generation is the next lever.
+
+**Net:** GPU single-device IP-filter best **106k (int64) → ~5.5M (FP) ≈ 52×**
+(13× over B+E). **Recommended production kernel: `--fp-walk --vol-sort --np-cap
+~128–256` (optionally `--fp-gate ~18` for the last ~5%).** Reframes
+PRODUCTION_RUN_IDEAS: the GPU fleet alone can carry the classification (see that
+doc). Open: measure CWS-generation rate (likely the new ceiling) and the L40 nodes.

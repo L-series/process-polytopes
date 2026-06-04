@@ -234,6 +234,8 @@ struct Config {
     // (np-sorted) IP-check kernel then runs only over the valid candidates.
     bool ip_bucketed = false;
     bool vol_sort = false;  // Exp E: reorder candidates by box-volume proxy pre-enum
+    bool fp_walk = false;   // Exp G: LLL+Fincke-Pohst point walk instead of triangular
+    int fp_gate = 0;        // Exp G: use FP only when box-volume score >= this (0=all)
     int np_cap = 64;
     std::string overflow_output_path;
     bool all = false;
@@ -293,7 +295,9 @@ void usage(const char *argv0) {
         << "                           compact np_cap point buffer (full-grid, low divergence)\n"
         << "  --np-cap <n>             Bucketed per-candidate point cap, default 64; candidates\n"
         << "                           exceeding it are shipped to --overflow-output for the CPU\n"
-        << "  --overflow-output <path> Write np>np_cap CWS rows here for CPU (PALP) completion\n";
+        << "  --overflow-output <path> Write np>np_cap CWS rows here for CPU (PALP) completion\n"
+        << "  --fp-walk                Exp G: LLL+Fincke-Pohst point walk (fewer nodes on skewed bases)\n"
+        << "  --fp-gate <n>            Use FP walk only when box-volume score >= n (0=all, default)\n";
 }
 
 Config parse_args(int argc, char **argv) {
@@ -327,6 +331,8 @@ Config parse_args(int argc, char **argv) {
         else if (arg == "--accepted-output") config.accepted_output_path = require_value("--accepted-output");
         else if (arg == "--ip-bucketed") config.ip_bucketed = true;
         else if (arg == "--vol-sort") config.vol_sort = true;
+        else if (arg == "--fp-walk") config.fp_walk = true;
+        else if (arg == "--fp-gate") config.fp_gate = parse_i32(require_value("--fp-gate"));
         else if (arg == "--np-cap") config.np_cap = parse_i32(require_value("--np-cap"));
         else if (arg == "--overflow-output") config.overflow_output_path = require_value("--overflow-output");
         else if (arg == "-h" || arg == "--help") {
@@ -363,7 +369,14 @@ Config parse_args(int argc, char **argv) {
         // --block-ip + --ip-bucketed selects the block-cooperative point-enum
         // variant (Exp A): one block per candidate, shared basis, seed-split
         // frontier. The IP-check stage is unchanged.
+        if (config.fp_walk && config.block_ip) {
+            throw std::runtime_error("--fp-walk is incompatible with --block-ip (FP walk is per-thread)");
+        }
     }
+    if (config.fp_walk && !config.ip_bucketed) {
+        throw std::runtime_error("--fp-walk requires --ip-bucketed");
+    }
+    if (config.fp_gate < 0) throw std::runtime_error("--fp-gate must be >= 0");
     if (config.ip_check && config.emit_capacity == 0) {
         throw std::runtime_error("--ip-check requires --emit-capacity > 0");
     }
@@ -1097,6 +1110,21 @@ __device__ int device_pd_floor32(int numerator, int denominator) {
     return quotient * denominator > numerator ? quotient - 1 : quotient;
 }
 
+// Exp G: true signed floor/ceil division for the Fincke-Pohst box propagation
+// (the divisor sign varies, unlike PD_Floor which assumes D>0). int32-safe for
+// the same reason as device_pd_floor32 (reduced-basis entries are SMALLER than
+// triangular, so all products stay well inside int32).
+__device__ int device_fdiv32(int a, int b) {           // floor(a/b)
+    int q = a / b, r = a % b;
+    if (r != 0 && ((a < 0) != (b < 0))) --q;
+    return q;
+}
+__device__ int device_cdiv32(int a, int b) {           // ceil(a/b)
+    int q = a / b, r = a % b;
+    if (r != 0 && ((a < 0) == (b < 0))) ++q;
+    return q;
+}
+
 __device__ long long device_w_to_glz(long long *weights, int dim,
                                      long long glz[10][10]) {
     for (int row = 1; row < dim; ++row) {
@@ -1284,6 +1312,273 @@ __device__ int device_append_ip_point(const long long x[5], long long *points,
     for (int coord = 0; coord < 5; ++coord) points[index * 5 + coord] = x[coord];
     *point_count = index + 1;
     return 1;
+}
+
+__device__ int device_make_points_serial(const DeviceCwsCandidate &candidate,
+                                         long long *points, int max_points,
+                                         int *point_count);
+
+// ===================================================================
+//  Exp G: LLL + Fincke-Pohst lattice-point walk on the GPU.
+//  GPU port of scripts/fp_enum.c (proven bit-exact on 2.6M candidates in
+//  LLL_FP_WALK.md). The triangular walk over-searches a pathologically skewed
+//  basis (~27k tree nodes/cand for ~15 points, Exp D); an LLL-reduced basis +
+//  general box-propagation walk visits ~74x fewer nodes / ~57x fewer divisions.
+//
+//  Float (FP32) GSO/ellipsoid is SAFE here: LLL size-reductions and swaps are
+//  unimodular *by construction* (integer row ops), so the lattice -- and hence
+//  the enumerated point set -- is invariant to FP rounding; a "wrong" rounded mu
+//  only means a less-reduced (still valid) basis. The ellipsoid root box is a
+//  superset re-checked EXACTLY in int arithmetic at every leaf, with a generous
+//  integer guard absorbing FP32 error. sm_120 runs FP32 ~64x faster than FP64,
+//  and the LLL is once per (heavy) candidate, so float is the right width.
+//  Leaves are mapped back through the unimodular U to the SAME 5-D B-coordinate
+//  vectors the triangular walk emits => bit-identical downstream IP check.
+// ===================================================================
+#define FP_NMAX 5
+#define FP_GUARD 4            // integer slack on the FP-derived root box
+#define FP_NODE_CAP 4000000  // runaway guard -> ship to CPU (completeness-safe)
+
+// Gram-Schmidt in the box-scaled metric <u,v> = sum_A u_A v_A * w_A (w_A=1/r_A^2).
+__device__ void device_gso_f(const int b[FP_NMAX][10], int n, int N,
+                             const float *w, float mu[FP_NMAX][FP_NMAX],
+                             float *B2) {
+    float bs[FP_NMAX][10];
+    for (int i = 0; i < n; ++i) {
+        for (int A = 0; A < N; ++A) bs[i][A] = static_cast<float>(b[i][A]);
+        for (int j = 0; j < i; ++j) {
+            float dot = 0.f, nj = B2[j];
+            for (int A = 0; A < N; ++A)
+                dot += static_cast<float>(b[i][A]) * bs[j][A] * w[A];
+            mu[i][j] = (nj > 0.f) ? dot / nj : 0.f;
+            for (int A = 0; A < N; ++A) bs[i][A] -= mu[i][j] * bs[j][A];
+        }
+        float nn = 0.f;
+        for (int A = 0; A < N; ++A) nn += bs[i][A] * bs[i][A] * w[A];
+        B2[i] = nn;
+    }
+}
+
+// LLL reduce the integer basis rows in the box-scaled metric; track the
+// unimodular transform U (reduced row i = sum_j U[i][j] * original row j). No
+// determinant check: integer row ops + swaps are unimodular by construction.
+__device__ void device_lll_f(int b[FP_NMAX][10], int n, int N, const float *w,
+                             float delta, int U[FP_NMAX][FP_NMAX]) {
+    for (int i = 0; i < n; ++i)
+        for (int j = 0; j < n; ++j) U[i][j] = (i == j) ? 1 : 0;
+    float mu[FP_NMAX][FP_NMAX], B2[FP_NMAX];
+    device_gso_f(b, n, N, w, mu, B2);
+    int k = 1, guard = 0;
+    while (k < n && guard++ < 2000) {
+        for (int l = k - 1; l >= 0; --l) {
+            if (fabsf(mu[k][l]) > 0.5f) {
+                int q = static_cast<int>(lrintf(mu[k][l]));
+                if (q) {
+                    for (int A = 0; A < N; ++A) b[k][A] -= q * b[l][A];
+                    for (int j = 0; j < n; ++j) U[k][j] -= q * U[l][j];
+                    device_gso_f(b, n, N, w, mu, B2);
+                }
+            }
+        }
+        if (B2[k] >= (delta - mu[k][k - 1] * mu[k][k - 1]) * B2[k - 1]) {
+            ++k;
+        } else {
+            for (int A = 0; A < N; ++A) { int t = b[k][A]; b[k][A] = b[k - 1][A]; b[k - 1][A] = t; }
+            for (int j = 0; j < n; ++j) { int t = U[k][j]; U[k][j] = U[k - 1][j]; U[k - 1][j] = t; }
+            device_gso_f(b, n, N, w, mu, B2);
+            k = (k - 1 > 1) ? k - 1 : 1;
+        }
+    }
+}
+
+// Gauss-Jordan solve G x = rhs (n<=5, SPD) returning x and diag(G^-1). 0 if singular.
+__device__ int device_spd_solve_f(float G[FP_NMAX][FP_NMAX], int n,
+                                  const float *rhs, float *x, float *invdiag) {
+    float A[FP_NMAX][2 * FP_NMAX];
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < n; ++j) { A[i][j] = G[i][j]; A[i][n + j] = (i == j) ? 1.f : 0.f; }
+    }
+    for (int c = 0; c < n; ++c) {
+        int piv = c; float best = fabsf(A[c][c]);
+        for (int r = c + 1; r < n; ++r) if (fabsf(A[r][c]) > best) { best = fabsf(A[r][c]); piv = r; }
+        if (best < 1e-9f) return 0;
+        if (piv != c) for (int j = 0; j < 2 * n; ++j) { float t = A[c][j]; A[c][j] = A[piv][j]; A[piv][j] = t; }
+        float d = A[c][c];
+        for (int j = 0; j < 2 * n; ++j) A[c][j] /= d;
+        for (int r = 0; r < n; ++r) if (r != c) {
+            float f = A[r][c];
+            for (int j = 0; j < 2 * n; ++j) A[r][j] -= f * A[c][j];
+        }
+    }
+    for (int i = 0; i < n; ++i) {
+        invdiag[i] = A[i][n + i];
+        float s = 0.f; for (int j = 0; j < n; ++j) s += A[i][n + j] * rhs[j];
+        x[i] = s;
+    }
+    return 1;
+}
+
+// Tighten [lo,hi] for variable ord[depth] against every ambient box constraint
+// 0 <= X_A <= xu[A], with deeper (not-yet-fixed) variables ranged over the root
+// box [Lo,Hi]. Exact integer interval arithmetic. Returns 0 if the node is empty.
+__device__ int device_fp_bounds(int depth, const int *accum_d,
+                                const int bred[FP_NMAX][10], const int *ord,
+                                const int *Lo, const int *Hi, const int *xu,
+                                int n, int N, int *out_lo, int *out_hi) {
+    int wv = ord[depth];
+    int lo = Lo[wv], hi = Hi[wv];
+    for (int A = 0; A < N && lo <= hi; ++A) {
+        int c = bred[wv][A];
+        int sLo = 0, sHi = 0;
+        for (int d = depth + 1; d < n; ++d) {
+            int j = ord[d], bb = bred[j][A];
+            if (bb > 0) { sLo += bb * Lo[j]; sHi += bb * Hi[j]; }
+            else        { sLo += bb * Hi[j]; sHi += bb * Lo[j]; }
+        }
+        int base = accum_d[A];
+        int K1 = -base - sHi;          // c*x >= K1
+        int K2 = xu[A] - base - sLo;   // c*x <= K2
+        if (c > 0) {
+            int t = device_cdiv32(K1, c); if (t > lo) lo = t;
+            t = device_fdiv32(K2, c); if (t < hi) hi = t;
+        } else if (c < 0) {
+            int t = device_fdiv32(K1, c); if (t < hi) hi = t;
+            t = device_cdiv32(K2, c); if (t > lo) lo = t;
+        } else {
+            if (base + sHi < 0 || base + sLo > xu[A]) return 0;
+        }
+    }
+    *out_lo = lo; *out_hi = hi;
+    return 1;
+}
+
+__device__ int device_make_points_fp(const DeviceCwsCandidate &candidate,
+                                     long long *points, int max_points,
+                                     int *point_count, int gate) {
+    long long basis64[5][10];
+    int basis_dim = 0;
+    long long x_upper64[10] = {0};
+    if (!device_candidate_basic_precheck(candidate, x_upper64)) return 0;
+    const int nA = candidate.ambient_vertices;
+
+    // Box-volume score = sum bit-length(Xmax) ~ log2(box volume). Skew/over-search
+    // grows with it; below the gate the triangular int32 walk is cheaper, so fall
+    // back (proven optimal Exp B path) -- this is the "FP only for heavy" lever.
+    int score = 0;
+    for (int c = 0; c < nA; ++c) { long long v = x_upper64[c]; while (v > 0) { ++score; v >>= 1; } }
+    if (score < gate)
+        return device_make_points_serial(candidate, points, max_points, point_count);
+
+    if (!device_make_cws_basis(candidate, &basis_dim, basis64)) return 0;
+    const int n = basis_dim;                 // == 5 on the fast path
+    int bred[FP_NMAX][10];
+    int xu[10];
+    for (int r = 0; r < n; ++r)
+        for (int c = 0; c < nA; ++c) bred[r][c] = static_cast<int>(basis64[r][c]);
+    for (int c = 0; c < nA; ++c) xu[c] = static_cast<int>(x_upper64[c]);
+
+    // Box-scaled metric weights w_A = 1/r_A^2, r_A = Xmax_A/2 (origin X0 == 1).
+    float w[10], r[10];
+    for (int A = 0; A < nA; ++A) {
+        r[A] = (xu[A] > 0) ? (xu[A] * 0.5f) : 0.5f;
+        w[A] = 1.f / (r[A] * r[A]);
+    }
+    int U[FP_NMAX][FP_NMAX];
+    device_lll_f(bred, n, nA, w, 0.99f, U);
+
+    // Circumscribed ellipsoid sum_A ((X_A-cc_A)/r_A)^2 <= rho ⊇ box.
+    // Gram G=M^T M, gv=M^T t, M[A][j]=bred[j][A]/r_A, t_A=(cc_A-X0_A)/r_A, cc_A=r_A.
+    float G[FP_NMAX][FP_NMAX], gv[FP_NMAX], tt = 0.f;
+    float rho = 0.f, t[10];
+    for (int A = 0; A < nA; ++A) {
+        float cc = (xu[A] > 0) ? (xu[A] * 0.5f) : 0.f;
+        if (xu[A] > 0) rho += 1.f;
+        t[A] = (cc - 1.f) / r[A];          // X0_A == 1
+        tt += t[A] * t[A];
+    }
+    for (int i = 0; i < n; ++i) {
+        float gi = 0.f;
+        for (int A = 0; A < nA; ++A) gi += (bred[i][A] / r[A]) * t[A];
+        gv[i] = gi;
+        for (int j = 0; j < n; ++j) {
+            float s = 0.f;
+            for (int A = 0; A < nA; ++A) s += (bred[i][A] / r[A]) * (bred[j][A] / r[A]);
+            G[i][j] = s;
+        }
+    }
+    float xhat[FP_NMAX], invdiag[FP_NMAX];
+    if (!device_spd_solve_f(G, n, gv, xhat, invdiag))   // degenerate: exact fallback
+        return device_make_points_serial(candidate, points, max_points, point_count);
+    float res = tt;
+    for (int i = 0; i < n; ++i) res -= gv[i] * xhat[i];
+    float rho2 = rho - res + 1e-3f;
+    if (rho2 < 0.f) rho2 = 0.f;
+
+    int Lo[FP_NMAX], Hi[FP_NMAX], ord[FP_NMAX];
+    for (int j = 0; j < n; ++j) {
+        float hw = (invdiag[j] > 0.f) ? sqrtf(rho2 * invdiag[j]) : 0.f;
+        Lo[j] = static_cast<int>(floorf(xhat[j] - hw)) - FP_GUARD;
+        Hi[j] = static_cast<int>(ceilf(xhat[j] + hw)) + FP_GUARD;
+    }
+    // Enumeration order: longest GSO vector (scaled metric) outermost (FP convention).
+    {
+        int tmp[FP_NMAX][10];
+        for (int i = 0; i < n; ++i) for (int A = 0; A < nA; ++A) tmp[i][A] = bred[i][A];
+        float mu[FP_NMAX][FP_NMAX], B2[FP_NMAX];
+        device_gso_f(tmp, n, nA, w, mu, B2);
+        int used[FP_NMAX]; for (int j = 0; j < n; ++j) used[j] = 0;
+        for (int s = 0; s < n; ++s) {
+            int best = -1; float bv = -1.f;
+            for (int j = 0; j < n; ++j) if (!used[j] && B2[j] > bv) { bv = B2[j]; best = j; }
+            used[best] = 1; ord[s] = best;
+        }
+    }
+
+    // Iterative DFS box-propagation walk. accum[d] = X0 + contributions of the
+    // d outer fixed levels; xprime[basis-row] = chosen reduced coefficient.
+    *point_count = 0;
+    int accum[FP_NMAX + 1][10];
+    for (int A = 0; A < nA; ++A) accum[0][A] = 1;       // X0
+    int lo_s[FP_NMAX], hi_s[FP_NMAX], cur[FP_NMAX], xprime[FP_NMAX] = {0};
+    long long nodes = 0;
+    int depth = 0;
+    if (!device_fp_bounds(0, accum[0], bred, ord, Lo, Hi, xu, n, nA, &lo_s[0], &hi_s[0]))
+        return *point_count > 0 ? 1 : 0;
+    cur[0] = lo_s[0];
+    while (depth >= 0) {
+        if (cur[depth] > hi_s[depth]) {                 // exhausted -> ascend
+            --depth;
+            if (depth >= 0) ++cur[depth];
+            continue;
+        }
+        int wv = ord[depth];
+        for (int A = 0; A < nA; ++A) accum[depth + 1][A] = accum[depth][A] + cur[depth] * bred[wv][A];
+        xprime[wv] = cur[depth];
+        if (depth + 1 == n) {                           // leaf: exact box test
+            int ok = 1;
+            for (int A = 0; A < nA; ++A) { int v = accum[n][A]; if (v < 0 || v > xu[A]) { ok = 0; break; } }
+            if (ok) {
+                long long lp[5];
+                for (int j = 0; j < 5; ++j) {
+                    int sum = 0;
+                    for (int i = 0; i < n; ++i) sum += xprime[i] * U[i][j];
+                    lp[j] = sum;
+                }
+                if (!device_append_ip_point(lp, points, max_points, point_count)) return -1;
+            }
+            ++cur[depth];
+        } else {                                        // descend
+            if (++nodes > FP_NODE_CAP) return -1;       // runaway -> CPU (complete)
+            if (device_fp_bounds(depth + 1, accum[depth + 1], bred, ord, Lo, Hi, xu,
+                                 n, nA, &lo_s[depth + 1], &hi_s[depth + 1])) {
+                ++depth;
+                cur[depth] = lo_s[depth];
+            } else {
+                ++cur[depth];                           // pruned node, next sibling
+            }
+        }
+    }
+    return *point_count > 0 ? 1 : 0;
 }
 
 __device__ int device_make_points_serial(const DeviceCwsCandidate &candidate,
@@ -2327,7 +2622,9 @@ __global__ void point_enum_kernel(const DeviceCwsCandidate *candidates,
                                   DeviceIpStageStats *stage_stats,
                                   DeviceCwsCandidate *overflow_output,
                                   unsigned long long *overflow_count,
-                                  unsigned long long overflow_capacity) {
+                                  unsigned long long overflow_capacity,
+                                  int fp_walk,
+                                  int fp_gate) {
     unsigned long long index = blockIdx.x * blockDim.x + threadIdx.x;
     unsigned long long stride = blockDim.x * gridDim.x;
     while (index < candidate_count) {
@@ -2335,7 +2632,9 @@ __global__ void point_enum_kernel(const DeviceCwsCandidate *candidates,
         long long *slot = points + index * static_cast<unsigned long long>(np_cap) * 5ULL;
         int np = 0;
         unsigned long long tick = stage_stats ? clock64() : 0ULL;
-        int status = device_make_points_serial(candidate, slot, np_cap, &np);
+        int status = fp_walk
+            ? device_make_points_fp(candidate, slot, np_cap, &np, fp_gate)
+            : device_make_points_serial(candidate, slot, np_cap, &np);
         if (stage_stats) {
             atomicAdd(&stage_stats->point_cycles, clock64() - tick);
             atomicAdd(&stage_stats->point_candidates, 1ULL);
@@ -2922,7 +3221,8 @@ HostIpResult run_ip_filter_bucketed(DeviceCwsCandidate *device_candidates,
     } else {
         point_enum_kernel<<<config.blocks, config.threads>>>(
             device_candidates, candidate_count, config.np_cap, d_points, d_np_out,
-            d_stats, profile ? d_stage : nullptr, d_overflow, d_overflow_count, candidate_count);
+            d_stats, profile ? d_stage : nullptr, d_overflow, d_overflow_count, candidate_count,
+            config.fp_walk ? 1 : 0, config.fp_gate);
         check_cuda(cudaGetLastError(), "point_enum_kernel launch");
         check_cuda(cudaDeviceSynchronize(), "cudaDeviceSynchronize point_enum_kernel");
     }
