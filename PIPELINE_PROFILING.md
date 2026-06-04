@@ -287,6 +287,14 @@ So the walk is **≈100 % bound computation, and bound computation is ≈100 %
 nodes, runs ~176 k divisions to tighten the per-level ranges, and almost every
 node is pruned — only ~14.5 survive as points.
 
+> **⚠ "Divisions dominate" is a cycle-attribution, not a throughput bound
+> (2026-06-03).** Replacing `idiv` with a bit-exact reciprocal-multiply made the
+> walk **19 % slower**, not faster (POINT_WALK_ALGORITHMS.md §4): the `idiv`
+> latency is hidden by out-of-order execution. The walk is bound by the
+> *dependent chain of per-level bound computations and loop control*, so the
+> productive lever is **reducing the number of nodes/bound-computations** (tighter
+> basis, §10.4 LLL), not cheaper divisions.
+
 ### 9.3 The core inefficiency: ~12,000 divisions per point produced
 
 ```
@@ -351,8 +359,16 @@ candidate loop — is exploitable parallelism.
 * **But the divisors repeat massively**: the pivot `R = B[j][A]` is constant for
   an entire level sweep. Replacing `PD_Floor` with a **precomputed
   reciprocal-multiply** (libdivide-style `mulhi`+shift) turns each division into
-  a multiply+shift — *and that is vectorizable*. This is the single biggest CPU
-  lever (helps even scalar, because of divisor reuse): est. **~2–4× on the walk**.
+  a multiply+shift — *and that is vectorizable*. This was hypothesised as the
+  single biggest CPU lever: est. **~2–4× on the walk**.
+  > **⚠ FALSIFIED (2026-06-03, POINT_WALK_ALGORITHMS.md §4).** Implemented bit-exact
+  > via libdivide and benchmarked on n11: it is **0.84× — 19 % SLOWER**, not 2–4×
+  > faster. Zen4's `idiv` latency is already hidden by out-of-order execution
+  > behind the surrounding integer work, so the walk is **not** division-throughput
+  > bound; adding the reciprocal's ALU ops to the serial bound-tightening chain
+  > regresses it. The lever is **fewer nodes/divisions (tighter basis — see §10.4
+  > LLL), not cheaper divisions**. (Reciprocal-multiply may still win on the GPU,
+  > where division is emulated and not latency-hidden — retest there.)
 * SIMD width is then usable across the ≤10 ambient coords in `CLB`, or across
   sibling `x` values, once division is multiply-based. Realistic combined CPU
   gain **~1.5–3×** beyond the current scalar code; **int32** arithmetic (coords
@@ -389,10 +405,17 @@ per-coordinate bounds with division, DFS, prune). Levers, in increasing depth:
 1. **Cheaper division primitive** (reciprocal-multiply + int32) — same algorithm,
    2–4× on the hot op. Lowest risk, both devices.
 2. **LLL-reduce the basis before enumerating.** The 177→127,251 div/point spread
-   is a symptom of a *skewed* bounding box (box ≫ point set). An LLL/size-reduced
-   basis makes the box tighter → far fewer pruned nodes → fewer divisions per
-   point. Potentially **orders of magnitude** on the heavy (high-degree) tail
-   that dominates the mean. This is the highest-upside algorithmic change.
+   is a symptom of a *skewed* bounding box (box ≫ point set). **Measured
+   (POINT_WALK_ALGORITHMS.md §3):** the PALP triangular/HNF basis has an
+   orthogonality defect of **~10⁹ median (up to 10¹⁷)**; LLL collapses it to
+   **~1.2–2.3 (near-orthogonal)** — the basis is exactly the kind LLL fixes.
+   Correctness is guaranteed (unimodular ⇒ lattice/np/IP/hull invariant). Two
+   caveats bound the realised gain: (a) `CLB` already recovers most *raw* skew
+   (realised over-search is the ~12 k div/point, not 10⁹), and (b) the triangular
+   nested walk **cannot** use an LLL basis — it needs general Fincke–Pohst (GSO),
+   because HNF(LLL(B)) = HNF(B). Still the **highest-upside** correctness-preserving
+   change for the heavy tail; needs a Fincke–Pohst node-count prototype to confirm
+   realised cycles.
 3. **Don't enumerate all lattice points at all.** The IP check only needs the
    convex hull / whether the origin is strictly interior — a property of the
    polytope's *vertices and facets*, a tiny subset of the enumerated points. For
