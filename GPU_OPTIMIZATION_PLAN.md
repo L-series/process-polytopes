@@ -294,3 +294,35 @@ whole plan: on this kernel, adding *any* per-thread state is a net loss — the 
 lever is *reducing* state.** This promotes Exp B (int32 halves the walk's
 data footprint) from "measure before believing" to the critical experiment, and
 demotes any node-count/chain-length idea that costs memory. C is not merged.
+
+### Exp B — int32 walk + 32-bit division ★ WINNER (branch `gpu-opt-B-int32-div`)
+Job 66781, n31, same shard. Converted `device_make_points_serial` entirely to
+int32 (narrow the basis + x_upper to `int` after the int64 basis build; walk
+arithmetic, bounds and `device_pd_floor32` all 32-bit). Overflow-safe with margin:
+max W5 degree 3486 / weight 1743 ⇒ worst bound product ~3e7 ≪ 2.1e9, so **no
+guard needed**. **Correctness ✓** (serial-int32 vs *unmodified int64* block path:
+accepted 105==105, accepted ∪ overflow identical).
+
+Throughput (cand/s), int32-serial vs the int64 baseline serial:
+| np_cap | int64 baseline | **int32** | speedup |
+|---|---|---|---|
+| 16 | 256.8k | **671.7k** | **2.62×** |
+| 32 | 143.5k | **448.5k** | **3.13×** |
+| 64 | 106.5k | **302.2k** | **2.84×** |
+
+`ptxas -v` (sm_120): stack frame **4160 → 4272 B** — essentially *unchanged*.
+
+**Verdict: ~2.6–3.1× — the decisive GPU win, and it reframes the bottleneck.**
+The footprint did *not* shrink, so the gain is **not** occupancy — it is that
+**64-bit emulated integer division/arithmetic was the real bottleneck on sm_120**
+(no hardware integer divider), and 32-bit ops are natively far cheaper. This
+*confirms* PIPELINE_PROFILING §9.4/§10.2's GPU hypothesis (the CPU reciprocal-
+multiply result did NOT transfer because GPU division is emulated, not latency-
+hidden) and *resolves* the apparent contradiction with Exp C: C added int64 state
+to an int64-division-bound kernel and lost; B removed the int64 *division* and
+won, even at a slightly larger frame. **New single-GPU best: 671.7k/s (np_cap 16),
+302k/s (np_cap 64)** — ~2.8× the prior bucketed best. This is the kernel to ship.
+Follow-ups: (a) int32 the block path's `walk_seed` too (would lift Exp A's
+high-np_cap regime); (b) revisit a *zero-added-state* incremental offset on top of
+int32; (c) try `__umulhi` reciprocal-multiply for the small constant divisors —
+may stack further now that division is the proven lever.

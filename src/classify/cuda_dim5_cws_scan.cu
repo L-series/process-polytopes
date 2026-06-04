@@ -1085,6 +1085,16 @@ __device__ long long device_pd_floor(long long numerator, long long denominator)
     return quotient * denominator > numerator ? quotient - 1 : quotient;
 }
 
+// Exp B: 32-bit floored division for the point walk. For valid dim-5 CWS the
+// coords, basis entries and bound sums fit well within int32 (max W5 degree
+// 3486, weight 1743 => worst bound product ~3e7 << 2.1e9), so the walk can run
+// entirely in 32-bit: half the per-thread state (the occupancy lever, per Exp C)
+// and a cheaper emulated divide on sm_120 (no hardware integer divider).
+__device__ int device_pd_floor32(int numerator, int denominator) {
+    int quotient = numerator / denominator;
+    return quotient * denominator > numerator ? quotient - 1 : quotient;
+}
+
 __device__ long long device_w_to_glz(long long *weights, int dim,
                                      long long glz[10][10]) {
     for (int row = 1; row < dim; ++row) {
@@ -1280,46 +1290,46 @@ __device__ int device_make_points_serial(const DeviceCwsCandidate &candidate,
                                          int *point_count) {
     long long basis[5][10];
     int basis_dim = 0;
-    long long x_upper[10] = {0};
-    if (!device_candidate_basic_precheck(candidate, x_upper)) return 0;
+    long long x_upper64[10] = {0};
+    if (!device_candidate_basic_precheck(candidate, x_upper64)) return 0;
     if (!device_make_cws_basis(candidate, &basis_dim, basis)) return 0;
-    long long x0[10] = {0};
+    // Exp B: narrow basis + bounds to int32 for the walk. x0 is uniformly 1 here.
+    const int nA = candidate.ambient_vertices;
+    int b[5][10];
+    int xu[10];
+    for (int r = 0; r < basis_dim; ++r)
+        for (int c = 0; c < nA; ++c) b[r][c] = static_cast<int>(basis[r][c]);
+    for (int c = 0; c < nA; ++c) xu[c] = static_cast<int>(x_upper64[c]);
     int amin[6] = {0};
-    for (int coord = 0; coord < candidate.ambient_vertices; ++coord) x0[coord] = 1;
     int i = basis_dim;
-    int j = candidate.ambient_vertices;
+    int j = nA;
     amin[0] = 0;
-    amin[basis_dim] = candidate.ambient_vertices;
+    amin[basis_dim] = nA;
     while (--i) {
-        while (j > 0 && !basis[i - 1][--j]) {}
+        while (j > 0 && !b[i - 1][--j]) {}
         amin[i] = ++j;
     }
     int top_dim = basis_dim - 1;
     i = amin[top_dim + 1] - 1;
-    long long divisor = basis[top_dim][i];
-    long long xmin[5] = {0};
-    long long xmax[5] = {0};
-    long long x[5] = {0};
-    // Exp C: off[a] = sum_{k>walk_dim} x[k]*basis[k][a], maintained incrementally
-    // across level changes so the inner bound loops read it instead of re-summing
-    // the O(depth) product chain at every coordinate (shorter dependent chain).
-    const int nA = candidate.ambient_vertices;
-    long long off[10] = {0};
-    xmin[top_dim] = -device_pd_floor(x0[i], divisor);
-    xmax[top_dim] = device_pd_floor(x_upper[i] - x0[i], divisor);
+    int divisor = b[top_dim][i];
+    int xmin[5] = {0};
+    int xmax[5] = {0};
+    int x[5] = {0};
+    xmin[top_dim] = -device_pd_floor32(1, divisor);
+    xmax[top_dim] = device_pd_floor32(xu[i] - 1, divisor);
     while ((i--) > amin[top_dim]) {
-        long long low = -x0[i];
-        long long upper = low + x_upper[i];
-        divisor = basis[top_dim][i];
+        int low = -1;
+        int upper = low + xu[i];
+        divisor = b[top_dim][i];
         if (divisor > 0) {
-            long long limit = device_pd_floor(upper, divisor);
+            int limit = device_pd_floor32(upper, divisor);
             if (xmax[top_dim] > limit) xmax[top_dim] = limit;
-            limit = -device_pd_floor(-low, divisor);
+            limit = -device_pd_floor32(-low, divisor);
             if (xmin[top_dim] < limit) xmin[top_dim] = limit;
         } else {
-            long long limit = device_pd_floor(-low, -divisor);
+            int limit = device_pd_floor32(-low, -divisor);
             if (xmax[top_dim] > limit) xmax[top_dim] = limit;
-            limit = -device_pd_floor(upper, -divisor);
+            limit = -device_pd_floor32(upper, -divisor);
             if (xmin[top_dim] < limit) xmin[top_dim] = limit;
         }
     }
@@ -1330,55 +1340,53 @@ __device__ int device_make_points_serial(const DeviceCwsCandidate &candidate,
         if (x[walk_dim] > xmax[walk_dim]) {
             ++walk_dim;
             if (basis_dim == walk_dim) break;
-            for (int a = 0; a < nA; ++a) off[a] -= x[walk_dim] * basis[walk_dim][a];
             ++x[walk_dim];
         } else {
             int source_coord = amin[walk_dim] - 1;
-            for (int a = 0; a < nA; ++a) off[a] += x[walk_dim] * basis[walk_dim][a];
             --walk_dim;
-            long long upper = x_upper[source_coord];
-            long long low = -x0[source_coord] - off[source_coord];
+            int upper = xu[source_coord];
+            int low = -1;
             int range_flag = 0;
+            for (int k = walk_dim + 1; k < basis_dim; ++k) low -= x[k] * b[k][source_coord];
             upper += low;
-            divisor = basis[walk_dim][source_coord];
-            xmin[walk_dim] = -device_pd_floor(-low, divisor);
-            xmax[walk_dim] = device_pd_floor(upper, divisor);
+            divisor = b[walk_dim][source_coord];
+            xmin[walk_dim] = -device_pd_floor32(-low, divisor);
+            xmax[walk_dim] = device_pd_floor32(upper, divisor);
             i = source_coord;
             while ((i--) > amin[walk_dim]) {
-                divisor = basis[walk_dim][i];
+                divisor = b[walk_dim][i];
                 if (divisor) {
-                    low = -x0[i] - off[i];
-                    upper = x_upper[i] + low;
+                    low = -1;
+                    upper = xu[i];
+                    for (int k = walk_dim + 1; k < basis_dim; ++k) low -= x[k] * b[k][i];
+                    upper += low;
                     if (divisor > 0) {
-                        long long limit = device_pd_floor(upper, divisor);
+                        int limit = device_pd_floor32(upper, divisor);
                         if (xmax[walk_dim] > limit) xmax[walk_dim] = limit;
-                        limit = -device_pd_floor(-low, divisor);
+                        limit = -device_pd_floor32(-low, divisor);
                         if (xmin[walk_dim] < limit) xmin[walk_dim] = limit;
                     } else {
-                        long long limit = device_pd_floor(-low, -divisor);
+                        int limit = device_pd_floor32(-low, -divisor);
                         if (xmax[walk_dim] > limit) xmax[walk_dim] = limit;
-                        limit = -device_pd_floor(upper, -divisor);
+                        limit = -device_pd_floor32(upper, -divisor);
                         if (xmin[walk_dim] < limit) xmin[walk_dim] = limit;
                     }
                 } else {
-                    long long ambient = 1 + off[i];
-                    if (ambient < 0 || ambient > x_upper[i]) range_flag = 1;
+                    int ambient = 1;
+                    for (int k = walk_dim + 1; k < basis_dim; ++k) ambient += x[k] * b[k][i];
+                    if (ambient < 0 || ambient > xu[i]) range_flag = 1;
                 }
             }
-            if (range_flag) {
-                ++walk_dim;
-                for (int a = 0; a < nA; ++a) off[a] -= x[walk_dim] * basis[walk_dim][a];
-                ++x[walk_dim];
-            } else {
-                x[walk_dim] = xmin[walk_dim];
-            }
+            if (range_flag) ++x[++walk_dim];
+            else x[walk_dim] = xmin[walk_dim];
             if (walk_dim == 0) {
+                long long lp[5];
                 while (x[0] <= xmax[0]) {
-                    if (!device_append_ip_point(x, points, max_points, point_count)) return -1;
+                    for (int c = 0; c < 5; ++c) lp[c] = x[c];
+                    if (!device_append_ip_point(lp, points, max_points, point_count)) return -1;
                     ++x[0];
                 }
                 walk_dim = 1;
-                for (int a = 0; a < nA; ++a) off[a] -= x[walk_dim] * basis[walk_dim][a];
                 ++x[walk_dim];
             }
         }

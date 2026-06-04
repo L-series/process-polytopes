@@ -88,6 +88,15 @@ from launch geometry.
 `np_cap` is the **GPU-throughput ↔ CPU-offload knob**: lower cap = faster GPU but
 more (and heavier) candidates dumped on the CPU.
 
+> **UPDATE 2026-06-04 — int32 walk (GPU_OPTIMIZATION_PLAN.md Exp B) lifts these
+> ~2.8×.** Converting the bucketed point-enum kernel to 32-bit (bit-exact) gives,
+> per single Blackwell GPU: np_cap 16 → **671.7k/s** (was 264k), 32 → **448.5k/s**,
+> 64 → **302.2k/s** (was 106k). 64-bit emulated division was the real sm_120
+> bottleneck. Re-running the §3 hybrid model with these rates roughly **halves the
+> GPU-arm and combined wall-clock** (e.g. the ~27-day np_cap≈32 central case →
+> ~14–16 days), and makes the GPU fleet a genuine co-engine rather than a sidecar.
+> Numbers below are the pre-int32 figures; treat them as conservative.
+
 GPU fleet (effective): 8× Blackwell + 8× L40. L40 unmeasured here; estimate
 0.7–0.8× Blackwell (142 vs 188 SM, similar register pressure) ⇒ fleet ≈
 **12–14 Blackwell-equivalent GPUs**. *(TODO: measure L40 rate to firm this up.)*
