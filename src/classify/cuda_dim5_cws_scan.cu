@@ -233,6 +233,7 @@ struct Config {
     // the CPU (PALP) to finish, preserving dataset completeness. A second
     // (np-sorted) IP-check kernel then runs only over the valid candidates.
     bool ip_bucketed = false;
+    bool vol_sort = false;  // Exp E: reorder candidates by box-volume proxy pre-enum
     int np_cap = 64;
     std::string overflow_output_path;
     bool all = false;
@@ -325,6 +326,7 @@ Config parse_args(int argc, char **argv) {
         else if (arg == "--ip-max-points") config.ip_max_points = parse_i32(require_value("--ip-max-points"));
         else if (arg == "--accepted-output") config.accepted_output_path = require_value("--accepted-output");
         else if (arg == "--ip-bucketed") config.ip_bucketed = true;
+        else if (arg == "--vol-sort") config.vol_sort = true;
         else if (arg == "--np-cap") config.np_cap = parse_i32(require_value("--np-cap"));
         else if (arg == "--overflow-output") config.overflow_output_path = require_value("--overflow-output");
         else if (arg == "-h" || arg == "--help") {
@@ -2360,6 +2362,42 @@ __global__ void point_enum_kernel(const DeviceCwsCandidate *candidates,
     }
 }
 
+// Exp E: per-candidate box-volume proxy = Σ bit-length(x_upper[c]) ≈ log2(box
+// volume). Cheap (precheck only, no walk). Sorting candidates by this key makes a
+// warp's 32 lanes run near-equal-length walks → less intra-warp divergence.
+__global__ void vol_key_kernel(const DeviceCwsCandidate *candidates,
+                               unsigned long long candidate_count,
+                               int *keys) {
+    unsigned long long index = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned long long stride = blockDim.x * gridDim.x;
+    while (index < candidate_count) {
+        long long x_upper[10] = {0};
+        int key = 0;
+        if (device_candidate_basic_precheck(candidates[index], x_upper)) {
+            for (int c = 0; c < candidates[index].ambient_vertices; ++c) {
+                long long v = x_upper[c];
+                while (v > 0) { ++key; v >>= 1; }
+            }
+        } else {
+            key = -1;  // invalid candidates cluster together (skipped fast)
+        }
+        keys[index] = key;
+        index += stride;
+    }
+}
+
+__global__ void gather_candidates_kernel(const DeviceCwsCandidate *src,
+                                         const int *perm,
+                                         unsigned long long count,
+                                         DeviceCwsCandidate *dst) {
+    unsigned long long index = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned long long stride = blockDim.x * gridDim.x;
+    while (index < count) {
+        dst[index] = src[perm[index]];
+        index += stride;
+    }
+}
+
 // Kernel 1b (Exp A): block-cooperative point enumeration. One BLOCK per
 // candidate (grid-stride by blockIdx); the block's threads split the wide
 // top-coordinate seed frontier (device_make_points_block) with the basis in
@@ -2850,6 +2888,29 @@ HostIpResult run_ip_filter_bucketed(DeviceCwsCandidate *device_candidates,
 
     auto start = std::chrono::steady_clock::now();
 
+    // Exp E: reorder candidates by box-volume proxy so enum warps are homogeneous.
+    DeviceCwsCandidate *d_sorted = nullptr;
+    if (config.vol_sort) {
+        int *d_keys = nullptr;
+        check_cuda(cudaMalloc(&d_keys, candidate_count * sizeof(int)), "cudaMalloc vol keys");
+        check_cuda(cudaMalloc(&d_sorted, candidate_count * sizeof(DeviceCwsCandidate)), "cudaMalloc vol sorted");
+        vol_key_kernel<<<config.blocks, config.threads>>>(device_candidates, candidate_count, d_keys);
+        check_cuda(cudaDeviceSynchronize(), "vol_key_kernel");
+        std::vector<int> keys(static_cast<std::size_t>(candidate_count));
+        check_cuda(cudaMemcpy(keys.data(), d_keys, candidate_count * sizeof(int), cudaMemcpyDeviceToHost), "cudaMemcpy vol keys");
+        std::vector<int> perm(static_cast<std::size_t>(candidate_count));
+        for (std::uint64_t i = 0; i < candidate_count; ++i) perm[i] = static_cast<int>(i);
+        std::sort(perm.begin(), perm.end(),
+                  [&](int a, int b) { return keys[a] < keys[b]; });
+        int *d_perm = nullptr;
+        check_cuda(cudaMalloc(&d_perm, candidate_count * sizeof(int)), "cudaMalloc vol perm");
+        check_cuda(cudaMemcpy(d_perm, perm.data(), candidate_count * sizeof(int), cudaMemcpyHostToDevice), "cudaMemcpy vol perm");
+        gather_candidates_kernel<<<config.blocks, config.threads>>>(device_candidates, d_perm, candidate_count, d_sorted);
+        check_cuda(cudaDeviceSynchronize(), "gather_candidates_kernel");
+        cudaFree(d_perm); cudaFree(d_keys);
+        device_candidates = d_sorted;  // enum + IP stages now read sorted order
+    }
+
     // Stage 1: point enumeration (full grid, no VRAM cap). --block-ip selects
     // the block-cooperative variant (one block/candidate, shared basis).
     if (config.block_ip) {
@@ -2929,6 +2990,7 @@ HostIpResult run_ip_filter_bucketed(DeviceCwsCandidate *device_candidates,
     if (overflow_count > 0) {
         if (!overflow_output) {
             free_all();
+            if (d_sorted) cudaFree(d_sorted);
             throw std::runtime_error(
                 std::to_string(overflow_count) + " candidate(s) exceeded --np-cap (" +
                 std::to_string(config.np_cap) + "); pass --overflow-output to hand them to the "
@@ -2954,6 +3016,7 @@ HostIpResult run_ip_filter_bucketed(DeviceCwsCandidate *device_candidates,
     }
 
     free_all();
+    if (d_sorted) cudaFree(d_sorted);
     return result;
 }
 

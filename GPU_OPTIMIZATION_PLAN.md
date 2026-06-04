@@ -326,3 +326,27 @@ Follow-ups: (a) int32 the block path's `walk_seed` too (would lift Exp A's
 high-np_cap regime); (b) revisit a *zero-added-state* incremental offset on top of
 int32; (c) try `__umulhi` reciprocal-multiply for the small constant divisors —
 may stack further now that division is the proven lever.
+
+### Exp E — box-volume sorting (branch `gpu-opt-E-volsort`, on top of B's int32)
+Job 66782, n31, same shard. New `--vol-sort`: a cheap `vol_key_kernel` computes a
+per-candidate key = Σ bit-length(x_upper[c]) ≈ log2(box volume) (precheck only, no
+walk), host argsort, `gather_candidates_kernel` reorders the candidate array so a
+warp's 32 lanes run near-equal-length walks. **Correctness ✓** (a permutation:
+vs no-sort, accepted 105==105 and accepted ∪ overflow identical).
+
+Throughput (cand/s), int32 serial, no-sort vs `--vol-sort`:
+| np_cap | no-sort | **vol-sort** | speedup |
+|---|---|---|---|
+| 16 | 711.7k | 723.2k | 1.02× |
+| 32 | 418.5k | 472.1k | 1.13× |
+| 64 | 315.0k | **416.2k** | **1.32×** |
+
+**Verdict: a real divergence win that grows with walk length — 1.32× at np_cap 64,
+negligible at np_cap 16.** Logic: at low np_cap walks are short/capped (little
+divergence to remove); at np_cap 64 the variable-length walks are the divergence
+the sort homogenizes. **Stacks on B**: B+E at np_cap 64 = 416k vs the original
+int64 106k = **3.9×**. Production bonus: E makes the *low-overflow* np_cap-64
+regime competitive (now only 1.7× slower than np_cap 16 instead of 2.6×), so the
+hybrid can run a higher cap → **less CPU offload** for the same GPU throughput.
+This is the recommended production kernel: **int32 walk + `--vol-sort` at
+np_cap ≈ 48–64.**
