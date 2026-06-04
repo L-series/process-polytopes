@@ -1,0 +1,197 @@
+# Production Run Ideas & Sizing — dim-5 CWS classification
+
+> Working notes for the full Stage-1 production run (CWS generation → point
+> enumeration → IP check) over **all 46 dim-5 overlap structures**. Captures the
+> exact problem size, measured per-device throughput, and the CPU/GPU hybrid
+> scheduling strategy with honest wall-clock estimates. Companion docs:
+> `PIPELINE_CODE_PATHS.md` (full flow), `PIPELINE_PROFILING.md` (per-stage
+> profiling), `LLL_FP_WALK.md` / `POINT_WALK_ALGORITHMS.md` (CPU walk opt),
+> memory `project_gpu_ip_bucketing` (the `--ip-bucketed` kernel).
+
+Date: 2026-06-04. Cluster: SLURM, partitions `std` (n11–13, 2×EPYC 9554,
+128 cores @3.094 GHz each) and `gpu` (n31/32 = 4×RTX 6000 Blackwell each;
+n21/22 = 4×L40 each).
+
+---
+
+## 1. Exact problem size (measured)
+
+Count-only GPU pass over all 46 structures (`scripts/count_all_cws.sh`,
+job 66766; sums the `prefix_candidates` column = #CWS that actually reach point
+enumeration, after shared-prefix permutation expansion):
+
+| set | candidates | share |
+|---|---|---|
+| **TOTAL** | **12,140,535,288,504  (12.14 T)** | 100% |
+| type-3 (s3, two size-5 / shared-3) | 10,046,036,135,619  (10.05 T) | **82.7%** |
+| s12 + s13 (nw=3) | 0.988 T each = 1.98 T | 16.3% |
+| all remaining (43 structures) | ~0.12 T | ~1% |
+
+By arity: nw=2 = 10.05 T (≈ all s3); nw=3 = 2.09 T; nw=4 = 661 M; nw=5 = 527.
+**type-3 + the nw=3 family ≈ 100% of the work.** Any production plan is, to first
+order, a plan for type-3.
+
+### Point-count (np) distribution — sets the GPU/CPU split
+
+From `results/point-count-profile/structure-{3,12}/summary.txt` (use struct-3 for
+type-3, struct-12 for the nw=3 rest, which s12/s13 dominate):
+
+| | mean np | np ≤ 15 | np ≤ 31 | np ≤ 63 | max np |
+|---|---|---|---|---|---|
+| type-3 | 8.69 | 88.4% cand / ~48% Σnp-work | 96.1% / 66% | 98.7% / 80% | 2033 |
+| struct-12 | 4.76 | 95.6% / 73% | 99.0% / ~90% | 99.8% / ~96% | 682 |
+
+Key fact: **np is a heavy-tailed work distribution.** A small fraction of
+candidates (the high-np tail) carries a large fraction of the *compute* (walk
+cost grows super-linearly in np — box volume in 5-D, see PIPELINE_PROFILING §10).
+So a split by point count is candidate-cheap but work-expensive on the tail.
+
+---
+
+## 2. Measured per-device throughput
+
+### CPU (PALP `cws-5d.x`, point-enum bound)
+- 8.8k cand/s/core; ~1.1 M/s per 128-core node (97.6% core-saturated, near-linear
+  scaling). 3-node `std` cluster = **384 cores ≈ 3.38 M/s** (conservative);
+  up to ~2.0 M/s/node = 6.0 M/s optimistic.
+- LLL+FP walk (`-DLLLFP_WALK`) gives **1.4–2.1× on the type-3 heavy tail**
+  specifically — i.e. exactly the candidates the GPU offloads. Overhead-bound
+  (<1×) on light candidates, so apply it *only* to the offloaded heavy stream.
+
+### GPU (`cuda_dim5_cws_scan --ip-bucketed`, RTX 6000 Blackwell)
+Measured on a type-3 shard, job 66775 (`scripts/benchmark_ip_bucketed_lowcap.sh`).
+The bucketed kernel enumerates every candidate up to `np_cap` points (compact
+buffer → full grid, no VRAM cap) and ships np>np_cap candidates to
+`--overflow-output` for CPU completion:
+
+| np_cap | cand/s (1 GPU) | overflow→CPU (this shard) | meanSM |
+|---|---|---|---|
+| 16 | 264k | 28% | 100% |
+| 24 | 198k | 17% | 91% |
+| 32 | 161k | 11% | 74% |
+| 48 | 118k | 6.4% | 74% |
+| 64 | 106k | 4.4% | 80% |
+| 96 | 80k | 2.0% | 85% |
+| 128 | 71k | 1.1% | 85% |
+
+Legacy fused baselines: serial 29k/s, block-ip 108k/s.
+**Thread (64/128/256) and block (8–64×SM) sweeps are FLAT** → occupancy-bound
+(register/local-mem spill ~4 KB/thread), not coverage-bound. No more throughput
+from launch geometry.
+
+> **Reality check:** one Blackwell GPU ≈ **17–40 CPU cores** depending on np_cap.
+> The lattice point-walk is fundamentally GPU-hostile (serial, branchy,
+> divergent). The full 16-GPU fleet ≈ **2–3.5 of the CPU nodes**, NOT a 10×
+> accelerator. (Earlier informal "1–2 week hybrid" estimate was over-optimistic
+> by ~2× and is retracted.)
+
+`np_cap` is the **GPU-throughput ↔ CPU-offload knob**: lower cap = faster GPU but
+more (and heavier) candidates dumped on the CPU.
+
+GPU fleet (effective): 8× Blackwell + 8× L40. L40 unmeasured here; estimate
+0.7–0.8× Blackwell (142 vs 188 SM, similar register pressure) ⇒ fleet ≈
+**12–14 Blackwell-equivalent GPUs**. *(TODO: measure L40 rate to firm this up.)*
+
+---
+
+## 3. The hybrid strategy (GPU-light / CPU-heavy)
+
+**Idea (this is already built — `--ip-bucketed --np-cap N --overflow-output`):**
+1. GPU fleet runs the bucketed kernel with a *low* `np_cap` so the light bulk
+   (the ≥96% of candidates with small np) runs at maximum occupancy.
+2. Candidates that exceed `np_cap` (the divergent heavy tail that wrecks SIMT
+   efficiency) are streamed to the CPU cluster, which finishes them with PALP
+   (+ LLL+FP, which wins precisely on these).
+3. CPU cluster also chews its own disjoint shards concurrently.
+
+### Why np>15 specifically is the wrong threshold
+At `np_cap = 15`, the CPU receives only ~10% of *candidates* but ~50% of the
+*compute* (the super-linear tail) — it would hand the smaller compute resource
+(384 cores) the larger half of the work and become the long pole. **Raise the
+cap.** `np_cap ≈ 32` keeps the CPU at ~4–11% of candidates / a manageable work
+share while the GPU still runs fast; the workspace (32×5×8 = 1.3 KB/candidate) is
+trivially full-grid.
+
+### Combined-throughput model (disjoint shards + GPU-overflow→CPU)
+Treating GPU and CPU as processing independent shard sets, with the CPU also
+completing the GPU's overflow stream (heavy candidates cost CPU ~5× a mean
+candidate; using full-distribution overflow fractions, 13.6 GPU-equiv, CPU
+3.38 M/s):
+
+| np_cap | GPU fleet | overflow frac | CPU diverted to overflow | combined rate | wall-clock (12.14 T) |
+|---|---|---|---|---|---|
+| 16 | 3.6 M/s | ~11% | ~50% of CPU | ~5.0 M/s | ~28 d |
+| **32** | **2.2 M/s** | **~3.9%** | **~12% of CPU** | **~5.1 M/s** | **~27 d** |
+| 64 | 1.4 M/s | ~1.3% | ~3% of CPU | ~4.7 M/s | ~30 d |
+
+The optimum is **broad and flat at np_cap ≈ 24–32, ~27–28 days**, combined
+~5 M/s. Lowering the cap speeds the GPU but the extra CPU diverted to overflow
+cancels the gain.
+
+### Honest wall-clock summary
+
+| configuration | wall-clock |
+|---|---|
+| CPU-only, 3 nodes (conservative / optimistic) | ~42 d / ~24 d |
+| GPU fleet only (np_cap 16) | ~40–45 d (≈ the CPU cluster; not faster alone) |
+| **Hybrid, both concurrent, np_cap ≈ 32 (central)** | **~27–28 d** |
+| Hybrid + LLL+FP on overflow + optimistic CPU + lighter avg shards | **~18–20 d** |
+
+Bottom line: the hybrid is a real **~1.5–2.3× over CPU-only**, landing around
+**3–4 weeks**. It is *not* the order-of-magnitude win a naive "GPU port" implies,
+because per-candidate the GPU is only worth a couple dozen CPU cores.
+
+---
+
+## 4. Risks / things to nail down before committing
+
+1. **Overflow hand-off I/O.** At np_cap=32, ~3.9% of 12.14 T ≈ **0.47 T rows**
+   spill to CPU; at np_cap=16 it's ~1.3 T. As flat `--overflow-output` files that
+   is multiple–tens of TB. Needs a **streamed/sharded producer→consumer** queue
+   (GPU writes sharded overflow, CPU shards pull), not one file. This is the
+   single biggest engineering gap in the current `--ip-bucketed` plumbing.
+2. **Shard weight variance.** The benchmark shard (2000/4000) overflowed ~28% at
+   np_cap=16 vs ~11% from the full distribution → it's a heavy shard, so the
+   measured GPU rates are likely a **lower bound**; average shards run faster.
+   Confirm with a multi-shard sweep before trusting the absolute days.
+3. **L40 rate unmeasured.** Half the GPU fleet is L40; the 12–14 GPU-equiv
+   assumes 0.7–0.8×. Measure it (`--ip-bucketed` on `--gres=gpu:L40:1`).
+4. **CPU-overflow cost factor.** Assumed heavy candidates cost CPU ~5× a mean
+   candidate; this drives the balance. Measure the actual cost of completing a
+   np>32 candidate stream (with LLL+FP) on PALP.
+5. **Determinism / completeness.** `--ip-bucketed` is bit-verified
+   (project_gpu_ip_bucketing): accept@cap ∪ overflow@cap = full IP set, run-to-run
+   deterministic. Preserve this — never use `--emit-capacity` truncation for the
+   real run; shard so each shard's generated count is processed in full.
+
+---
+
+## 5. The only paths to a *dramatic* (>3×) speedup — all unbuilt
+
+The hybrid above is bounded by the GPU's per-candidate hostility. To break it you
+need a better *algorithm*, not better scheduling:
+
+- **Block-cooperative point-enum on GPU.** One block per candidate, threads split
+  the top-coordinate seed range (the existing `device_make_points_block` /
+  `--block-ip` is already 3.7× the serial walk at np 4096). Folding block-cooperation
+  into the *bucketed* kernel could lift the occupancy ceiling that flatlines the
+  current 1-thread/candidate design.
+- **Skip full enumeration.** IP_Check only needs the **vertices/hull**, not every
+  lattice point. Computing the convex hull directly (or the facet equations from
+  the weight system) would sidestep the over-search entirely (~12,000 divisions
+  per point produced today — most pruned). Largest potential win; largest rewrite.
+- **int32 GPU walk + reciprocal-multiply.** Division is *emulated* on GPU (unlike
+  Zen4 where libdivide was 19% slower, see project_point_walk_algorithms), so the
+  74× node / 57× division reduction from LLL+FP may actually pay on GPU — retest
+  the LLL+FP walk on-device (it's CPU-only today).
+
+---
+
+## 6. Reproduce
+
+- Total count: `sbatch scripts/count_all_cws.sh` → `logs/slurm/count-cws-*.out`.
+- GPU np_cap sweep: `sbatch scripts/benchmark_ip_bucketed_lowcap.sh` (or the
+  committed `benchmark_ip_bucketed.sh` for caps 32–128).
+- CPU rates: `scripts/profile_cpu_pipeline.sh`; LLL+FP: `benchmark_lllfp_*.sh`.
+- Always `export PALP_W5_POOL=results/cache/w5.ip` (else +1 min/run regenerating
+  the 184026 size-5 weights). Always submit via `sbatch` (never head-node/srun).

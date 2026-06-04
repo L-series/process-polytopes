@@ -155,7 +155,7 @@ if(ENABLE_CUDA)
       CUDA_STANDARD_REQUIRED ON
       CUDA_SEPARABLE_COMPILATION OFF)
   target_compile_options(cuda_dim5_cws_scan PRIVATE
-      $<$<COMPILE_LANGUAGE:CUDA>:-O3>)
+      $<$<COMPILE_LANGUAGE:CUDA>:-O3 -Xptxas -v -lineinfo>)
   target_include_directories(cuda_dim5_cws_scan PRIVATE ${PALP_DIR})
   target_link_libraries(cuda_dim5_cws_scan PRIVATE CUDA::cudart)
 endif()

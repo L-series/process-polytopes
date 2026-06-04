@@ -358,9 +358,9 @@ Config parse_args(int argc, char **argv) {
         if (config.stream_ip) {
             throw std::runtime_error("--ip-bucketed is incompatible with --stream-ip; use --ip-check");
         }
-        if (config.block_ip) {
-            throw std::runtime_error("--ip-bucketed runs its own split kernels; do not combine with --block-ip");
-        }
+        // --block-ip + --ip-bucketed selects the block-cooperative point-enum
+        // variant (Exp A): one block per candidate, shared basis, seed-split
+        // frontier. The IP-check stage is unchanged.
     }
     if (config.ip_check && config.emit_capacity == 0) {
         throw std::runtime_error("--ip-check requires --emit-capacity > 0");
@@ -2343,6 +2343,64 @@ __global__ void point_enum_kernel(const DeviceCwsCandidate *candidates,
     }
 }
 
+// Kernel 1b (Exp A): block-cooperative point enumeration. One BLOCK per
+// candidate (grid-stride by blockIdx); the block's threads split the wide
+// top-coordinate seed frontier (device_make_points_block) with the basis in
+// __shared__ memory built once per block -- removing the ~400 B/thread local-mem
+// spill of the 1-thread/candidate kernel and the heavy-np intra-warp divergence
+// (lanes now cooperate on ONE candidate instead of 32 unrelated np's). Same
+// compact np_cap slot + overflow-to-CPU semantics as point_enum_kernel.
+__global__ void point_enum_block_kernel(const DeviceCwsCandidate *candidates,
+                                        unsigned long long candidate_count,
+                                        int np_cap,
+                                        long long *points,
+                                        int *np_out,
+                                        DeviceIpStats *stats,
+                                        DeviceIpStageStats *stage_stats,
+                                        DeviceCwsCandidate *overflow_output,
+                                        unsigned long long *overflow_count,
+                                        unsigned long long overflow_capacity) {
+    __shared__ int s_np;
+    __shared__ int s_precheck;
+    for (unsigned long long index = blockIdx.x; index < candidate_count;
+         index += gridDim.x) {
+        const DeviceCwsCandidate &candidate = candidates[index];
+        long long *slot = points + index * static_cast<unsigned long long>(np_cap) * 5ULL;
+        unsigned long long tick =
+            (stage_stats && threadIdx.x == 0) ? clock64() : 0ULL;
+        // All threads must enter (internal __syncthreads in the block walk).
+        int status = device_make_points_block(candidate, slot, np_cap,
+                                              &s_np, &s_precheck);
+        if (threadIdx.x == 0) {
+            int np = s_np;
+            if (stage_stats) {
+                atomicAdd(&stage_stats->point_cycles, clock64() - tick);
+                atomicAdd(&stage_stats->point_candidates, 1ULL);
+                atomicAdd(&stage_stats->total_points,
+                          static_cast<unsigned long long>(np > 0 ? np : 0));
+                if (np > 0)
+                    atomicMax(&stage_stats->max_points,
+                              static_cast<unsigned long long>(np));
+            }
+            atomicAdd(&stats->processed, 1ULL);
+            if (status < 0) {
+                np_out[index] = kNpOverflow;
+                atomicAdd(&stats->point_overflow, 1ULL);
+                unsigned long long slot_index = atomicAdd(overflow_count, 1ULL);
+                if (slot_index < overflow_capacity && overflow_output)
+                    overflow_output[slot_index] = candidate;
+            } else if (status == 0) {
+                np_out[index] = 0;
+                atomicAdd(&stats->point_fail, 1ULL);
+            } else {
+                np_out[index] = np;
+                if (np < 6) atomicAdd(&stats->simplex_fail, 1ULL);
+            }
+        }
+        __syncthreads();  // shared s_np/s_precheck reused next iteration
+    }
+}
+
 // Kernel 2: IP check over the candidates that produced 6..np_cap points, given
 // as a host-built index list (counting-sorted by np so a warp's 32 lanes run
 // near-identical IP loops -> low divergence). One thread per candidate
@@ -2775,12 +2833,21 @@ HostIpResult run_ip_filter_bucketed(DeviceCwsCandidate *device_candidates,
 
     auto start = std::chrono::steady_clock::now();
 
-    // Stage 1: point enumeration (full grid, no VRAM cap).
-    point_enum_kernel<<<config.blocks, config.threads>>>(
-        device_candidates, candidate_count, config.np_cap, d_points, d_np_out,
-        d_stats, profile ? d_stage : nullptr, d_overflow, d_overflow_count, candidate_count);
-    check_cuda(cudaGetLastError(), "point_enum_kernel launch");
-    check_cuda(cudaDeviceSynchronize(), "cudaDeviceSynchronize point_enum_kernel");
+    // Stage 1: point enumeration (full grid, no VRAM cap). --block-ip selects
+    // the block-cooperative variant (one block/candidate, shared basis).
+    if (config.block_ip) {
+        point_enum_block_kernel<<<config.blocks, config.threads>>>(
+            device_candidates, candidate_count, config.np_cap, d_points, d_np_out,
+            d_stats, profile ? d_stage : nullptr, d_overflow, d_overflow_count, candidate_count);
+        check_cuda(cudaGetLastError(), "point_enum_block_kernel launch");
+        check_cuda(cudaDeviceSynchronize(), "cudaDeviceSynchronize point_enum_block_kernel");
+    } else {
+        point_enum_kernel<<<config.blocks, config.threads>>>(
+            device_candidates, candidate_count, config.np_cap, d_points, d_np_out,
+            d_stats, profile ? d_stage : nullptr, d_overflow, d_overflow_count, candidate_count);
+        check_cuda(cudaGetLastError(), "point_enum_kernel launch");
+        check_cuda(cudaDeviceSynchronize(), "cudaDeviceSynchronize point_enum_kernel");
+    }
 
     // Host: classify np_out and counting-sort the valid (6..np_cap) candidates
     // by np so each warp's lanes run near-identical IP loops.
