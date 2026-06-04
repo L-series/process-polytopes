@@ -128,6 +128,7 @@ struct DeviceIpStageStats {
     unsigned long long make_new_ceqs_calls = 0;
     unsigned long long total_points = 0;
     unsigned long long max_points = 0;
+    unsigned long long walk_nodes = 0;  // Exp D: tree-node count (FP would cut ~74x)
 };
 
 struct DeviceEquation5 {
@@ -1289,7 +1290,9 @@ __device__ int device_append_ip_point(const long long x[5], long long *points,
 __device__ int device_make_points_serial(const DeviceCwsCandidate &candidate,
                                          long long *points,
                                          int max_points,
-                                         int *point_count) {
+                                         int *point_count,
+                                         unsigned long long *node_count = nullptr) {
+    unsigned long long walk_nodes = 0;
     long long basis[5][10];
     int basis_dim = 0;
     long long x_upper64[10] = {0};
@@ -1346,6 +1349,7 @@ __device__ int device_make_points_serial(const DeviceCwsCandidate &candidate,
         } else {
             int source_coord = amin[walk_dim] - 1;
             --walk_dim;
+            ++walk_nodes;
             int upper = xu[source_coord];
             int low = -1;
             int range_flag = 0;
@@ -1385,7 +1389,10 @@ __device__ int device_make_points_serial(const DeviceCwsCandidate &candidate,
                 long long lp[5];
                 while (x[0] <= xmax[0]) {
                     for (int c = 0; c < 5; ++c) lp[c] = x[c];
-                    if (!device_append_ip_point(lp, points, max_points, point_count)) return -1;
+                    if (!device_append_ip_point(lp, points, max_points, point_count)) {
+                        if (node_count) *node_count = walk_nodes;
+                        return -1;
+                    }
                     ++x[0];
                 }
                 walk_dim = 1;
@@ -1393,6 +1400,7 @@ __device__ int device_make_points_serial(const DeviceCwsCandidate &candidate,
             }
         }
     }
+    if (node_count) *node_count = walk_nodes;
     return *point_count > 0 ? 1 : 0;
 }
 
@@ -2334,11 +2342,14 @@ __global__ void point_enum_kernel(const DeviceCwsCandidate *candidates,
         const DeviceCwsCandidate &candidate = candidates[index];
         long long *slot = points + index * static_cast<unsigned long long>(np_cap) * 5ULL;
         int np = 0;
+        unsigned long long walk_nodes = 0;
         unsigned long long tick = stage_stats ? clock64() : 0ULL;
-        int status = device_make_points_serial(candidate, slot, np_cap, &np);
+        int status = device_make_points_serial(candidate, slot, np_cap, &np,
+                                               stage_stats ? &walk_nodes : nullptr);
         if (stage_stats) {
             atomicAdd(&stage_stats->point_cycles, clock64() - tick);
             atomicAdd(&stage_stats->point_candidates, 1ULL);
+            atomicAdd(&stage_stats->walk_nodes, walk_nodes);
             atomicAdd(&stage_stats->total_points,
                       static_cast<unsigned long long>(np > 0 ? np : 0));
             if (np > 0)
@@ -3126,6 +3137,9 @@ void print_ip_result(int structure_id, const HostIpResult &result) {
                   << " ip_candidates: " << result.stage.ip_candidates
                   << " avg_points: " << std::fixed << std::setprecision(1) << avg_points
                   << " max_points: " << result.stage.max_points
+                  << " walk_nodes: " << result.stage.walk_nodes
+                  << " nodes_per_cand: " << std::fixed << std::setprecision(1)
+                  << (result.stage.point_candidates ? double(result.stage.walk_nodes) / double(result.stage.point_candidates) : 0.0)
                   << '\n'
                   << "    ip_substages glz: " << result.stage.glz_cycles
                   << " (" << std::fixed << std::setprecision(1) << pct(result.stage.glz_cycles, ip_total) << "% ip)"

@@ -350,3 +350,40 @@ regime competitive (now only 1.7× slower than np_cap 16 instead of 2.6×), so t
 hybrid can run a higher cap → **less CPU offload** for the same GPU throughput.
 This is the recommended production kernel: **int32 walk + `--vol-sort` at
 np_cap ≈ 48–64.**
+
+### Exp D — LLL+FP on GPU: node-count prototype (branch `gpu-opt-D-lllfp-prototype`)
+Job 66785, n31. Added a tree-node counter to the int32 walk (`device_make_points_serial`
+→ `stage_stats->walk_nodes`, `nodes_per_cand` in `--ip-stage-profile`) to measure
+how much over-search the FP walk could remove **on the GPU's actual bucket** before
+committing to the full port (plan gate: proceed only if ≥10× node headroom).
+
+Triangular walk node density (type-3 shard, `--vol-sort`):
+| np_cap | nodes / candidate | avg points | overflow |
+|---|---|---|---|
+| 16 | 13,918 | 10.4 | 28% |
+| 64 | **27,387** | 15.6 | 4.4% |
+| 512 | 36,342 | 17.7 | ~0 |
+| 2048 (all) | 36,279 | 17.7 | 0% |
+
+**Verdict: gate PASSED — the FP port is justified, and this corrects an earlier
+wrong assumption.** At np_cap 64 the walk visits **~27,000 tree nodes to emit ~15
+points** (~1,750 nodes/point of over-search). Few *points* does NOT mean a small
+*box*: the light candidates the GPU processes still have hugely skewed bounding
+boxes, exactly what LLL fixes (defect ~1e9 → ~2). FP's proven 74× node reduction
+(LLL_FP_WALK.md, bit-identical on CPU) would cut 27,387 → ~370 nodes/cand. This is
+**orthogonal to and stacks with B+E**: B/E made each node ~cheaper and less
+divergent but left the *count* at 27k; FP attacks the count itself.
+
+**Why not ported here (and the design for doing so):** the full device port is a
+large effort with a real risk flagged by Exp C — FP needs per-candidate float GSO
+state (`mu`, `b*` ≈ 200–400 B), and *added per-thread state hurts this occupancy/
+division-bound kernel*. So the port must be done as **block-cooperative LLL**
+(one block reduces a candidate's basis into `__shared__`, threads then split the
+FP subtree frontier — the Exp A scaffold, which is exactly where block-cooperation
+pays once there's real per-candidate setup to amortize), in **int32 FP arithmetic**
+(Exp B), with the `--vol-sort` ordering (Exp E). Rough upside: even charging
+~2,000 node-equivalents/cand for LLL setup and halving occupancy for the float
+state, 27,387 → (~370 + ~2,000) ≈ 2,370 equiv is ~11× less walk work → plausibly
+**~3–6× on top of B+E**. **Recommended as the next major work item**; node-counter
+instrumentation committed on this branch as the measurement tool. Not merged
+(instrumentation only; no FP walk yet).
