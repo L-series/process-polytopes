@@ -1300,6 +1300,11 @@ __device__ int device_make_points_serial(const DeviceCwsCandidate &candidate,
     long long xmin[5] = {0};
     long long xmax[5] = {0};
     long long x[5] = {0};
+    // Exp C: off[a] = sum_{k>walk_dim} x[k]*basis[k][a], maintained incrementally
+    // across level changes so the inner bound loops read it instead of re-summing
+    // the O(depth) product chain at every coordinate (shorter dependent chain).
+    const int nA = candidate.ambient_vertices;
+    long long off[10] = {0};
     xmin[top_dim] = -device_pd_floor(x0[i], divisor);
     xmax[top_dim] = device_pd_floor(x_upper[i] - x0[i], divisor);
     while ((i--) > amin[top_dim]) {
@@ -1325,14 +1330,15 @@ __device__ int device_make_points_serial(const DeviceCwsCandidate &candidate,
         if (x[walk_dim] > xmax[walk_dim]) {
             ++walk_dim;
             if (basis_dim == walk_dim) break;
+            for (int a = 0; a < nA; ++a) off[a] -= x[walk_dim] * basis[walk_dim][a];
             ++x[walk_dim];
         } else {
             int source_coord = amin[walk_dim] - 1;
+            for (int a = 0; a < nA; ++a) off[a] += x[walk_dim] * basis[walk_dim][a];
             --walk_dim;
             long long upper = x_upper[source_coord];
-            long long low = -x0[source_coord];
+            long long low = -x0[source_coord] - off[source_coord];
             int range_flag = 0;
-            for (int k = walk_dim + 1; k < basis_dim; ++k) low -= x[k] * basis[k][source_coord];
             upper += low;
             divisor = basis[walk_dim][source_coord];
             xmin[walk_dim] = -device_pd_floor(-low, divisor);
@@ -1341,10 +1347,8 @@ __device__ int device_make_points_serial(const DeviceCwsCandidate &candidate,
             while ((i--) > amin[walk_dim]) {
                 divisor = basis[walk_dim][i];
                 if (divisor) {
-                    low = -x0[i];
-                    upper = x_upper[i];
-                    for (int k = walk_dim + 1; k < basis_dim; ++k) low -= x[k] * basis[k][i];
-                    upper += low;
+                    low = -x0[i] - off[i];
+                    upper = x_upper[i] + low;
                     if (divisor > 0) {
                         long long limit = device_pd_floor(upper, divisor);
                         if (xmax[walk_dim] > limit) xmax[walk_dim] = limit;
@@ -1357,19 +1361,24 @@ __device__ int device_make_points_serial(const DeviceCwsCandidate &candidate,
                         if (xmin[walk_dim] < limit) xmin[walk_dim] = limit;
                     }
                 } else {
-                    long long ambient = 1;
-                    for (int k = walk_dim + 1; k < basis_dim; ++k) ambient += x[k] * basis[k][i];
+                    long long ambient = 1 + off[i];
                     if (ambient < 0 || ambient > x_upper[i]) range_flag = 1;
                 }
             }
-            if (range_flag) ++x[++walk_dim];
-            else x[walk_dim] = xmin[walk_dim];
+            if (range_flag) {
+                ++walk_dim;
+                for (int a = 0; a < nA; ++a) off[a] -= x[walk_dim] * basis[walk_dim][a];
+                ++x[walk_dim];
+            } else {
+                x[walk_dim] = xmin[walk_dim];
+            }
             if (walk_dim == 0) {
                 while (x[0] <= xmax[0]) {
                     if (!device_append_ip_point(x, points, max_points, point_count)) return -1;
                     ++x[0];
                 }
                 walk_dim = 1;
+                for (int a = 0; a < nA; ++a) off[a] -= x[walk_dim] * basis[walk_dim][a];
                 ++x[walk_dim];
             }
         }

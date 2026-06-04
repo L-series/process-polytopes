@@ -266,3 +266,31 @@ lever); (b) 2-tier routing — serial kernel for the light bucket, block kernel
 only for np≳48 candidates — but that needs np known pre-enum (couples to Exp E).
 Kept as an *option for the high-np_cap regime*, not a default. The decisive lever
 is reducing per-thread state (B/C), confirming §1.3's "occupancy-bound" model.
+
+### Exp C — incremental offset maintenance (branch `gpu-opt-C-incremental-offset`)
+Job 66780, n31, same shard. Replaced the three inner `Σ_{k>walk_dim} x[k]·basis[k][i]`
+recomputations in `device_make_points_serial` with a maintained `off[10]`
+accumulator (updated `+= x·basis` on descent, `-= x·basis` on ascent).
+**Correctness ✓** (serial-C vs *unmodified* block path: accepted 105==105,
+accepted ∪ overflow identical — a clean differential test since the block walk
+was untouched on this branch).
+
+`ptxas -v` (sm_120): `point_enum_kernel` stack frame **4160 → 4240 B** (+80 =
+exactly the `off[10]` array), 78 → 80 registers.
+
+Throughput (cand/s), C-serial vs the Exp-A baseline serial:
+| np_cap | baseline serial | C serial | ratio |
+|---|---|---|---|
+| 16 | 256.8k | 228.7k | **0.89×** |
+| 32 | 143.5k | 148.5k | 1.03× |
+| 64 | 106.5k | 95.4k | **0.90×** |
+
+**Verdict: neutral-to-negative (≈−10% at np16/64, +3% at np32).** The CPU lesson —
+"the walk is bound by the dependent chain, so shorten it" — **does not transfer to
+the GPU.** Here the kernel is occupancy-bound: the +80 B of local memory (`off[]`)
+lowered occupancy by *more* than the removed multiply-adds saved, because the GPU
+already hides that recompute latency across warps. **Decisive finding for the
+whole plan: on this kernel, adding *any* per-thread state is a net loss — the only
+lever is *reducing* state.** This promotes Exp B (int32 halves the walk's
+data footprint) from "measure before believing" to the critical experiment, and
+demotes any node-count/chain-length idea that costs memory. C is not merged.
