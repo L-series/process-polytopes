@@ -8,11 +8,21 @@
 > answers the parallelism question: which work in the 5-fold loop is
 > dependent / parallelizable / precomputable.
 >
-> **Headline result — the §3 hypothesis is confirmed, and more strongly than §3
-> predicted.** On real structure-3 / W5 data the LLL+FP walk enumerates the
-> *exact same lattice points* as PALP’s triangular walk while doing **57× fewer
-> integer divisions, 74× fewer tree nodes, and ~9× less wall time (including the
-> LLL-reduction cost)**.
+> **Headline result (prototype/offline) — the §3 hypothesis is confirmed.** On
+> real structure-3 / W5 data the LLL+FP walk enumerates the *exact same lattice
+> points* as PALP’s triangular walk while doing **57× fewer integer divisions,
+> 74× fewer tree nodes, and ~9× less wall time (including the LLL-reduction
+> cost)**.
+>
+> ⚠ **The 9× is on a heavy-biased sample and does NOT transfer to the in-tree
+> integration. See §6.** Once wired into `Make_CWS_Points` and measured on the
+> *real* candidate distribution, the per-candidate LLL+ellipsoid overhead
+> (~1e4 cyc) dominates the light-candidate bulk: the realized speedup is
+> **~1.4–2.1× on the type-3/overlapping-size-5 hot path (up to 1.77× gated) and
+> overhead-bound (slower) on light or higher-arity structures**. Correctness,
+> however, is proven in-tree on **all 46 structures / 2.6M candidates** (§6.1).
+> The 57×/74× node/division *counts* still hold — they just don't convert to
+> wall once fixed per-candidate overhead is paid.
 
 | metric (180 239 real candidates, n11/Zen4) | PALP triangular | LLL + FP | ratio |
 |---|---|---|---|
@@ -224,7 +234,94 @@ This composes with §2–4: a Fincke–Pohst walk has the same independent-subtr
 structure (outer GSO level → independent inner enumerations), so LLL+FP and
 breadth parallelism stack.
 
-## 6. Limitations & the remaining step (production integration)
+## 6. In-tree integration into `Make_CWS_Points` (production)
+
+The walk is now wired into PALP's dim-5 fast path (`PALP/Coord.c`, gated by
+`-DLLLFP_WALK`; the stock build is byte-for-byte unchanged). Mode via the
+`PALP_WALK` env var: `tri` (triangular, default), `fp` (LLL+Fincke–Pohst),
+`check` (run both, assert identical point sets). Build:
+`make -C PALP cws-5d.x CPPFLAGS='-DLLLFP_WALK -fno-math-errno'`.
+
+**Key adaptation vs the prototype.** `_P->x[]` stores the *basis-B coefficient
+vector*, not the ambient point. An LLL-reduced basis `B'=U·B` changes those
+coordinates, so each leaf maps the reduced-basis coeff `x'` back to B-coords via
+`x[j] = Σᵢ x'ᵢ·U[i][j]` (U integer, `b'ᵢ=Σⱼ U[i][j]·bⱼ`). Output is therefore
+bit-identical to the triangular walk and all downstream code (sublattice
+reduction, `IP_Check`) is untouched. A per-candidate **node budget** falls back
+to the triangular walk if the ellipsoid box is loose (it never was, in practice).
+
+### 6.1 Correctness — proven in-tree across every CWS type
+
+`PALP_WALK=check` ran both walks on **all 46 canonical structures (s2–s47),
+2,623,150 candidates**, spanning every arity nw=2,3,4,5 (ambient N=7..10):
+**0 mismatches, 0 fallbacks**. The profiler's `np_sum`/`ip_pass` aggregates are
+identical between `tri` and `fp`. So the integration is correct for *all* CWS
+kinds, not just the type-3 (two-5WS-overlap, s3) case the prototype used.
+(`scripts/benchmark_lllfp_integration.sh`, jobs 66755/66762; W5 pool **must** be
+cached via `PALP_W5_POOL=results/cache/w5.ip` or every invocation regenerates
+the 184026-row size-5 pool — see memory `project_w5_pool_cache`.)
+
+### 6.2 Throughput — the prototype's 9× does NOT transfer; here is why
+
+In-tree per-candidate `Make_CWS_Points` cycles (`PALP_PROFILE_TIMING`, n11,
+representative modulo shards / full small structures):
+
+| structure | weights | nw | tri cyc | fp cyc (ungated) | speedup |
+|-----------|---------|----|--------:|-----------------:|--------:|
+| s3 (type-3) | 5+5 | 2 | 47 408 | 34 143 | **1.39×** |
+| s6 | 4+5 | 2 | 70 847 | 33 984 | **2.08×** |
+| s5 | 3+4 | 2 | 5 108 | 65 991 | 0.08× |
+| s7 | — | 2 | 13 017 | 71 396 | 0.18× |
+| s11 | — | 3 | 16 800 | 23 761 | 0.71× |
+| s38 / s40 | — | 4 | ~7 800 | ~22 000 | 0.36× |
+| s46 | — | 5 | 27 793 | 56 830 | 0.49× |
+
+Two things flip the prototype's 9×:
+
+1. **The 9× was a heavy-biased sample.** The prototype's 180k type-3 candidates
+   were drawn 22% from the pathological heavy anchor; per candidate it averaged
+   ~121 µs. The *real* type-3 distribution averages ~15 µs/candidate (np≈8.7) —
+   ~8× lighter. fp's node pruning only pays on the heavy tail, so on the true
+   distribution the realized speedup collapses toward the overhead floor.
+2. **Per-candidate fixed overhead.** The box-metric LLL + ellipsoid (Gram +
+   Gauss-Jordan) setup costs **~1×10⁴ cycles/candidate**, independent of np. For
+   a light candidate (s40 tri ≈ 7 900 cyc) that overhead alone exceeds the
+   *entire* triangular walk, so fp loses. The original LLL re-ran a full
+   Gram-Schmidt after every size reduction; replacing that with the standard
+   **O(n) incremental-`mu` update** (size reduction leaves the GSO vectors
+   unchanged) lifted ungated type-3 from 1.22× → 1.39×.
+
+**The real discriminant is basis skew + a large heavy-candidate pool, not
+arity.** fp wins on the *overlapping size-5* structures (s3, s6) that carry the
+bulk of the classification's heavy, maximally-skewed candidates; it is
+overhead-bound on light or small-pool structures (s5, s7) and higher arity.
+
+### 6.3 The heavy-tail gate (`PALP_LF_LOGVOL_MIN`)
+
+A cheap pre-walk gate skips the LLL+ellipsoid for candidates whose box is too
+small to repay it — score = Σ bit-length(Xmax_A) (≈ log₂ box volume); fp only if
+score ≥ threshold. Sweep on the type-3 hot path:
+
+| `PALP_LF_LOGVOL_MIN` | s3 speedup | s11 (nw3) | s40 (nw4) |
+|---------:|----:|----:|----:|
+| 0 (off) | 1.42× | 0.69× | 0.36× |
+| 20 | **1.77×** | 0.70× | 0.38× |
+| ≥30 | 1.00× | ~1.00× | ~0.99× |
+
+The gate lifts type-3 to **1.77×** and recovers the light/higher-arity
+structures to ~1.0× — but **no single global threshold is optimal**: the score
+overlaps between s3's beneficial candidates and s11's (which never benefit),
+because the true discriminant is basis skew, not box volume. Default is 0 (off);
+`PALP_LF_LOGVOL_MIN=20` is the recommended type-3 setting.
+
+**Recommended deployment:** enable fp for the type-3 / overlapping-size-5
+structures (s3, s6 — the hot path), `PALP_LF_LOGVOL_MIN≈20`; keep the triangular
+walk elsewhere. **Cleaner future work:** an *adaptive* gate — run the triangular
+walk with a node budget and switch to fp only when it is exceeded — is structure-
+agnostic and would give ≥1.0× everywhere plus the type-3 gains, without a tuned
+threshold; it requires instrumenting the triangular hot loop (deferred).
+
+## 7. Limitations & history
 
 - The 57×/74× **node and division** reductions are **algorithmic and
   implementation-independent** — they are counts, not timings. The **9× wall**
@@ -233,27 +330,35 @@ breadth parallelism stack.
   structure, so it is a fair proxy, but a production LLL+FP would need its own
   tuning — and `gen_enum`’s per-node overhead is higher than `CLB`’s, room to
   optimise).
-- **`gen_enum` is not yet wired into PALP’s `Make_CWS_Points`.** The clean
-  deployment is: in the fast path, after `Make_CWS_Basis`, LLL-reduce the basis
-  in the box metric and dispatch to a general FP walk instead of the triangular
-  5-loop. The DUMP_BASIS hook and this prototype are the validation harness for
-  that change; the next step is the in-tree replacement + an end-to-end
-  `PALP_PROFILE_TIMING` run on the full pipeline.
+- **The prototype 9× wall did not transfer to the in-tree integration** — see
+  §6.2. On the real candidate distribution the per-candidate LLL+ellipsoid
+  overhead (~1e4 cyc) dominates the bulk of (light) candidates; the realized
+  win is ~1.4–2.1× on the type-3/overlapping-size-5 hot path and overhead-bound
+  elsewhere. The 57×/74× node/division counts still hold; they just don't
+  convert to wall once fixed overhead is paid per candidate.
 - Reducing in the **box-scaled** metric matters: raw-Euclidean LLL would not
   target the geometry the enumeration actually sees.
 
-## 7. Reproduce
+## 8. Reproduce
 
 ```bash
+# prototype (offline, on dumped bases): node/division ratios + correctness
 sbatch scripts/benchmark_fp_enum.sh        # build DUMP_BASIS dumper, collect
-                                           # 180k candidates, run fp_enum:
-                                           # correctness + node/division ratios
-sbatch scripts/benchmark_loop_parallel.sh  # LLL-cost-inclusive wall time +
-                                           # OpenMP x4 parallel scaling
+                                           # 180k candidates, run fp_enum
+sbatch scripts/benchmark_loop_parallel.sh  # LLL-cost-inclusive wall + OpenMP x4
+
+# in-tree integration (PALP/Coord.c -DLLLFP_WALK):
+sbatch scripts/benchmark_lllfp_integration.sh  # check ALL 46 structures (0 mism)
+                                               # + tri-vs-fp throughput
+sbatch scripts/benchmark_lllfp_sweep.sh        # PALP_LF_LOGVOL_MIN gate sweep
+sbatch scripts/benchmark_lllfp_arity.sh        # per-structure ungated speedup
 ```
 
 Outputs: `results/point-walk-opt/fp_enum_summary.txt`, `fp_enum.csv`,
 `candidates.txt`; SLURM logs in `logs/slurm/`. The DUMP_BASIS hook in
-`PALP/Coord.c` is inert unless built with `-DDUMP_BASIS`. See
+`PALP/Coord.c` is inert unless built with `-DDUMP_BASIS`; the `LLLFP_WALK` walk
+likewise compiles only with `-DLLLFP_WALK` (`PALP_WALK=tri|fp|check`). **Always**
+`export PALP_W5_POOL=results/cache/w5.ip` or cws-5d.x regenerates the size-5
+weight pool (>1 min) every run. See
 `POINT_WALK_ALGORITHMS.md` (§3 in particular) and `PIPELINE_PROFILING.md` §9–§10.
 ```

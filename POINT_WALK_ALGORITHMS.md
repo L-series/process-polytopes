@@ -200,8 +200,18 @@ over **180 239 real candidates**. Result (full write-up: `LLL_FP_WALK.md`):
   §3.3 caveat 2 was exactly right: the win needs a *general* (FP) walk, since
   `HNF(LLL(B)) = HNF(B)` rules out re-triangularising. That walk is what was built.
 
-So §5’s “highest upside, unproven” is upgraded to **proven**; the only remaining
-step is wiring the FP walk into `Make_CWS_Points` itself (`LLL_FP_WALK.md` §6).
+So §5’s “highest upside, unproven” is upgraded to **proven correct**. ⚠ **But
+the ~9× wall did NOT survive in-tree integration.** The FP walk is now wired
+into `Make_CWS_Points` (`PALP/Coord.c -DLLLFP_WALK`, `LLL_FP_WALK.md` §6) and
+proven correct on **all 46 structures / 2.6M candidates (0 mismatch)** — but on
+the *real* candidate distribution the per-candidate LLL+ellipsoid setup overhead
+(~1e4 cyc, vs the prototype's heavy-biased sample) dominates the light bulk. The
+realized in-tree speedup is **~1.4–2.1× on the type-3/overlapping-size-5 hot
+path (s3, s6; up to 1.77× with the `PALP_LF_LOGVOL_MIN` gate) and overhead-bound
+(<1×) on light or higher-arity structures**. The 57×/74× node/division counts
+hold; they don't convert to wall once fixed overhead is paid per candidate.
+Lesson: the lever is real but narrow (skewed-basis heavy candidates), and a
+cheaper LLL / adaptive node-budget gate is needed to make it a universal win.
 
 ---
 
@@ -295,7 +305,7 @@ reciprocal result; flagged for completeness.
 | **§1/§2** Paper §5 interior counting (opt #2) | ✓ | n/a here | vacuous for rejection (see §2) |
 | **§2** Early-reject ">1 interior point" | ✓ provably | **never fires** | vacuous on W5 (unique IP by construction) |
 | **§4** Reciprocal-multiply division (libdivide) | ✓ bit-exact | **0.84× — slower** | rejected on CPU; retest on GPU |
-| **§3** LLL-reduced basis + Fincke–Pohst | ✓ proven (180k cands) | **57× fewer divs, ~9× wall** | **WINNER** — see `LLL_FP_WALK.md`; wire into `Make_CWS_Points` |
+| **§3** LLL-reduced basis + Fincke–Pohst | ✓ proven (2.6M cands, all 46 structs) | offline 57× divs/~9× wall; **in-tree 1.4–2.1× on type-3 hot path, <1× elsewhere** | **wired in** (`-DLLLFP_WALK`); narrow win — overhead-bound on light candidates; see `LLL_FP_WALK.md` §6 |
 
 **The throughline.** §4 is the key empirical result: the walk is **not**
 division-throughput bound (the `idiv` latency is hidden by OoO), so making each
@@ -310,14 +320,18 @@ nodes/divisions), the conclusion is unambiguous:
 > walk attacks exactly that, and is correctness-preserving by construction.
 
 **Recommended next steps (CPU), in priority order:**
-1. ~~Prototype a Gram–Schmidt Fincke–Pohst enumerator on the LLL-reduced basis~~
-   **DONE** (`LLL_FP_WALK.md`): the prototype is built, proven correct on 180 239
-   candidates, and measured at **57× fewer divisions / 74× fewer nodes / ~9× wall**.
-   The remaining work is to **wire the LLL+FP walk into `Make_CWS_Points`** (box-
-   metric LLL after `Make_CWS_Basis`, then dispatch to the general FP walk instead
-   of the triangular 5-loop) and confirm end-to-end with `PALP_PROFILE_TIMING`.
-   Also a candidate parallelism lever: the FP walk’s outer level has independent
-   subtrees (`LLL_FP_WALK.md` §5), useful for heavy-tail load-balancing and GPU.
+1. ~~Prototype a Gram–Schmidt Fincke–Pohst enumerator~~ ~~wire it into
+   `Make_CWS_Points`~~ **BOTH DONE** (`LLL_FP_WALK.md` §6): prototype proven (180k),
+   then wired into `Make_CWS_Points` (`-DLLLFP_WALK`) and proven correct in-tree on
+   **all 46 structures / 2.6M candidates (0 mismatch)**. **But the wall win is
+   narrow:** the per-candidate LLL+ellipsoid overhead (~1e4 cyc) makes it a net
+   loss on the light-candidate bulk; it wins **~1.4–2.1× only on the
+   type-3/overlapping-size-5 hot path** (s3, s6; up to 1.77× with the
+   `PALP_LF_LOGVOL_MIN` gate). **Open work to make it a universal win:** (a) a
+   cheaper LLL (started — incremental-`mu` update), (b) an *adaptive* node-budget
+   gate (tri first, switch to fp only when the triangular tree is large) — clean,
+   structure-agnostic, ≥1× everywhere; (c) retest on **GPU**, where the walk's
+   emulated division and the node reduction should both pay off more.
 2. **Do not pursue reciprocal-multiply or int32 on the CPU** for division speed
    (negative / data-width only). Revisit reciprocal-multiply **on the GPU**,
    where division is emulated and not latency-hidden.
