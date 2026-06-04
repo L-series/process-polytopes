@@ -97,6 +97,23 @@ more (and heavier) candidates dumped on the CPU.
 > ~14–16 days), and makes the GPU fleet a genuine co-engine rather than a sidecar.
 > Numbers below are the pre-int32 figures; treat them as conservative.
 
+> **UPDATE 2026-06-04 — LLL+Fincke–Pohst GPU walk (Exp G) is the game-changer:
+> ~13× over int32+vol-sort, ~52× over the original.** `--fp-walk` replaces the
+> triangular point walk with an LLL-reduced basis + Fincke–Pohst enumeration
+> (FP32, bit-exact: accepted 105==105, overflow 2955==2955). Per single Blackwell
+> GPU, IP-filter rate: np_cap 16 → **7.37M/s**, 64 → **5.94M/s**, 128 → 5.76M/s,
+> 256 → **5.36M/s**. **Audited for the CPU §6.2 heavy-bias trap and clear** — the
+> 8–14× holds across the heaviness spectrum (avg_points 3.4–30; real type-3 mean
+> ≈8.7), and a gate sweep shows light candidates add *zero* extra enum cycles
+> (FP is neutral on light here, not a loss as on CPU). **Two production
+> consequences:** (a) the GPU can run **np_cap 256 at 5.36M/s with only ~0.1%
+> overflow** → the CPU hand-off is nearly eliminated and the GPU fleet alone can
+> carry the run; (b) at ~5.5M/s/GPU the IP filter is no longer the bottleneck —
+> CWS **generation** (unmeasured) is the new ceiling and the next thing to profile.
+> **Revised single-GPU planning rate: ~5.5M cand/s** (range 4.5–6.3M by region),
+> up from 0.30M (int32) / 0.106M (int64). Fleet & wall-clock in §3 are recomputed
+> below with this rate; the int32/pre-int32 tables are now ~18× conservative.
+
 GPU fleet (effective): 8× Blackwell + 8× L40. L40 unmeasured here; estimate
 0.7–0.8× Blackwell (142 vs 188 SM, similar register pressure) ⇒ fleet ≈
 **12–14 Blackwell-equivalent GPUs**. *(TODO: measure L40 rate to firm this up.)*
@@ -146,9 +163,33 @@ cancels the gain.
 | **Hybrid, both concurrent, np_cap ≈ 32 (central)** | **~27–28 d** |
 | Hybrid + LLL+FP on overflow + optimistic CPU + lighter avg shards | **~18–20 d** |
 
-Bottom line: the hybrid is a real **~1.5–2.3× over CPU-only**, landing around
-**3–4 weeks**. It is *not* the order-of-magnitude win a naive "GPU port" implies,
-because per-candidate the GPU is only worth a couple dozen CPU cores.
+Bottom line (pre-Exp-G): the hybrid was a real **~1.5–2.3× over CPU-only**,
+landing around **3–4 weeks** — *not* an order-of-magnitude win, because
+per-candidate the GPU was only worth a couple dozen CPU cores.
+
+### Honest wall-clock summary — Exp G (LLL+FP GPU walk) era
+
+With `--fp-walk` the per-GPU IP-filter rate is **~5.5M cand/s** (np_cap 64–256),
+so one Blackwell GPU is now worth **~600+ CPU cores** — the GPU stops being a
+sidecar and becomes the primary engine, with the CPU offload (~0.1% at np_cap 256)
+nearly gone. Classifying the full **12.14 T** CWS, **GPU-IP-filter-bound**:
+
+| GPU fleet (IP-filter @ ~5.5M/s each) | aggregate | wall-clock (12.14 T) |
+|---|---|---|
+| 8 Blackwell | ~44 M/s | **~3.2 d** |
+| 16 Blackwell (n31+n32) | ~88 M/s | **~1.6 d** |
+| 16 Blackwell + 16 L40 (L40 ≈0.7×, est.) | ~150 M/s | **~0.9 d** |
+
+Type-3 alone (10.05 T) is ~0.8× of these. **Caveats:** (1) these are the
+**IP-filter** rate (the stage FP accelerates); the full generate→filter pipeline
+may now be **CWS-generation-bound** — measure generation before treating ~1–2 days
+as firm. (2) L40 nodes (half the fleet) are still unmeasured. (3) Numbers use the
+representative ~5.5M/s; light/empty regions vary 4.5–6.3M/s.
+
+Bottom line (Exp G): the FP walk converts the GPU arm from "couple-dozen-cores
+sidecar" into a fleet that classifies all 12.14 T in **~1–3 days IP-filter-bound**
+(vs ~3–4 weeks for the int32 hybrid) — pending the CWS-generation-rate check that
+now sets the real ceiling.
 
 ---
 
