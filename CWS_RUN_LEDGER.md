@@ -85,22 +85,35 @@ IP CWS the GPU deferred -> completes Run 1. Wall: **1244 s (~21 min)**.
 - **total IP-accepted: 80,087,604** = 76,216,562 (GPU) + 3,871,042 (CPU overflow)
 - overall IP-pass rate: **0.0675%** of processed (pre-dedup).
 
-## Run 3 — s12 classification ✅ COMPLETE (GPU); overflow ⏳ CPU pass running
+## Run 3 — s12 classification ✅ COMPLETE (GPU + overflow)
 
 Job **66825** (5-GPU array, interleaved sharding: 40 shards, GPU g does g,g+5,…,g+35).
 Output `/home/ahat01/cws12run/`. Wall **~7.75 h** (tasks 26307–27905 s, ~6% spread —
 interleaving fixed the load imbalance). **Coverage 100.000%.**
 - processed: **987,911,532,890**
-- accepted (GPU IP-pass): **14,201,801** (0.0014% — far below the minor types,
-  confirming bigger structure → lower accept rate)
-- overflow (np>256): **14,121,722** (0.0014%)
-- **overflow CPU IP-check: job 66875** (n11) — IP-accepted-recovered: **<pending>**
-- s12 final IP-pass = 14,201,801 (GPU) + (CPU overflow IP).
+- accepted (GPU IP, np≤256): **14,201,801** (0.0014% — far below the minor types,
+  confirming bigger structure → lower IP rate)
+- overflow (np>256): **14,121,722**; CPU IP pass (job 66875, ~24 min):
+  **30,214 IP-accepted** (only **0.21%** of overflow — vs 5.69% for the minor types;
+  overflow-IP fraction is strongly structure-dependent).
+- **s12 final IP-accepted = 14,232,015** (14,201,801 GPU + 30,214 overflow).
+- file: `/home/ahat01/cws12run/overflow_ip_accepted.txt`.
 
-## Cumulative so far (45 of 46 structures: 43 minor + s12)
+## Cumulative so far (45 of 46 structures: 43 minor + s12) — FINAL
 - candidates processed: **119,663,998,637** (118.68B minor + 0.988T s12)
-- IP-accepted: **80,087,604 (minor, final) + 14,201,801 (s12 GPU) + s12-overflow-IP**
+- **total IP-accepted: 94,319,619** = 80,087,604 (minor) + 14,232,015 (s12)
+
+## s3 sample — IP-rate measurement (job 66880, 1.008B candidates, 5 spread shards)
+Decision input before the full s3 run. s3 is nw=2 (size-5⊕size-5), the same family
+as s6, so its rate sits between the nw=3 giants and little s6.
+- GPU IP-accept rate **0.0126%** → projected s3 GPU-accept **~1.3B**
+- overflow rate **0.163%** → projected s3 overflow **~16.4B (np>256)** ← the big one
+- est. total s3 IP ≈ **1.3–2.2B** (GPU + overflow-IP at 0.2–5.7%; fraction uncertain)
+- **storage/CPU planning:** at np_cap 256, s3 ≈ ~52 GB accepted + **~656 GB overflow**,
+  and a 16.4B-row CPU overflow pass (~1–3 d). **Raise np_cap (512–1024) for s3** to
+  shift overflow onto the (cheap) GPU before the production run.
 
 ## Not yet run
 - **s13** (987,911,532,890) — twin of s12, ~7.75 h on 5 GPUs (expect ~same as s12).
-- **s3** (10,046,036,135,619, 82.7% of all work) — ~3.2 d on 5 GPUs / ~1.4 d full fleet.
+- **s3** (10,046,036,135,619, 82.7% of all work) — ~3.2 d on 5 GPUs / ~1.4 d full fleet;
+  dominates total IP (~95%). Decide np_cap from the sample above first.

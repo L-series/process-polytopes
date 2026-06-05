@@ -5,8 +5,8 @@
 #SBATCH --cpus-per-task=128
 #SBATCH --mem=200G
 #SBATCH --time=03:00:00
-#SBATCH --output=/home/ahat01/cws43run/logs/ovf-cpu-%j.out
-#SBATCH --error=/home/ahat01/cws43run/logs/ovf-cpu-%j.out
+#SBATCH --output=%x-%j.out
+#SBATCH --error=%x-%j.out
 #
 # Process the GPU overflow (np>256, deferred) on the CPU: pipe each overflow CWS
 # row through PALP cws-5d.x -i (full point enumeration + IP/reflexivity check, no
