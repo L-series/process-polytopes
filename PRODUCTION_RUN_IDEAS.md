@@ -176,20 +176,26 @@ nearly gone. Classifying the full **12.14 T** CWS, **GPU-IP-filter-bound**:
 
 | GPU fleet (IP-filter @ ~5.5M/s each) | aggregate | wall-clock (12.14 T) |
 |---|---|---|
-| 8 Blackwell | ~44 M/s | **~3.2 d** |
-| 16 Blackwell (n31+n32) | ~88 M/s | **~1.6 d** |
-| 16 Blackwell + 16 L40 (L40 ≈0.7×, est.) | ~150 M/s | **~0.9 d** |
+Cluster GPU inventory: **8× RTX6000BW (n31+n32, 4/node) + 8× L40 (n21+n22, 4/node)
+= 16 GPUs total.** (Not 16+16 — corrected 2026-06-05.)
 
-Type-3 alone (10.05 T) is ~0.8× of these. **Caveats:** (1) these are the
-**IP-filter** rate (the stage FP accelerates); the full generate→filter pipeline
-may now be **CWS-generation-bound** — measure generation before treating ~1–2 days
-as firm. (2) L40 nodes (half the fleet) are still unmeasured. (3) Numbers use the
-representative ~5.5M/s; light/empty regions vary 4.5–6.3M/s.
+| GPU fleet (IP-filter @ FP rate) | aggregate | wall-clock (12.14 T) |
+|---|---|---|
+| 8 RTX6000BW only (n31+n32) | ~43 M/s | **~3.0 d** |
+| 8 RTX6000BW + 8 L40 (L40 ≈0.7×, est.) | ~73 M/s | **~1.9 d** |
+| + 256 CPU cores on independent shards | ~76 M/s | **~1.85 d** |
+
+Type-3 alone (10.05 T) is ~0.83× of these (~1.5 d full fleet). **Caveats:** (1)
+these are the **IP-filter** rate (the stage FP accelerates); the full
+generate→filter pipeline may now be **CWS-generation-bound** — measure generation
+before treating ~2 days as firm. (2) L40 (half the fleet) still unmeasured. (3)
+Numbers use the representative ~5.36M/s @ np_cap 256; light/empty regions vary
+4.5–6.3M/s.
 
 Bottom line (Exp G): the FP walk converts the GPU arm from "couple-dozen-cores
-sidecar" into a fleet that classifies all 12.14 T in **~1–3 days IP-filter-bound**
-(vs ~3–4 weeks for the int32 hybrid) — pending the CWS-generation-rate check that
-now sets the real ceiling.
+sidecar" into a 16-GPU fleet that classifies all 12.14 T in **~1.85 days
+(IP-filter-bound, full fleet)** / ~3 d Blackwell-only — vs ~3–4 weeks for the
+int32 hybrid — pending the CWS-generation-rate check that now sets the real ceiling.
 
 ---
 
