@@ -363,8 +363,10 @@ Config parse_args(int argc, char **argv) {
         if (config.np_cap < 6) {
             throw std::runtime_error("--np-cap must be >= 6 (need >=6 points for a 5D simplex)");
         }
-        if (config.stream_ip) {
-            throw std::runtime_error("--ip-bucketed is incompatible with --stream-ip; use --ip-check");
+        // --ip-bucketed + --stream-ip = full-range streaming bucketed/FP run
+        // (stream_descriptor_ip_bucketed): covers a whole structure in one process.
+        if (config.stream_ip && config.block_ip) {
+            throw std::runtime_error("--stream-ip bucketed is incompatible with --block-ip");
         }
         // --block-ip + --ip-bucketed selects the block-cooperative point-enum
         // variant (Exp A): one block per candidate, shared basis, seed-split
@@ -3372,6 +3374,61 @@ HostStreamIpResult stream_descriptor_ip(const DeviceDescriptor &descriptor,
     return result;
 }
 
+// Bucketed/FP streaming: same full-range chunk loop as stream_descriptor_ip, but
+// classifies each chunk with run_ip_filter_bucketed (so --fp-walk / --vol-sort /
+// --np-cap and the overflow→CPU hand-off all apply). Covers an entire structure's
+// selection range in one process (one CUDA context + one W5-pool load), appending
+// accepted and overflow CWS rows across chunks -- this is what makes a full
+// production run feasible without per-shard process startup overhead.
+HostStreamIpResult stream_descriptor_ip_bucketed(const DeviceDescriptor &descriptor,
+                                                 const SelectedEntry *device_entries,
+                                                 DeviceScanStats *device_stats,
+                                                 DeviceCwsCandidate *device_candidates,
+                                                 const Config &config,
+                                                 std::ostream *accepted_output,
+                                                 std::ostream *overflow_output) {
+    HostStreamIpResult result;
+    result.scan.structure_id = descriptor.id;
+    result.scan.selection_product = descriptor.selection_product;
+    result.ip.candidate_count = 0;
+
+    std::uint64_t shard_start = 0;
+    std::uint64_t shard_count = 0;
+    descriptor_shard_range(descriptor, config, &shard_start, &shard_count);
+    std::uint64_t shard_end = shard_start + shard_count;
+    std::uint64_t position = shard_start;
+
+    std::uint64_t max_variants = max_prefix_variants_per_selection(descriptor);
+    std::uint64_t chunk_span = std::max<std::uint64_t>(1, config.emit_capacity / max_variants);
+
+    while (position < shard_end) {
+        std::uint64_t range_count = std::min<std::uint64_t>(chunk_span, shard_end - position);
+        HostScanResult scan_chunk = scan_descriptor_range(
+            descriptor, device_entries, device_stats, device_candidates, config.emit_capacity,
+            config, position, range_count);
+
+        // Truncation guard: a chunk that would exceed emit-capacity is halved and
+        // retried, so no candidate is ever silently dropped (completeness).
+        if (scan_chunk.stored_candidate_count > config.emit_capacity) {
+            if (range_count == 1) {
+                throw std::runtime_error("single descriptor selection exceeds --emit-capacity; raise --emit-capacity");
+            }
+            chunk_span = std::max<std::uint64_t>(1, range_count / 2);
+            ++result.retries;
+            continue;
+        }
+
+        accumulate_scan_result(&result.scan, scan_chunk);
+        HostIpResult ip_chunk = run_ip_filter_bucketed(
+            device_candidates, scan_chunk.stored_candidate_count, config,
+            accepted_output, overflow_output);
+        accumulate_ip_result(&result.ip, ip_chunk);
+        ++result.chunks;
+        position += range_count;
+    }
+    return result;
+}
+
 void print_result_header() {
     std::cout << "structure_id,selection_product,scanned_selection_tuples,canonical_selection_tuples,prefix_candidates,seconds,scanned_tuples_per_second,prefix_candidates_per_second\n";
     std::cout.flush();
@@ -3572,9 +3629,14 @@ int main(int argc, char **argv) {
             if (!config.all && config.structure_id != descriptor.id) continue;
             DeviceDescriptor device_descriptor = make_device_descriptor(descriptor, pools);
             if (config.stream_ip) {
-                HostStreamIpResult stream_result = stream_descriptor_ip(
-                    device_descriptor, device_entries, device_stats, device_candidates,
-                    config, accepted_output ? &accepted_output : nullptr);
+                HostStreamIpResult stream_result = config.ip_bucketed
+                    ? stream_descriptor_ip_bucketed(
+                          device_descriptor, device_entries, device_stats, device_candidates,
+                          config, accepted_output ? &accepted_output : nullptr,
+                          overflow_output ? &overflow_output : nullptr)
+                    : stream_descriptor_ip(
+                          device_descriptor, device_entries, device_stats, device_candidates,
+                          config, accepted_output ? &accepted_output : nullptr);
                 print_result(stream_result.scan);
                 std::cerr << "  stream_ip structure " << stream_result.scan.structure_id
                           << " chunks: " << stream_result.chunks
