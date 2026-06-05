@@ -1,5 +1,9 @@
 # CWS classification run ledger
 
+
+> **IP check != reflexive (dim 5).** "IP-accepted" / `cws-5d.x -i` means the polytope
+> is IP (has an interior lattice point). **Reflexivity is a stronger, separate test**
+> requiring a later pass over these IP-accepted CWS. All "accepted" counts here are IP.
 Records of GPU classification runs and the CPU overflow processing. All on the
 `gpu-run-43types` branch, RTX6000BW (n31/n32), streaming FP pipeline
 (`--stream-ip --ip-bucketed --fp-walk --vol-sort --np-cap 256 --emit-capacity 1.5M`).
@@ -69,16 +73,16 @@ Wall: ~79 min (66815, tail-limited by contiguous-shard imbalance) + ~1 min (6682
 Job **66824** (std node n11, 128 cores, `split` + `xargs -P128`). Pipes all overflow
 CWS rows through PALP `cws-5d.x -i -f` (full uncapped point enumeration + reflexivity;
 the GPU overflow format is natively PALP-readable — no conversion). Recovers the
-reflexive CWS the GPU deferred -> completes Run 1. Wall: **1244 s (~21 min)**.
+IP CWS the GPU deferred -> completes Run 1. Wall: **1244 s (~21 min)**.
 
 - overflow rows fed: **68,066,584** (includes s38/s40/s42 fix overflow: 82,073).
-- reflexive (IP-pass) recovered: **3,871,042** (**5.687%** of overflow — far above the
+- IP-accepted (passed -i) recovered: **3,871,042** (**5.687%** of overflow — far above the
   0.064% GPU accept rate, since np>256 polytopes are much more often reflexive).
-- result file: `/home/ahat01/cws43run/overflow_reflexive.txt` (230 MB).
+- result file: `/home/ahat01/cws43run/overflow_ip_accepted.txt` (230 MB).
 
 ### Run 1 + Run 2 — the 43 minor types, FINAL
 - candidates processed: **118,676,087,105** (100%)
-- **total reflexive (IP-pass): 80,087,604** = 76,216,562 (GPU) + 3,871,042 (CPU overflow)
+- **total IP-accepted: 80,087,604** = 76,216,562 (GPU) + 3,871,042 (CPU overflow)
 - overall IP-pass rate: **0.0675%** of processed (pre-dedup).
 
 ## Run 3 — s12 classification ✅ COMPLETE (GPU); overflow ⏳ CPU pass running
@@ -90,12 +94,12 @@ interleaving fixed the load imbalance). **Coverage 100.000%.**
 - accepted (GPU IP-pass): **14,201,801** (0.0014% — far below the minor types,
   confirming bigger structure → lower accept rate)
 - overflow (np>256): **14,121,722** (0.0014%)
-- **overflow CPU IP-check: job 66875** (n11) — reflexive-recovered: **<pending>**
+- **overflow CPU IP-check: job 66875** (n11) — IP-accepted-recovered: **<pending>**
 - s12 final IP-pass = 14,201,801 (GPU) + (CPU overflow reflexive).
 
 ## Cumulative so far (45 of 46 structures: 43 minor + s12)
 - candidates processed: **119,663,998,637** (118.68B minor + 0.988T s12)
-- reflexive (IP-pass): **80,087,604 (minor, final) + 14,201,801 (s12 GPU) + s12-overflow-reflexive**
+- IP-accepted: **80,087,604 (minor, final) + 14,201,801 (s12 GPU) + s12-overflow-reflexive**
 
 ## Not yet run
 - **s13** (987,911,532,890) — twin of s12, ~7.75 h on 5 GPUs (expect ~same as s12).

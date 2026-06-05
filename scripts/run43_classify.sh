@@ -20,8 +20,8 @@ cd "${SLURM_SUBMIT_DIR:-$(pwd)}"
 BIN=src/classify/build-cuda/cuda_dim5_cws_scan
 W5=results/cache/w5.ip; export PALP_W5_POOL="$W5"
 OUT=/home/ahat01/cws43run
-G="${SLURM_ARRAY_TASK_ID:-0}"   # 0..5 == shard-index
-NG=6                             # shard-count
+G="${SLURM_ARRAY_TASK_ID:-0}"            # shard-index
+NG="${SLURM_ARRAY_TASK_COUNT:-6}"        # shard-count = number of array tasks (auto)
 NPCAP=256
 EMIT=1500000
 mkdir -p "$OUT/accepted" "$OUT/overflow" "$OUT/logs"

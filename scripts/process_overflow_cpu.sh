@@ -30,11 +30,11 @@ echo "### IP-checking on 128 cores $(date) ###"
 start=$(date +%s)
 ls "$WORK/chunks"/c* | xargs -P 128 -I{} bash -c '"'"$BIN"'" -i -f < "{}" > "'"$WORK"'/out/$(basename {}).out" 2>/dev/null'
 echo "### collecting $(date) (took $(($(date +%s)-start))s) ###"
-cat "$WORK"/out/*.out > "$OUT/overflow_reflexive.txt"
-REFL=$(wc -l < "$OUT/overflow_reflexive.txt")
+cat "$WORK"/out/*.out > "$OUT/overflow_ip_accepted.txt"
+REFL=$(wc -l < "$OUT/overflow_ip_accepted.txt")
 echo "overflow rows processed : $N"
-echo "overflow REFLEXIVE (IP-pass): $REFL"
+echo "overflow IP-ACCEPTED (passed -i): $REFL"
 echo "  -> overflow IP-pass rate: $(python3 -c "print(f'{100*$REFL/$N:.3f}%')")"
-echo "result: $OUT/overflow_reflexive.txt"
+echo "result: $OUT/overflow_ip_accepted.txt"
 rm -rf "$WORK/chunks" "$WORK/out" "$WORK/all_overflow.txt"
 echo "### DONE $(date) ###"
