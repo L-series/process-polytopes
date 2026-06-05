@@ -3523,8 +3523,19 @@ int main(int argc, char **argv) {
     try {
         Config config = parse_args(argc, argv);
         check_cuda(cudaSetDevice(config.cuda_device), "cudaSetDevice");
-        cudaDeviceSetLimit(cudaLimitStackSize, 1 << 20);
-        cudaGetLastError();
+        // Per-thread dynamic stack for the RECURSIVE generation kernels
+        // (device_count_prefixes / device_emit_prefixes). The old 1<<20 (1 MB)
+        // silently FAILED -- total reservation = 1MB * threads/SM * SMs >> VRAM --
+        // leaving the device at its ~1 KB default, which overflows for structures
+        // with >=2 nested shared-permutation slots (s38/s40/s42) => illegal memory
+        // access in descriptor scan. 32 KB reserves ~9 GB (fits 48 GB / L40), and
+        // is ~150x the real recursion depth. Verify it actually took.
+        cudaError_t stack_status = cudaDeviceSetLimit(cudaLimitStackSize, 32u << 10);
+        if (stack_status != cudaSuccess) {
+            std::cerr << "  warning: cudaDeviceSetLimit(stack) failed: "
+                      << cudaGetErrorString(stack_status) << '\n';
+            cudaGetLastError();
+        }
 
         cudaDeviceProp properties{};
         check_cuda(cudaGetDeviceProperties(&properties, config.cuda_device), "cudaGetDeviceProperties");
