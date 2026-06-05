@@ -218,7 +218,33 @@ int32 hybrid — pending the CWS-generation-rate check that now sets the real ce
 5. **Determinism / completeness.** `--ip-bucketed` is bit-verified
    (project_gpu_ip_bucketing): accept@cap ∪ overflow@cap = full IP set, run-to-run
    deterministic. Preserve this — never use `--emit-capacity` truncation for the
-   real run; shard so each shard's generated count is processed in full.
+   real run; shard so each shard's generated count is processed in full. (Solved
+   for full ranges by `--stream-ip --ip-bucketed`, the in-process chunk loop
+   `stream_descriptor_ip_bucketed`, validated chunk-count-invariant on s24.)
+
+## 4a. TODO (open work items, found during the 43-type run, job 66815)
+
+1. **Load-balance the sharding.** Contiguous range-sharding (`--shard-count N
+   --shard-index i` splitting the selection-product range into N equal *position*
+   slices) is **badly unbalanced**: candidate *density* varies wildly along the
+   range. In the 43-type run, shard 0 drew the sparse end of the big structures
+   and finished all 43 in ~51 min, while shards 2–4 drew the dense end (~6.9B each
+   of s27 vs near-empty for shard 0) and ran much longer — and shard 0's GPU sat
+   idle after. **Fix before the 12.14 T run:** interleaved sharding (assign by
+   `selection_index mod N`) or a **dynamic work queue** (small work units pulled by
+   whichever GPU is free) so all GPUs finish together and none strand. This is the
+   single biggest efficiency loss observed in a real multi-GPU run.
+2. **int32 overflow guard for the FP (and triangular) walk.** The int32/FP walks
+   have **no runtime overflow detection** — safety rests only on an a-priori bound
+   (~3e7 ≪ 2.1e9) that holds for the current W5 pool but isn't checked. Add the
+   O(1) **pre-flight guard** (discussed 2026-06-05): after the basis is built,
+   compute `worst = (basis_dim+1)·max(x_upper)·max|basis entry|` in int64; if
+   `worst ≥ 2^30`, route the candidate to the int64 path / CPU overflow instead of
+   silently wrapping (Check A). For FP add **Check B** after the ellipsoid root box
+   is known: `Σ|bred|·max|Lo,Hi| + max(x_upper) ≥ 2^30` → fall back. Converts a
+   possible silent wrong answer into a safe deferral; needed if the input domain
+   ever widens (larger pool / new structure family). Pairs with the certification
+   pass (compute global `max|basis entry|` to *prove* no type-3 candidate overflows).
 
 ---
 
