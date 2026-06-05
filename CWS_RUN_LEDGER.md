@@ -81,14 +81,22 @@ reflexive CWS the GPU deferred -> completes Run 1. Wall: **1244 s (~21 min)**.
 - **total reflexive (IP-pass): 80,087,604** = 76,216,562 (GPU) + 3,871,042 (CPU overflow)
 - overall IP-pass rate: **0.0675%** of processed (pre-dedup).
 
-## Run 3 — s12 classification ⏳ IN PROGRESS
+## Run 3 — s12 classification ✅ COMPLETE (GPU); overflow ⏳ CPU pass running
 
 Job **66825** (5-GPU array, interleaved sharding: 40 shards, GPU g does g,g+5,…,g+35).
-s12 = 987,911,532,890 candidates. Launched 2026-06-05 05:06 CEST; ETA ~9–10 h
-(~early/mid-afternoon). Output `/home/ahat01/cws12run/`.
-- accepted so far / overflow so far: **<update on completion>**
-- s12 overflow will also need a CPU IP-check pass (like Run 2).
+Output `/home/ahat01/cws12run/`. Wall **~7.75 h** (tasks 26307–27905 s, ~6% spread —
+interleaving fixed the load imbalance). **Coverage 100.000%.**
+- processed: **987,911,532,890**
+- accepted (GPU IP-pass): **14,201,801** (0.0014% — far below the minor types,
+  confirming bigger structure → lower accept rate)
+- overflow (np>256): **14,121,722** (0.0014%)
+- **overflow CPU IP-check: job 66875** (n11) — reflexive-recovered: **<pending>**
+- s12 final IP-pass = 14,201,801 (GPU) + (CPU overflow reflexive).
+
+## Cumulative so far (45 of 46 structures: 43 minor + s12)
+- candidates processed: **119,663,998,637** (118.68B minor + 0.988T s12)
+- reflexive (IP-pass): **80,087,604 (minor, final) + 14,201,801 (s12 GPU) + s12-overflow-reflexive**
 
 ## Not yet run
-- **s13** (987,911,532,890) — twin of s12, ~9–10 h on 5 GPUs.
-- **s3** (10,046,036,135,619, 82.7% of all work) — ~3.9 d on 5 GPUs / ~1.6 d full fleet.
+- **s13** (987,911,532,890) — twin of s12, ~7.75 h on 5 GPUs (expect ~same as s12).
+- **s3** (10,046,036,135,619, 82.7% of all work) — ~3.2 d on 5 GPUs / ~1.4 d full fleet.
