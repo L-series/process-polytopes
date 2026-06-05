@@ -17,7 +17,7 @@ set -uo pipefail
 cd "${SLURM_SUBMIT_DIR:-$(pwd)}"
 export PALP_W5_POOL=results/cache/w5.ip
 BIN="$PWD/PALP/cws-5d.x"
-OUT=/home/ahat01/cws43run; WORK=$OUT/ovf_cpu
+OUT="${RUNDIR:-/home/ahat01/cws43run}"; WORK=$OUT/ovf_cpu
 rm -rf "$WORK"; mkdir -p "$WORK/chunks" "$WORK/out"
 echo "### host=$(hostname) $(date) ###"
 echo "concatenating overflow..."
