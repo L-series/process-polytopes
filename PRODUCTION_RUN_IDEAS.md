@@ -181,14 +181,20 @@ Cluster GPU inventory: **8× RTX6000BW (n31+n32, 4/node) + 8× L40 (n21+n22, 4/n
 
 | GPU fleet (IP-filter @ FP rate) | aggregate | wall-clock (12.14 T) |
 |---|---|---|
-| 8 RTX6000BW only (n31+n32) | ~43 M/s | **~3.0 d** |
-| 8 RTX6000BW + 8 L40 (L40 ≈0.7×, est.) | ~73 M/s | **~1.9 d** |
-| + 256 CPU cores on independent shards | ~76 M/s | **~1.85 d** |
+| 8 RTX6000BW only (n31+n32) @ ~5.36M | ~43 M/s | **~3.0 d** |
+| 8 RTX6000BW + 8 L40 (L40 **measured 0.92×**) | ~82 M/s | **~1.7 d** |
+| + 256 CPU cores on independent shards | ~85 M/s | **~1.65 d** |
 
-Type-3 alone (10.05 T) is ~0.83× of these (~1.5 d full fleet). **Caveats:** (1)
+**L40 rate measured (job 66806, n22):** FP np_cap 64 = **5.49M/s** (RTX6000BW
+5.94M) → **0.92×** — far above the old 0.7× guess, because the FP walk is FP32-heavy
+and the L40 (Ada, strong FP32) nearly matches Blackwell on it. (On the *old*
+triangular walk the L40 was 0.72× — FP closes the gap.) So the L40 half of the
+fleet pulls its weight: at np_cap 256, 8×5.36M + 8×~4.9M ≈ **82 M/s**.
+
+Type-3 alone (10.05 T) is ~0.83× of these (~1.4 d full fleet). **Caveats:** (1)
 these are the **IP-filter** rate (the stage FP accelerates); the full
 generate→filter pipeline may now be **CWS-generation-bound** — measure generation
-before treating ~2 days as firm. (2) L40 (half the fleet) still unmeasured. (3)
+before treating ~2 days as firm. (2)
 Numbers use the representative ~5.36M/s @ np_cap 256; light/empty regions vary
 4.5–6.3M/s.
 
