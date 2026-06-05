@@ -64,17 +64,22 @@ Wall: ~79 min (66815, tail-limited by contiguous-shard imbalance) + ~1 min (6682
 - accept rate **0.0642%**, overflow rate **0.0574%** (of processed).
 - accepted is pre-deduplication (passes IP; not yet reduced to distinct polytopes).
 
-## Run 2 — CPU overflow IP-check ⏳ IN PROGRESS
+## Run 2 — CPU overflow IP-check ✅ COMPLETE
 
 Job **66824** (std node n11, 128 cores, `split` + `xargs -P128`). Pipes all overflow
 CWS rows through PALP `cws-5d.x -i -f` (full uncapped point enumeration + reflexivity;
 the GPU overflow format is natively PALP-readable — no conversion). Recovers the
-reflexive CWS the GPU deferred -> completes Run 1.
+reflexive CWS the GPU deferred -> completes Run 1. Wall: **1244 s (~21 min)**.
 
 - overflow rows fed: **68,066,584** (includes s38/s40/s42 fix overflow: 82,073).
-- reflexive (IP-pass) recovered: **<pending — update when 66824 finishes>**
-- result file: `/home/ahat01/cws43run/overflow_reflexive.txt`
-- **Run 1 final IP-pass = 76,216,562 (GPU accepted) + (CPU-recovered overflow).**
+- reflexive (IP-pass) recovered: **3,871,042** (**5.687%** of overflow — far above the
+  0.064% GPU accept rate, since np>256 polytopes are much more often reflexive).
+- result file: `/home/ahat01/cws43run/overflow_reflexive.txt` (230 MB).
+
+### Run 1 + Run 2 — the 43 minor types, FINAL
+- candidates processed: **118,676,087,105** (100%)
+- **total reflexive (IP-pass): 80,087,604** = 76,216,562 (GPU) + 3,871,042 (CPU overflow)
+- overall IP-pass rate: **0.0675%** of processed (pre-dedup).
 
 ## Run 3 — s12 classification ⏳ IN PROGRESS
 
