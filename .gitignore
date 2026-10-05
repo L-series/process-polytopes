@@ -2,6 +2,7 @@
 src/classify/build/
 src/classify/build-cuda/
 src/sort/build/
+src/process/build/
 lean/.lake/
 *.o
 *.a
@@ -29,3 +30,7 @@ __pycache__/
 # Local working files / AI session artifacts
 notes
 memory.md
+
+# Local plotting cache and independent PALP reference worktree
+/.cache/
+/PALP-clean/
