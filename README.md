@@ -16,3 +16,7 @@ Alternatively, you can clone the repository with submodules in one step:
 ```bash
 git clone --recurse-submodules <repository-url>
 ```
+
+### Commit message hook
+
+Enable the native Git hook with `git config core.hooksPath .githooks`.
