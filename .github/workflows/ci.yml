@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  palp-build:
+    name: PALP builds
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository and submodules
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24 # v31.11.1
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Lint
+        run: nix develop -i -c ./scripts/lint.sh
+
+      - name: Check whether PALP needs building
+        id: palp-build-needed
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD_SHA: ${{ github.sha }}
+        run: |
+          changed="$(./scripts/palp-build-needed.sh "$BASE_SHA" "$HEAD_SHA")"
+          echo "changed=$changed" >> "$GITHUB_OUTPUT"
+
+      - name: Build PALP
+        if: steps.palp-build-needed.outputs.changed == 'true'
+        run: nix develop -i -c make -C PALP all-dims

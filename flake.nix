@@ -12,6 +12,10 @@
         packages = with pkgs; [
           gcc
           gnumake
+          clang-tools
+          prettier
+          shfmt
+          git
         ];
       };
     };
