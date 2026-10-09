@@ -16,6 +16,7 @@
           prettier
           shfmt
           git
+          python3
         ];
       };
     };

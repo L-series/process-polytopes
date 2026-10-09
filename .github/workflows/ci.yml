@@ -38,3 +38,6 @@ jobs:
       - name: Build PALP
         if: steps.palp-build-needed.outputs.changed == 'true'
         run: nix develop -i -c make -C PALP all-dims
+
+      - name: CWS regression tests
+        run: nix develop -i -c ./scripts/test-cws.sh

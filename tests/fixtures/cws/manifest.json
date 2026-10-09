@@ -1,0 +1,334 @@
+{
+  "baseline_palp_commit": "968bb4b3c6c42a0893c95340e81718548e13f12a",
+  "normal_form_option": "poly -fN: vertices of P; omit whitespace and informational perm= only",
+  "compiler": "GCC 11.4.0, GNUmakefile default -O3 -g -W -Wall",
+  "cases": [
+    {
+      "name": "2d",
+      "dimension": 2,
+      "capacity": 4,
+      "args": [
+        "-c2",
+        "-n2",
+        "{inputs}/ws-1d.txt",
+        "{inputs}/ws-1d.txt",
+        "-t",
+        "0",
+        "0"
+      ],
+      "count": 1,
+      "types": {
+        "2WS:2,2,0": 1
+      },
+      "distinct_normal_forms": 1
+    },
+    {
+      "name": "3d",
+      "dimension": 3,
+      "capacity": 4,
+      "args": [
+        "-c3"
+      ],
+      "count": 21,
+      "types": {
+        "2WS:2,2,1": 17,
+        "2WS:2,3,0": 3,
+        "3WS:2,2,0,2,0,0,0": 1
+      },
+      "distinct_normal_forms": 21
+    },
+    {
+      "name": "4d",
+      "dimension": 4,
+      "capacity": 4,
+      "args": [
+        "-c4"
+      ],
+      "count": 17320,
+      "types": {
+        "2WS:2,2,2": 16040,
+        "2WS:2,3,1": 1122,
+        "2WS:2,4,0": 95,
+        "2WS:3,3,0": 6,
+        "3WS:2,2,0,2,0,0,1": 36,
+        "3WS:2,2,0,2,0,1,0": 17,
+        "3WS:2,2,0,3,0,0,0": 3,
+        "4WS:2,2,0,2,0,0,0,2,0,0,0,0,0,0,0": 1
+      },
+      "distinct_normal_forms": 10780
+    },
+    {
+      "name": "5d-2ws-00",
+      "dimension": 5,
+      "capacity": 5,
+      "args": [
+        "-c5",
+        "-n2",
+        "{inputs}/ws-1d.txt",
+        "{inputs}/ws-4d-first1000.txt",
+        "-t",
+        "0",
+        "0"
+      ],
+      "count": 1000,
+      "types": {
+        "2WS:2,5,0": 1000
+      },
+      "distinct_normal_forms": 997
+    },
+    {
+      "name": "5d-2ws-11",
+      "dimension": 5,
+      "capacity": 5,
+      "args": [
+        "-c5",
+        "-n2",
+        "{inputs}/ws-3d-first20.txt",
+        "{inputs}/ws-3d-first20.txt",
+        "-t",
+        "1",
+        "1"
+      ],
+      "count": 1539,
+      "types": {
+        "2WS:3,3,1": 1539
+      },
+      "distinct_normal_forms": 1538
+    },
+    {
+      "name": "5d-2ws-22",
+      "dimension": 5,
+      "capacity": 5,
+      "args": [
+        "-c5",
+        "-n2",
+        "{inputs}/ws-3d-first8.txt",
+        "{inputs}/ws-4d-first12.txt",
+        "-t",
+        "2",
+        "2"
+      ],
+      "count": 1080,
+      "types": {
+        "2WS:2,3,2": 1080
+      },
+      "distinct_normal_forms": 1079
+    },
+    {
+      "name": "5d-3ws-000-113",
+      "dimension": 5,
+      "capacity": 5,
+      "args": [
+        "-c5",
+        "-n3",
+        "{inputs}/ws-1d.txt",
+        "{inputs}/ws-1d.txt",
+        "{inputs}/ws-3d.txt",
+        "-t",
+        "0",
+        "0",
+        "0"
+      ],
+      "count": 95,
+      "types": {
+        "3WS:2,2,0,4,0,0,0": 95
+      },
+      "distinct_normal_forms": 81
+    },
+    {
+      "name": "5d-3ws-000-221",
+      "dimension": 5,
+      "capacity": 5,
+      "args": [
+        "-c5",
+        "-n3",
+        "{inputs}/ws-2d.txt",
+        "{inputs}/ws-2d.txt",
+        "{inputs}/ws-1d.txt",
+        "-t",
+        "0",
+        "0",
+        "0"
+      ],
+      "count": 6,
+      "types": {
+        "3WS:2,3,0,3,0,0,0": 6
+      },
+      "distinct_normal_forms": 6
+    },
+    {
+      "name": "5d-3ws-110",
+      "dimension": 5,
+      "capacity": 5,
+      "args": [
+        "-c5",
+        "-n3",
+        "{inputs}/ws-2d.txt",
+        "{inputs}/ws-3d.txt",
+        "{inputs}/ws-1d.txt",
+        "-t",
+        "1",
+        "1",
+        "0"
+      ],
+      "count": 1122,
+      "types": {
+        "3WS:2,2,0,3,0,1,0": 1122
+      },
+      "distinct_normal_forms": 969
+    },
+    {
+      "name": "5d-3ws-220",
+      "dimension": 5,
+      "capacity": 5,
+      "args": [
+        "-c5",
+        "-n3",
+        "{inputs}/ws-3d-first14.txt",
+        "{inputs}/ws-3d-first14.txt",
+        "{inputs}/ws-1d.txt",
+        "-t",
+        "2",
+        "2",
+        "0"
+      ],
+      "count": 1099,
+      "types": {
+        "3WS:2,2,0,2,0,2,0": 1099
+      },
+      "distinct_normal_forms": 1086
+    },
+    {
+      "name": "5d-3ws-111",
+      "dimension": 5,
+      "capacity": 5,
+      "args": [
+        "-c5",
+        "-n3",
+        "{inputs}/ws-3d-first40.txt",
+        "{inputs}/ws-2d.txt",
+        "{inputs}/ws-2d.txt",
+        "-t",
+        "1",
+        "1",
+        "1"
+      ],
+      "count": 1505,
+      "types": {
+        "3WS:2,2,0,3,0,0,1": 1505
+      },
+      "distinct_normal_forms": 1488
+    },
+    {
+      "name": "5d-3ws-211",
+      "dimension": 5,
+      "capacity": 5,
+      "args": [
+        "-c5",
+        "-n3",
+        "{inputs}/ws-3d-first10.txt",
+        "{inputs}/ws-2d.txt",
+        "{inputs}/ws-2d.txt",
+        "-t",
+        "2",
+        "1",
+        "1"
+      ],
+      "count": 1401,
+      "types": {
+        "3WS:2,2,0,2,1,1,0": 1401
+      },
+      "distinct_normal_forms": 816
+    },
+    {
+      "name": "5d-3ws-221",
+      "dimension": 5,
+      "capacity": 5,
+      "args": [
+        "-c5",
+        "-n3",
+        "{inputs}/ws-3d-first5.txt",
+        "{inputs}/ws-3d-first5.txt",
+        "{inputs}/ws-2d.txt",
+        "-t",
+        "2",
+        "2",
+        "1"
+      ],
+      "count": 1468,
+      "types": {
+        "3WS:2,2,0,2,0,1,1": 1468
+      },
+      "distinct_normal_forms": 784
+    },
+    {
+      "name": "5d-3ws-222",
+      "dimension": 5,
+      "capacity": 5,
+      "args": [
+        "-c5",
+        "-n3",
+        "{inputs}/ws-3d-first7.txt",
+        "{inputs}/ws-3d-first7.txt",
+        "{inputs}/ws-3d-first7.txt",
+        "-t",
+        "2",
+        "2",
+        "2"
+      ],
+      "count": 1622,
+      "types": {
+        "3WS:2,2,0,2,0,0,2": 1622
+      },
+      "distinct_normal_forms": 1543
+    },
+    {
+      "name": "5d-3ws-220-swapped",
+      "dimension": 5,
+      "capacity": 5,
+      "args": [
+        "-c5",
+        "-n3",
+        "{inputs}/ws-3d-swapped.txt",
+        "{inputs}/ws-3d-swapped.txt",
+        "{inputs}/ws-1d.txt",
+        "-t",
+        "2",
+        "2",
+        "0"
+      ],
+      "count": 4,
+      "types": {
+        "3WS:2,2,0,2,0,2,0": 4
+      },
+      "distinct_normal_forms": 4
+    }
+  ],
+  "malformed": [
+    {
+      "file": "missing-weights.txt",
+      "diagnostic": "need at least 2 numbers!",
+      "nonzero_exit": false
+    },
+    {
+      "file": "wrong-first-degree.txt",
+      "diagnostic": "degree vs. weights!",
+      "nonzero_exit": false
+    },
+    {
+      "file": "wrong-second-degree.txt",
+      "diagnostic": "degree vs. weights!",
+      "nonzero_exit": false
+    },
+    {
+      "file": "truncated-row.txt",
+      "diagnostic": "INPUT error: numbers?",
+      "nonzero_exit": false
+    },
+    {
+      "file": "negative-weight.txt",
+      "diagnostic": "Assertion",
+      "nonzero_exit": true
+    }
+  ]
+}
