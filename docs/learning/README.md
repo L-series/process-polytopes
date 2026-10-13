@@ -21,6 +21,13 @@ Each note will cite verified primary sources with precise hypotheses and identif
 the Lean declarations it supports. Abstract existence, executable enumeration,
 and completed census evidence remain distinct.
 
+The [permanent theory agents](../THEORY_AGENTS.md) provide bounded literature
+research, independent checking in both directions between prose and Lean
+statements, and final proof simplification using pinned Mathlib. The audit
+compares the two independently completed reports; semantic revisions trigger
+affected checks again. These definitions are available, but research, auditing
+and optimization still require approval of their respective chunks.
+
 See [the consolidation status](../PORTING_PLAN.md) for the reviewed source and
 approval-gated sequence. Literature notes and the formal package are not yet
 ported.

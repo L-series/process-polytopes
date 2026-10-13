@@ -14,6 +14,7 @@ all lattice realizations or all five-dimensional reflexive polytopes.
 - `docs/learning/`: single-weight manuscript and planned literature notes.
 - `docs/experiments/`: experiment index; benchmark records are planned.
 - `docs/PORTING_PLAN.md`: scope, source provenance, and execution status.
+- `.codex/agents/`: permanent theory-agent definitions; see `docs/THEORY_AGENTS.md`.
 - `proofs/`: planned Lean package; it does not exist yet.
 
 ## Existing build and test commands
@@ -85,6 +86,14 @@ Execute one approved chunk at a time. Report commits, validation/CI, deviations,
 and the proposed next chunk; stop until the requester approves continuing.
 Theory-first execution starts with literature, then the audit and proof port.
 The integrated descriptor cross-check still waits for the CPU descriptor port.
+
+Use the roles and assignment/isolation protocol in
+[`docs/THEORY_AGENTS.md`](docs/THEORY_AGENTS.md) for approved theory work.
+Definitions do not authorize execution. Run statement checkers in fresh contexts
+with separate inputs and freeze both reports before comparison. The blind checker
+receives only the prepared formal packet; do not send it plan/manuscript content.
+Final proof optimization follows the completed port and catalogue check, preserves
+audited statements and pins, and requires a clean build and axiom guards.
 
 Keep datasets, checkpoints, build products, and frozen source archives out of
 Git. Do not modify the dirty sibling proof checkout; use the reviewed frozen

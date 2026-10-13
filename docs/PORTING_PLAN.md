@@ -52,16 +52,17 @@ PALP-linked distributions MIT-only.
 **C00 introduces the operating baseline and frozen source inventory here.**
 Literature, the fresh build/audit, and proof modules have not landed.
 
-| Group                                   | Planned work                                                                  | Acceptance boundary                                                            |
-| --------------------------------------- | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| T-L1, T-L2, T-L3                        | Seven primary-source literature topics in three batches                       | Verified references, hypotheses, and exact proof-step support                  |
-| T-A0                                    | Fresh coherent snapshot build and proof-chain/claim audit                     | Scoped claims, dependency graph, transitive axiom evidence                     |
-| T-P0 through T-P9                       | Pinned Lean/Mathlib setup and dependency-ordered proof port                   | Each commit builds; proof CI runs `lake build` after setup                     |
-| C01 through C13, including split chunks | CPU references, generation, classification, replay, and tools                 | Exact CWS/point/NF parity, safe arithmetic, lossless records                   |
-| T-C0                                    | Archived Lean catalogue versus integrated PALP descriptors                    | Deferred until C02; computational correspondence is not geometric completeness |
-| G00 through G09                         | Approved GPU setup, reference scanner, completion, and optional optimizations | Real-device tests, exact CPU recovery, conservative bounds, sanitizers         |
-| B00 through B04                         | Experiment inventory, reproducible measurements, and source maps              | Sourced numbers and matching complete-work boundaries                          |
-| R00 through R05                         | Approved production runs, reconciliation, catalogues, and release             | Complete descriptor coverage and exact NF reduction                            |
+| Group                                   | Planned work                                                                                 | Acceptance boundary                                                                      |
+| --------------------------------------- | -------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| T-L1, T-L2, T-L3                        | Seven primary-source literature topics in three batches                                      | Verified references, hypotheses, and exact proof-step support                            |
+| T-A0                                    | Fresh coherent snapshot build, isolated two-way statement checks and proof-chain/claim audit | Reconciled statement reports, scoped claims, dependency graph, transitive axiom evidence |
+| T-P0 through T-P9                       | Pinned Lean/Mathlib setup and dependency-ordered proof port                                  | Each commit builds; proof CI runs `lake build` after setup                               |
+| C01 through C13, including split chunks | CPU references, generation, classification, replay, and tools                                | Exact CWS/point/NF parity, safe arithmetic, lossless records                             |
+| T-C0                                    | Archived Lean catalogue versus integrated PALP descriptors                                   | Deferred until C02; computational correspondence is not geometric completeness           |
+| T-O0                                    | Final proof clarity/concision and pinned Mathlib reuse after T-P9 and T-C0                   | Unchanged audited statement scope and trust; clean full build and axiom guards           |
+| G00 through G09                         | Approved GPU setup, reference scanner, completion, and optional optimizations                | Real-device tests, exact CPU recovery, conservative bounds, sanitizers                   |
+| B00 through B04                         | Experiment inventory, reproducible measurements, and source maps                             | Sourced numbers and matching complete-work boundaries                                    |
+| R00 through R05                         | Approved production runs, reconciliation, catalogues, and release                            | Complete descriptor coverage and exact NF reduction                                      |
 
 The table groups related chunks, not a strict checklist. Actual prerequisites
 govern execution: C01/B00 establish reference and benchmark contracts before
@@ -69,6 +70,13 @@ caching or GPU setup; benchmark closure comes later. No row authorizes the next
 chunk. GPU provisioning and production allocations need separate resource
 approval. T-C0 is the exception to theory-first ordering because the integrated
 descriptor implementation does not exist yet.
+
+The [permanent theory agents](THEORY_AGENTS.md) define one reusable literature
+researcher, two independent statement checkers and a final proof optimizer.
+Both checker reports are frozen before comparison; the blind checker sees only
+formal types and necessary definitions. Important discrepancies need explicit
+dispositions. Agent definitions are available as setup; the literature, audit,
+proof port and optimization remain approval-gated work.
 
 ## Rules for every chunk
 

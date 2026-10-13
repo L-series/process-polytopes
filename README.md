@@ -74,6 +74,7 @@ distinct-polytope counts.
 ## Documentation
 
 - [Agent operating manual](AGENTS.md)
+- [Permanent theory agents and assignment protocol](docs/THEORY_AGENTS.md)
 - [Consolidation scope, provenance, and status](docs/PORTING_PLAN.md)
 - [Learning notes and single-weight manuscript](docs/learning/README.md)
 - [Experiment index](docs/experiments/README.md)
