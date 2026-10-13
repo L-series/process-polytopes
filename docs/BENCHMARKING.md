@@ -1,19 +1,21 @@
 Use end-to-end wall time for a fixed workload as your primary metric, and express it as candidate CWS classified per second. That works across CPU, GPU, and mixed implementations.
 
+```text
                    fixed number of input candidates
 throughput=────────────────────────────────────────────────
            elapsed wall time until all results are complete
+```
 
 “Complete” must include CPU fallback for overflow or numerical uncertainty. Merely submitting candidates to the GPU does not count.
 
-| Metric | Role |
-|---|---|
-| Wall time for a fixed workload | Primary measure of optimization progress |
-| Candidate CWS classified/second | Convenient throughput presentation |
-| CWS/core/second | Useful for CPU scaling; unsuitable for CPU–GPU comparisons |
-| CPU cycles and instruction counts | Diagnose CPU changes |
-| Kernel time, bandwidth, occupancy, stalls | Diagnose GPU changes |
-| Candidates/joule or cost/million candidates | Optional hardware-efficiency comparison |
+| Metric                                      | Role                                                       |
+| ------------------------------------------- | ---------------------------------------------------------- |
+| Wall time for a fixed workload              | Primary measure of optimization progress                   |
+| Candidate CWS classified/second             | Convenient throughput presentation                         |
+| CWS/core/second                             | Useful for CPU scaling; unsuitable for CPU–GPU comparisons |
+| CPU cycles and instruction counts           | Diagnose CPU changes                                       |
+| Kernel time, bandwidth, occupancy, stalls   | Diagnose GPU changes                                       |
+| Candidates/joule or cost/million candidates | Optional hardware-efficiency comparison                    |
 
 There is no useful equivalence between a CPU core and a CUDA core. Compare specified resource configurations instead: one CPU core, a fixed multicore allocation, or one GPU with a stated number of host CPU cores.
 
