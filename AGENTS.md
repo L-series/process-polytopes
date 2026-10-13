@@ -69,6 +69,12 @@ Use Conventional Commits as checked by `scripts/check-commit-message.sh`.
 Separate refactors, behavior changes, CPU changes, and GPU changes. Keep tests and
 relevant README/manual updates with the change. Do not add AI coauthor trailers.
 
+Before every commit, ensure affected documentation reflects the final changes.
+When the user requests revisions to work in progress, update the affected
+documentation alongside those revisions rather than leaving it describing an
+earlier version. Check this manual, README, and relevant learning, experiment,
+and proof documentation as applicable.
+
 Work on fresh `integration/cws-5d` branches in the root and PALP repositories.
 Keep original main and production refs untouched during integration. Experiment
 branches are archival: never delete, force-push, or rewrite them. Main promotion
