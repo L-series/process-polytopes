@@ -58,20 +58,29 @@ PALP-linked distributions MIT-only.
 
 ## Current execution order
 
-**C00 introduces the operating baseline and frozen source inventory here.**
-Literature, the fresh build/audit, and proof modules have not landed.
+**C00 is complete, and the approved consolidated T-L1–T-L3 research batch has
+produced all seven literature notes.** The [learning index](learning/README.md)
+links the notes and their standalone LaTeX compilation with introductory
+definitions, citations, scope limitations, and source provenance.
 
-| Group                                   | Planned work                                                                                 | Acceptance boundary                                                                      |
-| --------------------------------------- | -------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| T-L1, T-L2, T-L3                        | Seven primary-source literature topics in three batches                                      | Verified references, hypotheses, and exact proof-step support                            |
-| T-A0                                    | Fresh coherent snapshot build, isolated two-way statement checks and proof-chain/claim audit | Reconciled statement reports, scoped claims, dependency graph, transitive axiom evidence |
-| T-P0 through T-P9                       | Pinned Lean/Mathlib setup and dependency-ordered proof port                                  | Each commit builds; proof CI runs `lake build` after setup                               |
-| C01 through C13, including split chunks | CPU references, generation, classification, replay, and tools                                | Exact CWS/point/NF parity, safe arithmetic, lossless records                             |
-| T-C0                                    | Archived Lean catalogue versus integrated PALP descriptors                                   | Deferred until C02; computational correspondence is not geometric completeness           |
-| T-O0                                    | Final proof clarity/concision and pinned Mathlib reuse after T-P9 and T-C0                   | Unchanged audited statement scope and trust; clean full build and axiom guards           |
-| G00 through G09                         | Approved GPU setup, reference scanner, completion, and optional optimizations                | Real-device tests, exact CPU recovery, conservative bounds, sanitizers                   |
-| B00 through B04                         | Experiment inventory, reproducible measurements, and source maps                             | Sourced numbers and matching complete-work boundaries                                    |
-| R00 through R05                         | Approved production runs, reconciliation, catalogues, and release                            | Complete descriptor coverage and exact NF reduction                                      |
+A pinned staging build and paired round-2 statement checks are recorded outside
+Git. Round 1 is superseded because its blind provenance was unconfirmed. The
+frozen round-2 reports, blind addendum, and integrator comparison are evidence
+for T-A0, not its completed tracked synthesis: the full source/claim/dependency
+matrix and issue dispositions still belong in the pending `docs/proof-audit.md`.
+No proof modules have been ported, and `proofs/` does not exist yet.
+
+| Group                                   | Work and current status                                                             | Acceptance boundary                                                                      |
+| --------------------------------------- | ----------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| T-L1, T-L2, T-L3                        | Seven primary-source research notes and consolidated LaTeX review complete          | Verified references, hypotheses, and exact proof-step support                            |
+| T-A0                                    | Staging build and paired statement checks recorded; tracked audit synthesis pending | Reconciled statement reports, scoped claims, dependency graph, transitive axiom evidence |
+| T-P0 through T-P9                       | Pinned Lean/Mathlib setup and dependency-ordered proof port                         | Each commit builds; proof CI runs `lake build` after setup                               |
+| C01 through C13, including split chunks | CPU references, generation, classification, replay, and tools                       | Exact CWS/point/NF parity, safe arithmetic, lossless records                             |
+| T-C0                                    | Archived Lean catalogue versus integrated PALP descriptors                          | Deferred until C02; computational correspondence is not geometric completeness           |
+| T-O0                                    | Final proof clarity/concision and pinned Mathlib reuse after T-P9 and T-C0          | Unchanged audited statement scope and trust; clean full build and axiom guards           |
+| G00 through G09                         | Approved GPU setup, reference scanner, completion, and optional optimizations       | Real-device tests, exact CPU recovery, conservative bounds, sanitizers                   |
+| B00 through B04                         | Experiment inventory, reproducible measurements, and source maps                    | Sourced numbers and matching complete-work boundaries                                    |
+| R00 through R05                         | Approved production runs, reconciliation, catalogues, and release                   | Complete descriptor coverage and exact NF reduction                                      |
 
 The table groups related chunks, not a strict checklist. Actual prerequisites
 govern execution: C01/B00 establish reference and benchmark contracts before
@@ -84,8 +93,8 @@ The [permanent theory agents](THEORY_AGENTS.md) define one reusable literature
 researcher, two independent statement checkers and a final proof optimizer.
 Both checker reports are frozen before comparison; the blind checker sees only
 formal types and necessary definitions. Important discrepancies need explicit
-dispositions. Agent definitions are available as setup; the literature, audit,
-proof port and optimization remain approval-gated work.
+dispositions. The completed research and recorded checks do not authorize the
+proof port or optimization; further implementation remains approval-gated.
 
 ## Rules for every chunk
 

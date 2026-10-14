@@ -11,8 +11,9 @@ reflexive polytopes arising from them.
 - **Combined weight systems:** consolidation and the verified census are in
   progress. This checkout has PALP CPU generation and exact reference regressions;
   the consolidated classifier and CUDA pipeline are planned.
-- **Theory:** the reviewed sibling proof source has been frozen. Literature
-  notes, the fresh proof audit, and the pinned Lean port are planned.
+- **Theory:** the reviewed sibling proof source has been frozen. Seven literature
+  notes and a consolidated LaTeX review are available. The tracked proof-audit
+  synthesis and the pinned Lean port remain pending.
 
 The [long-term mathematical goal](docs/learning/THEORY_ROADMAP.md) is complete
 KS WS/CWS-based enumeration in every fixed dimension with lattice realizations
@@ -83,6 +84,7 @@ distinct-polytope counts.
 - [Permanent theory agents and assignment protocol](docs/THEORY_AGENTS.md)
 - [Consolidation scope, provenance, and status](docs/PORTING_PLAN.md)
 - [Learning notes and separate single-weight paper](docs/learning/README.md)
+- [Consolidated literature review with basic definitions](docs/learning/LITERATURE_REVIEW.tex)
 - [Reusable local literature sources](docs/learning/sources/README.md)
 - [Experiment index](docs/experiments/README.md)
 - [Benchmark contract](docs/BENCHMARKING.md)

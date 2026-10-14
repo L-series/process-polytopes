@@ -79,7 +79,13 @@ alongside the bounded assignment to a fresh generic agent. This is an explicit
 prompt fallback, not automatic loading of the custom role. Do not start real
 research or proof work merely to test configuration discovery.
 
-The definitions have been checked for valid TOML and required fields. Live role
-discovery and agent execution have not been tested; the current session's spawn
-interface has no custom-role selector. Literature, audit, proof-port and
-optimization work remain unstarted.
+The definitions have been checked for valid TOML and required fields. Automatic
+custom-role discovery has not been verified in this CLI; its spawn interface has
+no custom-role selector, so the explicit-prompt fallback above remains necessary.
+
+The approved research batch has produced [seven literature notes and their
+LaTeX compilation](learning/README.md). A pinned staging build and the paired
+round-2 statement-check reports are archived outside Git; round 1 is superseded
+because blind provenance was unconfirmed. The tracked audit synthesis and issue
+dispositions remain pending. Proof-port and final optimization work have not
+started.

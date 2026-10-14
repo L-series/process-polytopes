@@ -4,7 +4,10 @@ Use this directory as a local shared cache for primary papers consulted during
 approved literature/audit work. PDFs and author-provided TeX sources may be saved
 here for later agents to read without fetching the same document repeatedly.
 The directory sits alongside the separate single-weight paper and learning notes.
-It currently contains instructions only; no papers have been downloaded.
+The completed [literature review](../README.md#literature-review) records primary
+PDFs and available author TeX sources in this checkout's ignored cache, with
+exact versions, hashes, and provenance. These cached files are not included in a
+clone; use the notes' citations to retrieve matching sources when needed.
 
 ## Organization
 

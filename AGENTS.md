@@ -11,7 +11,8 @@ all lattice realizations or all five-dimensional reflexive polytopes.
 - `PALP/`: pinned PALP submodule and current CPU executables.
 - `scripts/`: lint, commit-message checks, build detection, and CWS tests.
 - `tests/`: Python standard-library tests and exact CWS/NF reference fixtures.
-- `docs/learning/`: separate single-weight paper, theory roadmap, and learning notes.
+- `docs/learning/`: separate single-weight paper, theory roadmap, learning notes,
+  and the standalone `LITERATURE_REVIEW.tex` compilation.
 - `docs/experiments/`: experiment index; benchmark records are planned.
 - `docs/PORTING_PLAN.md`: scope, source provenance, and execution status.
 - `.codex/agents/`: permanent theory-agent definitions; see `docs/THEORY_AGENTS.md`.
@@ -92,6 +93,12 @@ long-term mathematical goal and source roles. `SINGLE_WS_5d.tex` is a separate
 single-weight paper, not the official manuscript or specification for this work;
 use it for cross-checks/reference leads and verify primary sources. Keep the
 global completeness goal distinct from the approved abstract port/native scope.
+
+Keep the Markdown literature notes and `LITERATURE_REVIEW.tex` compilation in
+sync. Its LuaLaTeX build instructions are in `docs/learning/README.md`; write PDF
+and auxiliary outputs outside the checkout.
+Use `$...$` for inline Markdown math and `$$...$$` for displays. Raw `\[...\]`
+is not recognized as math by Prettier and can have its subscripts corrupted.
 
 During approved literature work, cache primary PDFs and available TeX sources in
 `docs/learning/sources/` following its README. Check cached versions before fetching,
