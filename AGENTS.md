@@ -93,6 +93,12 @@ single-weight paper, not the official manuscript or specification for this work;
 use it for cross-checks/reference leads and verify primary sources. Keep the
 global completeness goal distinct from the approved abstract port/native scope.
 
+During approved literature work, cache primary PDFs and available TeX sources in
+`docs/learning/sources/` following its README. Check cached versions before fetching,
+retain source URLs/versions/hashes, and assign disjoint cache writes to researchers.
+Cached documents stay out of Git; notes retain citations and provenance references.
+The blind statement checker must not read cached literature.
+
 Use the roles and assignment/isolation protocol in
 [`docs/THEORY_AGENTS.md`](docs/THEORY_AGENTS.md) for approved theory work.
 Definitions do not authorize execution. Run statement checkers in fresh contexts

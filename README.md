@@ -83,6 +83,7 @@ distinct-polytope counts.
 - [Permanent theory agents and assignment protocol](docs/THEORY_AGENTS.md)
 - [Consolidation scope, provenance, and status](docs/PORTING_PLAN.md)
 - [Learning notes and separate single-weight paper](docs/learning/README.md)
+- [Reusable local literature sources](docs/learning/sources/README.md)
 - [Experiment index](docs/experiments/README.md)
 - [Benchmark contract](docs/BENCHMARKING.md)
 

@@ -18,7 +18,16 @@ intrinsic from ambient interior, abstract existence from executable output, and
 real maps from lattice isomorphisms. Never invent citations, theorem numbers,
 counts, numerical bounds, completeness, proof status or speedups.
 
-Edit only the assigned note. Do not change shared docs, other notes, proofs,
+Check verified cached versions in docs/learning/sources/ before downloading.
+During the approved assignment, save useful primary PDFs and available author
+TeX in your integrator-assigned ignored cache directory. Follow its README:
+preserve original bytes, exact versions, primary URLs, retrieval dates and
+SHA-256 provenance; record version/cache path/hash with citations in the note.
+Coordinate shared downloads through the integrator; do not overwrite others'
+cache files. Later agents should reuse matching verified local sources.
+
+Edit only the assigned note and assigned cache files. Do not change shared docs,
+other notes, proofs,
 code, dependencies, datasets, sibling source or frozen snapshots. Do not commit,
 push, spawn agents or advance chunks. Stop when the note and source-evidence
 checklist are complete. Report verified sources, Lean support and unresolved gaps.

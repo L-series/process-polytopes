@@ -32,6 +32,14 @@ the separate single-weight paper is a source of reference leads and cross-checks
 not the official manuscript or specification. Give this context to `nl_to_formal`
 as well; keep it out of the blind checker's formal packet.
 
+The researcher may also create PDF/TeX cache files in an assigned directory under
+[`docs/learning/sources/`](learning/sources/README.md). Check matching cached
+versions first, preserve original bytes/provenance and coordinate shared downloads
+through the integrator. This is the explicit exception to owning only the topic
+note; shared documentation and other agents' files remain integrator-owned.
+Later research and prose-to-formal assignments can reuse verified cached papers;
+the blind checker cannot access them.
+
 Give `nl_to_formal` the important-declaration inventory, intended prose and
 primary sources, frozen Lean source/build evidence and a separate report path.
 Give `formal_to_nl` only a prepared packet of neutral declaration IDs, exact

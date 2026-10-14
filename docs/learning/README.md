@@ -13,6 +13,14 @@ The [mathematical roadmap](THEORY_ROADMAP.md) records the long-term goal of
 complete WS/CWS-based enumeration in every fixed dimension, its proposed
 dependency structure and the distinction from the current scoped proof port.
 
+## Reusable primary documents
+
+During approved research, agents may save PDFs and available author TeX sources
+in [`sources/`](sources/README.md), alongside the existing single-weight paper.
+Check this local cache before fetching a document again, retain exact versions
+and provenance, and direct later agents to matching cached sources. Downloads
+are ignored by Git; citations and provenance references belong in the notes.
+
 ## Planned theory-first notes
 
 - Weight systems, weighted projective spaces, and simplex witnesses.
