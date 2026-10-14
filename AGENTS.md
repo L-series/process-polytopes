@@ -11,7 +11,7 @@ all lattice realizations or all five-dimensional reflexive polytopes.
 - `PALP/`: pinned PALP submodule and current CPU executables.
 - `scripts/`: lint, commit-message checks, build detection, and CWS tests.
 - `tests/`: Python standard-library tests and exact CWS/NF reference fixtures.
-- `docs/learning/`: single-weight manuscript and planned literature notes.
+- `docs/learning/`: separate single-weight paper, theory roadmap, and learning notes.
 - `docs/experiments/`: experiment index; benchmark records are planned.
 - `docs/PORTING_PLAN.md`: scope, source provenance, and execution status.
 - `.codex/agents/`: permanent theory-agent definitions; see `docs/THEORY_AGENTS.md`.
@@ -86,6 +86,12 @@ Execute one approved chunk at a time. Report commits, validation/CI, deviations,
 and the proposed next chunk; stop until the requester approves continuing.
 Theory-first execution starts with literature, then the audit and proof port.
 The integrated descriptor cross-check still waits for the CPU descriptor port.
+
+Follow [`docs/learning/THEORY_ROADMAP.md`](docs/learning/THEORY_ROADMAP.md) for the
+long-term mathematical goal and source roles. `SINGLE_WS_5d.tex` is a separate
+single-weight paper, not the official manuscript or specification for this work;
+use it for cross-checks/reference leads and verify primary sources. Keep the
+global completeness goal distinct from the approved abstract port/native scope.
 
 Use the roles and assignment/isolation protocol in
 [`docs/THEORY_AGENTS.md`](docs/THEORY_AGENTS.md) for approved theory work.

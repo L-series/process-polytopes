@@ -2,10 +2,16 @@
 
 ## Existing reference
 
-[SINGLE_WS_5d.tex](SINGLE_WS_5d.tex) is the single-weight manuscript and the
-reference for scientific conventions. Its historical proof-status statements
-must be reconciled during the planned audit and proof port; this index does not
-certify them.
+[SINGLE_WS_5d.tex](SINGLE_WS_5d.tex) is the author's separate paper on the
+single-weight-system part of the five-dimensional classification programme,
+not the official manuscript for this theory development. Its rough proof chain
+and theorem references can help locate primary sources and cross-check claims.
+The new work must independently verify those sources and the Lean statements;
+this index does not certify the paper's historical proof-status assertions.
+
+The [mathematical roadmap](THEORY_ROADMAP.md) records the long-term goal of
+complete WS/CWS-based enumeration in every fixed dimension, its proposed
+dependency structure and the distinction from the current scoped proof port.
 
 ## Planned theory-first notes
 

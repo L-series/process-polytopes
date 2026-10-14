@@ -6,6 +6,15 @@ approval-gated chunks and fresh `integration/cws-5d` branches in both repositori
 
 ## Delivery boundary
 
+The [long-term mathematical roadmap](learning/THEORY_ROADMAP.md) targets complete
+KS WS/CWS-based enumeration in every fixed dimension, with explicit lattice
+realizations and subpolytope recovery. It distinguishes the reflexive duality
+route from the additional argument needed for nonreflexive one-point polytopes.
+This goal guides the literature and audit; missing steps are future proof
+obligations, not automatically authorized additions to the consolidation scope.
+`SINGLE_WS_5d.tex` is the author's separate single-weight paper and a source of
+reference leads/cross-checks, not the official manuscript or specification here.
+
 The goal is a reproducible census of generated CWS Newton polytopes on the
 implemented/PALP reference lattice, retaining IP-but-nonreflexive and reflexive
 classes. New quotient/sublattice enumeration, reflexive-subpolytope expansion, and

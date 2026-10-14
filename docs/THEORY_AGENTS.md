@@ -27,6 +27,10 @@ that planning artifact to be committed.
 Give the researcher the chunk, exact topic brief, reviewed frozen source path,
 relevant primary-source starting points and one owned note path. Its note must
 include precise statements, verified references, Lean support and explicit gaps.
+Include the [mathematical roadmap](learning/THEORY_ROADMAP.md) in its assignment:
+the separate single-weight paper is a source of reference leads and cross-checks,
+not the official manuscript or specification. Give this context to `nl_to_formal`
+as well; keep it out of the blind checker's formal packet.
 
 Give `nl_to_formal` the important-declaration inventory, intended prose and
 primary sources, frozen Lean source/build evidence and a separate report path.

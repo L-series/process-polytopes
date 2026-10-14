@@ -5,14 +5,20 @@ reflexive polytopes arising from them.
 
 ## Status
 
-- **Single weight systems:** the scientific sector is complete; its manuscript
-  supplies the reference conventions. Restoring its processing tools into the
-  integration branch is planned.
+- **Single weight systems:** the scientific sector is complete. Its separate
+  paper provides context and reference leads. Restoring its processing tools
+  into the integration branch is planned.
 - **Combined weight systems:** consolidation and the verified census are in
   progress. This checkout has PALP CPU generation and exact reference regressions;
   the consolidated classifier and CUDA pipeline are planned.
 - **Theory:** the reviewed sibling proof source has been frozen. Literature
   notes, the fresh proof audit, and the pinned Lean port are planned.
+
+The [long-term mathematical goal](docs/learning/THEORY_ROADMAP.md) is complete
+KS WS/CWS-based enumeration in every fixed dimension with lattice realizations
+and subpolytope recovery accounted for. The existing single-weight paper is a
+separate work, not the official manuscript for that development. The current
+integration scope below does not yet deliver the full mathematical endpoint.
 
 The CWS delivery covers the implemented descriptor/input-pool universe on the
 PALP reference lattice, retaining both IP-but-nonreflexive and reflexive classes.
@@ -76,7 +82,7 @@ distinct-polytope counts.
 - [Agent operating manual](AGENTS.md)
 - [Permanent theory agents and assignment protocol](docs/THEORY_AGENTS.md)
 - [Consolidation scope, provenance, and status](docs/PORTING_PLAN.md)
-- [Learning notes and single-weight manuscript](docs/learning/README.md)
+- [Learning notes and separate single-weight paper](docs/learning/README.md)
 - [Experiment index](docs/experiments/README.md)
 - [Benchmark contract](docs/BENCHMARKING.md)
 
