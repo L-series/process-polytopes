@@ -104,7 +104,10 @@ outstanding. Repeat the context-affected donor readings in verified isolation
 before claiming that closure; retain the frozen informed report and literature.
 The foundation port now includes the complete faithful `Basic` and
 `ReflexiveDuality` modules, with 26 additional donor theorem bodies imported
-and covered by compiler-derived axiom auditing. The remaining donor port,
+and covered by compiler-derived axiom auditing. The weight/box port adds complete
+`WeightSystem` and `BoxReduction` modules with 30 further donor results, retaining
+their audited scopes. These are faithful ports, not newly isolated semantic
+checks. The remaining donor port,
 eighteen KS obligations and seven routines are unfinished; final optimization
 remains deferred. The separately
 approved first proof-CI chunk introduces a

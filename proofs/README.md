@@ -7,8 +7,8 @@ in every fixed dimension, with lattice realizations and subpolytope search.
 Nonreflexive IP classification is excluded; IP weights and possibly nonreflexive
 containers remain intermediate objects.
 
-The package now contains the complete faithful `Basic` and `ReflexiveDuality`
-ports, extracted weight-system definitions, eighteen major statement contracts,
+The package now contains complete faithful `Basic`, `ReflexiveDuality`,
+`WeightSystem` and `BoxReduction` ports, eighteen major statement contracts,
 list-pipeline orchestration, genuine
 conditional composition and dimension-zero proofs, seven data holes, and
 eighteen supporting proof holes. See [STATEMENTS.md](STATEMENTS.md) for the exact
@@ -25,6 +25,14 @@ dual closure. `Refpoly.lean` imports the new duality module, so the existing
 compiler exporter and axiom audit inspect both modules and all their helpers.
 The eight designated closed targets and statement lock remain unchanged; none
 of the eighteen KS proof holes or seven routine holes is discharged by this port.
+
+The weight/box chunk adds 30 donor theorem/lemma bodies: 14 in `WeightSystem`
+and 16 in `BoxReduction`, together with their supporting definitions. Kernel
+subspace topology, half-weight depth changes and the explicit CWS component
+lifting hypothesis are retained. Box reduction assumes a volume bound and
+returns an existential radius; it is not an effective search bound. Both
+modules are imported and covered by the existing compiler audit. No KS hole is
+closed, and no routine becomes executable in this chunk.
 
 ## Pinned setup and commands
 

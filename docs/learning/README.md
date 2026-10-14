@@ -82,3 +82,6 @@ claims or mathematical contracts.
 The complete `Basic` and `ReflexiveDuality` foundation modules are now faithfully
 ported and imported into the audited package. This port changes no literature
 claims and closes no KS obligation.
+`WeightSystem` and `BoxReduction` are also faithfully ported and imported;
+their 30 results preserve the kernel-interior, projection-lifting and
+existential box-bound hypotheses. No literature claim or compilation changes.

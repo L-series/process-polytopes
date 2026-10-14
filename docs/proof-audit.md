@@ -6,6 +6,8 @@ support and dispositions; the initial synthesis chunk changed documentation
 only. The subsequently approved foundation chunk faithfully ports the complete
 `Basic` and `ReflexiveDuality` modules. Further ports, statement repairs,
 implementations and independent checks require their own approved chunks.
+The subsequently approved weight/box chunk also ports the complete `WeightSystem`
+and `BoxReduction` modules, preserving their original mathematical scopes.
 
 The target remains `Refpoly.KS.classifies_reflexive : Classifies procedures`:
 for each natural dimension, an executable finite list of reflexive polytopes
@@ -115,7 +117,7 @@ be maximal or reflexive.
 ## Contract map: eighteen proof obligations
 
 All eighteen contract rows are **open** in the active package, including those
-whose foundation prerequisites are now ported. `O` below means
+with some library prerequisites now ported. `O` below means
 `proofs/Refpoly/KS/Obligations.lean`; `I` means
 `proofs/Refpoly/KS/Implementation.lean`. Donor paths are relative to its
 `proofs/Refpoly/`. A numbered work unit refers to the dependency ledger below.
@@ -182,7 +184,7 @@ implemented by noncomputable choice.
 | ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 0: synthesis                              | This ledger and synchronized status docs                                                                                      | Current approved documentation chunk; all findings disposed, all 25 holes mapped, isolation debt explicit; no mathematical changes                                                             |
 | 1: foundations (ported)                   | Complete `Basic` and `ReflexiveDuality` (T-P1)                                                                                | Unit 0; faithful bodies, unchanged existing definitions/types; both modules build from landed imports and are imported by the umbrella/compiler audit                                          |
-| 2: weights and box tools                  | Remaining `WeightSystem`, `BoxReduction` (T-P2)                                                                               | Unit 1; preserve topology, component-lifting and normalization hypotheses                                                                                                                      |
+| 2: weights and box tools (ported)         | Complete `WeightSystem` and `BoxReduction` (T-P2)                                                                             | Unit 1; both imported and compiler-audited; topology, component-lifting and normalization hypotheses preserved                                                                                 |
 | 3a: search support                        | `Algorithm`, `WeightSystemFinite`, `GeometricCWS` (T-P3)                                                                      | Unit 2; distinguish reachability/finite sets from executable lists                                                                                                                             |
 | 3b: circuits                              | `CircuitGeometry`, `CircuitInterior`, `CircuitSpan` (T-P4)                                                                    | Unit 2; independent of 3a until combined downstream; preserve full relation-kernel spanning                                                                                                    |
 | 4: finite geometry and containers         | `ReflexiveVolume`, `Finiteness`, `MaxMin`, `Minimal`, `Classification`, `CWSBasis`, `CWSContainer`, `CWSAssembly` (T-P5–T-P7) | Units 2, 3a, 3b; serialize coherent landed modules, not one large commit; keep weak legacy headlines scoped and retain stronger witnesses                                                      |
@@ -201,11 +203,13 @@ inventory. New public interfaces, predicate meanings or changes to existing
 statement types require explicit approval and fresh affected two-way checks;
 never regenerate a lock merely to suppress a comparison failure.
 
-Unit 1 is now ported: complete faithful foundations and reflexive duality, with
-umbrella imports, compiler-audit coverage, attribution and status updates. The
-proposed next chunk is **unit 2 only**: remaining `WeightSystem` results and
-`BoxReduction`. Preserve intrinsic topology, normalization and the component-IP
-lifting hypothesis. Keep proof-body reuse separate from interface repairs.
+Units 1 and 2 are now ported: complete faithful `Basic`, `ReflexiveDuality`,
+`WeightSystem` and `BoxReduction` modules, with imports, compiler-audit coverage,
+attribution and status updates. The proposed next chunk is **unit 3a only**:
+`Algorithm`, `WeightSystemFinite` and `GeometricCWS`. Preserve the distinction
+between reachability/finite sets and executable search, positive-feasibility
+guards and the geometric simplex witnesses. Keep faithful proof-body reuse
+separate from interface repairs or new executable behaviour.
 Acceptance remains targeted builds from landed imports, full pinned build,
 conditional gate, strict gate with known incompleteness reported, CPU/lint
 checks and remote results. A clean donor blind-review packet remains a separate
@@ -399,6 +403,51 @@ and three transitive `sorryAx` targets, with no other audit failure. All 20 CPU
 regressions and full native lint pass. Remote results are reported with the
 published chunk. Native tool versions are the same as the synthesis record.
 No literature claim or compilation changed.
+
+### Weight-system geometry and box reduction: unit 2
+
+The approved weight/box port adds complete `WeightSystem` and `BoxReduction` modules,
+including 14 weight-system theorem bodies, 16 box-reduction theorem/lemma bodies
+and their supporting definitions. Both modules match the verified frozen source
+byte-for-byte after the first import. The 29-file donor ledger was rechecked
+before copying; attribution headers and source identities are recorded in
+[SOURCES.md](../proofs/SOURCES.md). A bounded source-fidelity review found no
+declaration or audit-wiring discrepancy; it is not a new blind semantic review.
+
+The imported donor catalogue now additionally includes S05 (`pseudoreflexive`),
+S14 (`not_ip_of_weight_gt_half`), S29 (`BoxReduction.box_of_volume_bound`),
+S34 (`cws_ip_component`), S43 (`ip_half_reduction`) and S52 (`at_most_one_half`).
+S05 remains an abstract lattice-hull theorem without a Newton-hull identification;
+S34 retains its explicit real projection-lifting hypothesis. The half-weight
+reduction retains positivity and total weight $1/2$, with depth-2 IP on the
+truncated system; the obstruction lemmas retain their dimension hypotheses.
+Interior remains in the specified kernel subtype.
+
+Box reduction assumes a volume bound and ambient origin interior, includes
+dimension zero, and returns an existential natural radius. The proof uses
+classical choices of bounded-determinant lattice representatives. Its
+noncomputable supporting definitions are proof-library objects, not executable
+scientific routines. Neither a computed radius nor a sharp numerical estimate
+is claimed. Historical source prose about census counts is not a new certified
+count; the existing audit dispositions continue to apply.
+
+The umbrella imports `BoxReduction`; the KS import chain already imports
+`WeightSystem`. Compiler export includes all 84 constants defined in these two
+modules, including generated helpers. Their transitive axiom closures use only
+approved standard foundations, and all 54 exported theorem types agree with the
+frozen donor compiler inventory after whitespace normalization. The existing
+eight designated closed targets remain closed. Existing locked definitions,
+target inventory, statement lock, pins and scientific routine bodies are
+unchanged; no lock regeneration is needed for this faithful additive port.
+
+Targeted and full pinned builds, the conditional gate, all 19 audit/compiler
+regressions, all 20 exact CPU regressions and full native lint pass. Strict fails
+only on the same 25 direct and three transitive `sorryAx` targets; remote results
+are reported with the published chunk. The same eighteen KS
+proof holes, seven routine holes and three transitive targets remain; this
+chunk ports prerequisites without discharging them. The next proposed chunk is
+unit 3a's abstract search and geometric simplex support. Native tool versions
+remain as recorded above; no literature claim or compilation changed.
 
 See [proof commands](../proofs/README.md),
 [statement policy](../proofs/STATEMENTS.md),

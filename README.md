@@ -19,6 +19,9 @@ reflexive polytopes arising from them.
   clean donor blind-review closure remain pending.
   The complete `Basic` and `ReflexiveDuality` modules are now faithfully ported
   and included in compiler-derived axiom auditing; no KS hole is closed yet.
+  `WeightSystem` and `BoxReduction` are also fully ported, with 30 additional
+  donor results; effective weight search and executable box bounds do not
+  follow from those abstract proofs.
 
 The [long-term mathematical goal](docs/learning/THEORY_ROADMAP.md) is complete
 KS WS/CWS-based enumeration of **all reflexive polytopes** in every fixed

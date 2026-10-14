@@ -98,6 +98,10 @@ The complete `Basic` and `ReflexiveDuality` modules are now faithfully ported
 and imported, with 26 additional donor theorem bodies covered by the existing
 compiler-derived axiom audit. This supplies foundations and reflexive dual
 closure; it closes none of the eighteen KS contracts or seven routines.
+The complete faithful `WeightSystem` and `BoxReduction` ports add 30 further
+results and their supporting definitions. The component-IP lifting hypothesis
+and existential/noncomputable box radius remain explicit; these ports do not
+supply effective search or lattice reconstruction.
 
 Subsequent approved chunks port the remaining applicable source proofs and implement
 the missing search/lattice/recovery obligations. Keep faithful extraction,
