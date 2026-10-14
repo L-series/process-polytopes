@@ -74,6 +74,8 @@ affected checks again. These definitions are available, but research, auditing
 and optimization still require approval of their respective chunks.
 
 See [the consolidation status](../PORTING_PLAN.md) for the reviewed source and
-approval-gated sequence. The tracked frozen-source audit synthesis and full
-proof port remain pending; the initial contract scaffold is present but its
-supporting proofs and scientific routines are unfinished.
+approval-gated sequence. The [tracked frozen-source audit synthesis](../proof-audit.md)
+is complete; clean donor blind-review closure and the full proof port remain
+pending. The initial contract scaffold is present but its supporting proofs and
+scientific routines are unfinished. The synthesis changes no literature-note
+claims or mathematical contracts.

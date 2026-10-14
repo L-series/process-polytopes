@@ -85,10 +85,14 @@ generic bounded enumeration alone would not establish that identification.
 
 ## Relationship to approved integration work
 
-T-L1 through T-L3 supplied the literature. The frozen source's T-A0 tracked
-synthesis remains pending. The separately approved first proof-CI chunk adds
+T-L1 through T-L3 supplied the literature. The frozen source's
+[T-A0 tracked synthesis](../proof-audit.md) is complete, with source/contract
+mappings, audit dispositions and a revised dependency ledger. Clean donor
+blind-review closure remains outstanding because the historical round-2
+context received excluded repository metadata. The synthesis closes no Lean
+proofs or routines. The separately approved first proof-CI chunk adds
 generic contracts, conditional composition and strict/conditional gates, with
-fresh scoped statement checks; it does not silently complete T-A0.
+fresh scoped statement checks; it does not discharge that donor isolation debt.
 
 Subsequent approved chunks port applicable audited source proofs and implement
 the missing search/lattice/recovery obligations. Keep faithful extraction,

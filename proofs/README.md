@@ -12,6 +12,10 @@ lemmas, eighteen major statement contracts, list-pipeline orchestration, genuine
 conditional composition and dimension-zero proofs, seven data holes, and
 eighteen supporting proof holes. See [STATEMENTS.md](STATEMENTS.md) for the exact
 chain and [SOURCES.md](SOURCES.md) for attribution and dependency provenance.
+The [proof audit ledger](../docs/proof-audit.md) maps every obligation and routine
+to donor support, missing bridges, prerequisites and acceptance criteria. Its
+tracked synthesis is complete; the donor's clean blind-review closure and full
+port remain open. No supporting hole is closed by that documentation work.
 
 ## Pinned setup and commands
 

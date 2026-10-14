@@ -94,7 +94,10 @@ supporting results) and a **MEDIUM implementation/termination limitation**
 (seven unfinished routines). Both are acknowledged WIP, not interface
 mismatches: the strict gate remains red, and no completed or executable KS
 classification is claimed. Reports and source ledgers stay outside Git.
-This scoped review does not complete the pending full T-A0 synthesis.
+This scoped review is separate from the
+[tracked T-A0 synthesis](../docs/proof-audit.md), which now records the complete
+source-to-contract map and findings. The donor's clean blind-review closure
+remains open because its round-2 context received excluded repository metadata.
 
 The lock records compiler-printed target signatures, predicate/data definitions,
 their explicit constant dependencies (including elided instances), and the

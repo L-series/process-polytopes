@@ -37,3 +37,9 @@ label PALP-linked distributions MIT-only.
 The literature and exact source-version citations are in
 [`docs/learning/`](../docs/learning/README.md). The separate
 `SINGLE_WS_5d.tex` paper is not the specification for this scaffold.
+
+The [tracked audit synthesis](../docs/proof-audit.md) records all 71 designated
+donor declarations, issue dispositions and the source map for the eighteen
+contracts and seven routines. It qualifies the historical round-2 blind report's
+context exposure; clean donor blind-review closure remains outstanding. The
+synthesis does not change the source identities or certify an executable port.

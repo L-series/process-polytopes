@@ -14,8 +14,9 @@ reflexive polytopes arising from them.
 - **Theory:** seven literature notes and their LaTeX compilation are available.
   The pinned [Lean proof-contract scaffold](proofs/README.md) has a genuine
   conditional composition proof, but its supporting proofs and scientific
-  routines remain unfinished. The full frozen-source audit synthesis and
-  incremental port remain pending.
+  routines remain unfinished. The [frozen-source audit synthesis](docs/proof-audit.md)
+  maps all eighteen proof obligations and seven routines. The full port and
+  clean donor blind-review closure remain pending.
 
 The [long-term mathematical goal](docs/learning/THEORY_ROADMAP.md) is complete
 KS WS/CWS-based enumeration of **all reflexive polytopes** in every fixed
@@ -110,6 +111,7 @@ existing CPU checks remain independent. See the [statement chain](proofs/STATEME
 - [Experiment index](docs/experiments/README.md)
 - [Benchmark contract](docs/BENCHMARKING.md)
 - [Lean proof scaffold and gate commands](proofs/README.md)
+- [Proof audit, contract map and dependency ledger](docs/proof-audit.md)
 - [Major formal contracts and unfinished obligations](proofs/STATEMENTS.md)
 - [Proof source provenance](proofs/SOURCES.md)
 

@@ -94,12 +94,20 @@ custom-role discovery has not been verified in this CLI; its spawn interface has
 no custom-role selector, so the explicit-prompt fallback above remains necessary.
 
 The approved research batch has produced [seven literature notes and their
-LaTeX compilation](learning/README.md). A pinned staging build and the paired
-round-2 statement-check reports are archived outside Git; round 1 is superseded
-because blind provenance was unconfirmed. The tracked audit synthesis and issue
-dispositions remain pending. Proof-port and final optimization work have not
-started in full. The separately approved first proof-CI chunk introduces a
+LaTeX compilation](learning/README.md). A pinned staging build and round-2
+statement reports are archived outside Git; round 1 is superseded because blind
+provenance was unconfirmed. The [tracked audit synthesis](proof-audit.md) is
+complete, with all source/contract mappings and issue dispositions. Round 2's
+attempted blind context received excluded repository metadata, so its report
+is qualified historical evidence and clean donor blind-review closure remains
+outstanding. Repeat the context-affected donor readings in verified isolation
+before claiming that closure; retain the frozen informed report and literature.
+Proof-port and final optimization work have not started in full. The separately
+approved first proof-CI chunk introduces a
 dimension-generic reflexive-only contract scaffold, conditional composition and
 strict/conditional gates. Its new interfaces receive fresh scoped checks.
-Completing that review does not complete the old T-A0 synthesis or authorize the
-next proof-filling chunk; final optimization remains deferred.
+That scoped review does not close the donor isolation debt or authorize the next
+proof-filling chunk; final optimization remains deferred. Use one reusable
+dependency-aware porter for coupled work after approval, and delegate only
+bounded independent mapping or review with disjoint ownership. The integrator
+owns shared documentation, audit integration and publication.
