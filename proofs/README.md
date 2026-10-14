@@ -8,7 +8,8 @@ Nonreflexive IP classification is excluded; IP weights and possibly nonreflexive
 containers remain intermediate objects.
 
 The package now contains complete faithful `Basic`, `ReflexiveDuality`,
-`WeightSystem` and `BoxReduction` ports, eighteen major statement contracts,
+`WeightSystem`, `BoxReduction`, `Algorithm`, `WeightSystemFinite` and
+`GeometricCWS` ports, eighteen major statement contracts,
 list-pipeline orchestration, genuine
 conditional composition and dimension-zero proofs, seven data holes, and
 eighteen supporting proof holes. See [STATEMENTS.md](STATEMENTS.md) for the exact
@@ -33,6 +34,15 @@ lifting hypothesis are retained. Box reduction assumes a volume bound and
 returns an existential radius; it is not an effective search bound. Both
 modules are imported and covered by the existing compiler audit. No KS hole is
 closed, and no routine becomes executable in this chunk.
+
+The faithful `Algorithm`, `WeightSystemFinite` and `GeometricCWS` ports add 21
+results and supporting definitions. Reachability remains abstract. The
+normalized-IP finiteness proof uses positive-feasibility-guarded nodes and
+classical selection; neither supplies executable search. Geometric simplex
+IP/reachability retains the explicit affine independence, normalized positive
+zero relation and dual
+lattice-point witnesses, including lower-dimensional blocks. All three modules
+are imported and compiler-audited; no KS obligation or routine is closed.
 
 ## Pinned setup and commands
 

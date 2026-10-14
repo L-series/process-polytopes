@@ -107,7 +107,17 @@ The foundation port now includes the complete faithful `Basic` and
 and covered by compiler-derived axiom auditing. The weight/box port adds complete
 `WeightSystem` and `BoxReduction` modules with 30 further donor results, retaining
 their audited scopes. These are faithful ports, not newly isolated semantic
-checks. The remaining donor port,
+checks.
+The faithful `Algorithm`, `WeightSystemFinite` and `GeometricCWS` ports add 21
+results and supporting definitions. Reachability remains abstract. The
+normalized-IP finiteness proof uses positive-feasibility-guarded nodes and
+classical selection; neither supplies executable search. Geometric simplex
+IP/reachability retains the explicit affine independence, normalized positive
+zero relation and dual
+lattice-point witnesses, including lower-dimensional blocks. All three modules
+are imported and compiler-audited; no KS obligation or routine is closed.
+
+The remaining donor port,
 eighteen KS obligations and seven routines are unfinished; final optimization
 remains deferred. The separately
 approved first proof-CI chunk introduces a

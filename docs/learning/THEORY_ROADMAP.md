@@ -103,6 +103,15 @@ results and their supporting definitions. The component-IP lifting hypothesis
 and existential/noncomputable box radius remain explicit; these ports do not
 supply effective search or lattice reconstruction.
 
+The faithful `Algorithm`, `WeightSystemFinite` and `GeometricCWS` ports add 21
+results and supporting definitions. Reachability remains abstract. The
+normalized-IP finiteness proof uses positive-feasibility-guarded nodes and
+classical selection; neither supplies executable search. Geometric simplex
+IP/reachability retains the explicit affine independence, normalized positive
+zero relation and dual
+lattice-point witnesses, including lower-dimensional blocks. All three modules
+are imported and compiler-audited; no KS obligation or routine is closed.
+
 Subsequent approved chunks port the remaining applicable source proofs and implement
 the missing search/lattice/recovery obligations. Keep faithful extraction,
 statement repair and new behaviour separate. T-C0 still concerns the implemented

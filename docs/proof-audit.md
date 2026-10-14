@@ -8,6 +8,7 @@ only. The subsequently approved foundation chunk faithfully ports the complete
 implementations and independent checks require their own approved chunks.
 The subsequently approved weight/box chunk also ports the complete `WeightSystem`
 and `BoxReduction` modules, preserving their original mathematical scopes.
+Unit 3a now ports `Algorithm`, `WeightSystemFinite` and `GeometricCWS` faithfully.
 
 The target remains `Refpoly.KS.classifies_reflexive : Classifies procedures`:
 for each natural dimension, an executable finite list of reflexive polytopes
@@ -203,13 +204,13 @@ inventory. New public interfaces, predicate meanings or changes to existing
 statement types require explicit approval and fresh affected two-way checks;
 never regenerate a lock merely to suppress a comparison failure.
 
-Units 1 and 2 are now ported: complete faithful `Basic`, `ReflexiveDuality`,
-`WeightSystem` and `BoxReduction` modules, with imports, compiler-audit coverage,
-attribution and status updates. The proposed next chunk is **unit 3a only**:
-`Algorithm`, `WeightSystemFinite` and `GeometricCWS`. Preserve the distinction
-between reachability/finite sets and executable search, positive-feasibility
-guards and the geometric simplex witnesses. Keep faithful proof-body reuse
-separate from interface repairs or new executable behaviour.
+Units 1, 2 and 3a are now ported: complete faithful `Basic`,
+`ReflexiveDuality`, `WeightSystem`, `BoxReduction`, `Algorithm`,
+`WeightSystemFinite` and `GeometricCWS` modules, with imports, compiler-audit
+coverage, attribution and status updates. The proposed next chunk is **unit 3b
+only**: `CircuitGeometry`, `CircuitInterior` and `CircuitSpan`. Preserve the
+complete relation-kernel span, circuit support and positivity hypotheses.
+Keep faithful reuse separate from interface repairs or executable behaviour.
 Acceptance remains targeted builds from landed imports, full pinned build,
 conditional gate, strict gate with known incompleteness reported, CPU/lint
 checks and remote results. A clean donor blind-review packet remains a separate
@@ -445,9 +446,54 @@ regressions, all 20 exact CPU regressions and full native lint pass. Strict fail
 only on the same 25 direct and three transitive `sorryAx` targets; remote results
 are reported with the published chunk. The same eighteen KS
 proof holes, seven routine holes and three transitive targets remain; this
-chunk ports prerequisites without discharging them. The next proposed chunk is
-unit 3a's abstract search and geometric simplex support. Native tool versions
+chunk ports prerequisites without discharging them. Unit 3a's subsequent progress is recorded below. Native tool versions
 remain as recorded above; no literature claim or compilation changed.
+
+### Abstract search and geometric simplex support: unit 3a
+
+The approved chunk ports complete `Algorithm`, `WeightSystemFinite` and
+`GeometricCWS` modules: ten algorithm results, six finiteness results and five
+geometric results, with supporting definitions. The complete 29-file ledger was
+reverified; source after each first import is byte-identical to the frozen
+donor. Attribution headers qualify historical enumeration and native-IP prose.
+A bounded fidelity review confirmed source preservation and audit wiring, and
+corrected documentation to attribute feasibility guards specifically to `nodes`.
+This is not a new isolated semantic review.
+
+S07, S09, S13, S25 and S27 now have imported proof bodies. `algorithm_complete`
+proves target-path reachability with a cardinality bound for any selection rule;
+it does not produce an executable traversal. `branch_finite` requires strictly
+positive candidates. The finiteness proof uses positive-feasibility-guarded
+nodes, classical `positiveSelection`, finite branching and bounded depth;
+`Reachable` itself has no feasibility guard. These noncomputable proof-library
+objects do not fill `searchWeights`, establish rational selection or primitive
+encoding, or verify PALP's IP check/census.
+
+The geometric results identify the relation kernel of the given simplex,
+prove pairing surjectivity, and establish IP and reachability for its same
+weights, including lower-dimensional blocks. Affine independence, positivity,
+normalization, weighted zero relation and dual lattice-point membership remain
+explicit. These stronger witnesses avoid the legacy existential-witness gap;
+no claim is made that they alone discharge the generic circuit/weight contracts.
+
+The umbrella imports both new leaf modules and transitively `Algorithm`.
+Compiler export assigns 79 constants to these modules, including generated
+helpers; all have only approved standard foundations in their transitive axiom
+closures. Of 45 exported theorem types, 42 match the donor display after
+whitespace normalization. Three generated helpers (`SelectionRule.mk.congr_simp`,
+`WeightSystemFinite.positiveSelection.eq_1`, `dotLin.eq_1`) differ only in
+pretty-printed annotations on elided proof fields; their dependency lists match
+and the generating source is unchanged. No target, statement lock, pin, KS
+interface or scientific routine body changed.
+
+Targeted and full pinned builds, conditional proof audit with all 19 policy
+regressions, all 20 exact CPU regressions and full native lint pass. Strict
+fails only on the unchanged 25 direct and three transitive `sorryAx` targets;
+remote results are reported at publication. All eight designated closed targets
+remain closed. Eighteen KS proof obligations and seven routines remain open.
+The proposed next chunk is unit 3b: `CircuitGeometry`, `CircuitInterior` and
+`CircuitSpan`. Native tool versions remain as recorded above; no literature
+claim or compilation changed.
 
 See [proof commands](../proofs/README.md),
 [statement policy](../proofs/STATEMENTS.md),

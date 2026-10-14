@@ -22,6 +22,9 @@ reflexive polytopes arising from them.
   `WeightSystem` and `BoxReduction` are also fully ported, with 30 additional
   donor results; effective weight search and executable box bounds do not
   follow from those abstract proofs.
+  `Algorithm`, `WeightSystemFinite` and `GeometricCWS` now add 21 faithful
+  results on abstract reachability, finite normalized weights and explicitly
+  witnessed geometric simplex blocks. Executable weight search remains open.
 
 The [long-term mathematical goal](docs/learning/THEORY_ROADMAP.md) is complete
 KS WS/CWS-based enumeration of **all reflexive polytopes** in every fixed

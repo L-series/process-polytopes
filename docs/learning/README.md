@@ -85,3 +85,12 @@ claims and closes no KS obligation.
 `WeightSystem` and `BoxReduction` are also faithfully ported and imported;
 their 30 results preserve the kernel-interior, projection-lifting and
 existential box-bound hypotheses. No literature claim or compilation changes.
+
+The faithful `Algorithm`, `WeightSystemFinite` and `GeometricCWS` ports add 21
+results and supporting definitions. Reachability remains abstract. The
+normalized-IP finiteness proof uses positive-feasibility-guarded nodes and
+classical selection; neither supplies executable search. Geometric simplex
+IP/reachability retains the explicit affine independence, normalized positive
+zero relation and dual
+lattice-point witnesses, including lower-dimensional blocks. All three modules
+are imported and compiler-audited; no KS obligation or routine is closed.

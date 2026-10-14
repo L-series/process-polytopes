@@ -86,23 +86,34 @@ adding 30 theorem/lemma bodies and supporting definitions. Their intrinsic
 topology, component-lifting hypotheses, normalization and existential box-radius
 scope are preserved. Both modules are imported and compiler-audited; no KS hole
 is closed and no executable scientific routine is supplied by this chunk.
+
+The faithful `Algorithm`, `WeightSystemFinite` and `GeometricCWS` ports add 21
+results and supporting definitions. Reachability remains abstract. The
+normalized-IP finiteness proof uses positive-feasibility-guarded nodes and
+classical selection; neither supplies executable search. Geometric simplex
+IP/reachability retains the explicit affine independence, normalized positive
+zero relation and dual
+lattice-point witnesses, including lower-dimensional blocks. All three modules
+are imported and compiler-audited; no KS obligation or routine is closed.
+
 The scoped interface review is separate from the donor audit and does not
 discharge its isolation debt.
 
-| Group                                   | Work and current status                                                           | Acceptance boundary                                                                             |
-| --------------------------------------- | --------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| T-L1, T-L2, T-L3                        | Seven primary-source research notes and consolidated LaTeX review complete        | Verified references, hypotheses, and exact proof-step support                                   |
-| T-A0                                    | Tracked synthesis complete; clean donor blind-review closure outstanding          | Source/contract map and dispositions recorded; isolated affected readings still required        |
-| Initial proof-CI scaffold               | Pinned generic contracts, conditional composition, explicit supporting/data holes | Conditional proof and CPU gates pass; strict completeness intentionally remains red             |
-| T-P1: foundations and reflexive duality | Complete faithful `Basic` and `ReflexiveDuality` ports imported                   | 26 additional donor theorems; compiler export/axiom audit includes all imported declarations    |
-| T-P2: weight geometry and box tools     | Complete faithful `WeightSystem` and `BoxReduction` ports imported                | 30 additional donor results; preserve component lifting and existential/noncomputable box scope |
-| Subsequent proof chunks                 | Applicable source ports and missing executable/lattice/recovery proofs            | Preserve reviewed interfaces; discharge one approved unit at a time                             |
-| C01 through C13, including split chunks | CPU references, generation, classification, replay, and tools                     | Exact CWS/point/NF parity, safe arithmetic, lossless records                                    |
-| T-C0                                    | Archived Lean catalogue versus integrated PALP descriptors                        | Deferred until C02; computational correspondence is not geometric completeness                  |
-| T-O0                                    | Final proof clarity/concision and pinned Mathlib reuse after T-P9 and T-C0        | Unchanged audited statement scope and trust; clean full build and axiom guards                  |
-| G00 through G09                         | Approved GPU setup, reference scanner, completion, and optional optimizations     | Real-device tests, exact CPU recovery, conservative bounds, sanitizers                          |
-| B00 through B04                         | Experiment inventory, reproducible measurements, and source maps                  | Sourced numbers and matching complete-work boundaries                                           |
-| R00 through R05                         | Approved production runs, reconciliation, catalogues, and release                 | Complete descriptor coverage and exact NF reduction                                             |
+| Group                                   | Work and current status                                                            | Acceptance boundary                                                                             |
+| --------------------------------------- | ---------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| T-L1, T-L2, T-L3                        | Seven primary-source research notes and consolidated LaTeX review complete         | Verified references, hypotheses, and exact proof-step support                                   |
+| T-A0                                    | Tracked synthesis complete; clean donor blind-review closure outstanding           | Source/contract map and dispositions recorded; isolated affected readings still required        |
+| Initial proof-CI scaffold               | Pinned generic contracts, conditional composition, explicit supporting/data holes  | Conditional proof and CPU gates pass; strict completeness intentionally remains red             |
+| T-P1: foundations and reflexive duality | Complete faithful `Basic` and `ReflexiveDuality` ports imported                    | 26 additional donor theorems; compiler export/axiom audit includes all imported declarations    |
+| T-P2: weight geometry and box tools     | Complete faithful `WeightSystem` and `BoxReduction` ports imported                 | 30 additional donor results; preserve component lifting and existential/noncomputable box scope |
+| T-P3: search and simplex support        | Complete faithful `Algorithm`, `WeightSystemFinite`, `GeometricCWS` ports imported | 21 results; guarded finite nodes, abstract reachability and explicit geometric witnesses        |
+| Subsequent proof chunks                 | Applicable source ports and missing executable/lattice/recovery proofs             | Preserve reviewed interfaces; discharge one approved unit at a time                             |
+| C01 through C13, including split chunks | CPU references, generation, classification, replay, and tools                      | Exact CWS/point/NF parity, safe arithmetic, lossless records                                    |
+| T-C0                                    | Archived Lean catalogue versus integrated PALP descriptors                         | Deferred until C02; computational correspondence is not geometric completeness                  |
+| T-O0                                    | Final proof clarity/concision and pinned Mathlib reuse after T-P9 and T-C0         | Unchanged audited statement scope and trust; clean full build and axiom guards                  |
+| G00 through G09                         | Approved GPU setup, reference scanner, completion, and optional optimizations      | Real-device tests, exact CPU recovery, conservative bounds, sanitizers                          |
+| B00 through B04                         | Experiment inventory, reproducible measurements, and source maps                   | Sourced numbers and matching complete-work boundaries                                           |
+| R00 through R05                         | Approved production runs, reconciliation, catalogues, and release                  | Complete descriptor coverage and exact NF reduction                                             |
 
 The table groups related chunks, not a strict checklist. Actual prerequisites
 govern execution: C01/B00 establish reference and benchmark contracts before
