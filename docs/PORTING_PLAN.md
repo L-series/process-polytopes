@@ -8,10 +8,11 @@ approval-gated chunks and fresh `integration/cws-5d` branches in both repositori
 
 The [long-term mathematical roadmap](learning/THEORY_ROADMAP.md) targets complete
 KS WS/CWS-based enumeration in every fixed dimension, with explicit lattice
-realizations and subpolytope recovery. It distinguishes the reflexive duality
-route from the additional argument needed for nonreflexive one-point polytopes.
-This goal guides the literature and audit; missing steps are future proof
-obligations, not automatically authorized additions to the consolidation scope.
+realizations and subpolytope recovery, with **reflexive-only final targets**.
+The newly approved first proof-CI chunk specifies that endpoint, proves its
+conditional composition, and separates conditional success from strict
+incompleteness. Supporting proofs and scientific routines remain future
+obligations; nonreflexive IP classification is excluded from this theory scope.
 `SINGLE_WS_5d.tex` is the author's separate single-weight paper and a source of
 reference leads/cross-checks, not the official manuscript or specification here.
 
@@ -20,9 +21,11 @@ implemented/PALP reference lattice, retaining IP-but-nonreflexive and reflexive
 classes. New quotient/sublattice enumeration, reflexive-subpolytope expansion, and
 r-maximal search are excluded.
 
-The proof deliverable is the existing abstract theory with an honest audit, not
-new formal verification of the native descriptor census. Abstract coverage must
-not be advertised as verification of CUDA, PALP normal forms, or census counts.
+The proof programme now includes the dimension-generic executable KS endpoint
+specified in [proofs/STATEMENTS.md](../proofs/STATEMENTS.md). The scaffold is not
+that completed endpoint, and no new verification of the native descriptor census
+is claimed. Conditional coverage must not be advertised as verification of CUDA,
+PALP normal forms, or census counts.
 
 ## Integration and reviewed source
 
@@ -68,13 +71,17 @@ Git. Round 1 is superseded because its blind provenance was unconfirmed. The
 frozen round-2 reports, blind addendum, and integrator comparison are evidence
 for T-A0, not its completed tracked synthesis: the full source/claim/dependency
 matrix and issue dispositions still belong in the pending `docs/proof-audit.md`.
-No proof modules have been ported, and `proofs/` does not exist yet.
+The new `proofs/` scaffold extracts foundational definitions/equivalence lemmas,
+specifies eighteen major generic contracts and seven unfinished routines, and
+contains a genuine conditional composition proof. Its scoped interface review
+is separate from the pending full frozen-source synthesis.
 
 | Group                                   | Work and current status                                                             | Acceptance boundary                                                                      |
 | --------------------------------------- | ----------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
 | T-L1, T-L2, T-L3                        | Seven primary-source research notes and consolidated LaTeX review complete          | Verified references, hypotheses, and exact proof-step support                            |
 | T-A0                                    | Staging build and paired statement checks recorded; tracked audit synthesis pending | Reconciled statement reports, scoped claims, dependency graph, transitive axiom evidence |
-| T-P0 through T-P9                       | Pinned Lean/Mathlib setup and dependency-ordered proof port                         | Each commit builds; proof CI runs `lake build` after setup                               |
+| Initial proof-CI scaffold               | Pinned generic contracts, conditional composition, explicit supporting/data holes   | Conditional proof and CPU gates pass; strict completeness intentionally remains red      |
+| Subsequent proof chunks                 | Applicable source ports and missing executable/lattice/recovery proofs              | Preserve reviewed interfaces; discharge one approved unit at a time                      |
 | C01 through C13, including split chunks | CPU references, generation, classification, replay, and tools                       | Exact CWS/point/NF parity, safe arithmetic, lossless records                             |
 | T-C0                                    | Archived Lean catalogue versus integrated PALP descriptors                          | Deferred until C02; computational correspondence is not geometric completeness           |
 | T-O0                                    | Final proof clarity/concision and pinned Mathlib reuse after T-P9 and T-C0          | Unchanged audited statement scope and trust; clean full build and axiom guards           |
@@ -93,8 +100,8 @@ The [permanent theory agents](THEORY_AGENTS.md) define one reusable literature
 researcher, two independent statement checkers and a final proof optimizer.
 Both checker reports are frozen before comparison; the blind checker sees only
 formal types and necessary definitions. Important discrepancies need explicit
-dispositions. The completed research and recorded checks do not authorize the
-proof port or optimization; further implementation remains approval-gated.
+dispositions. The first proof-contract scaffold has its own approval. Completing it does not
+authorize the next proof port, routine implementation or optimization chunk.
 
 ## Rules for every chunk
 
@@ -105,6 +112,9 @@ proof port or optimization; further implementation remains approval-gated.
 - Stop after each chunk until the requester approves continuing.
 - Publish every new PALP SHA before publishing a root commit that pins it.
 - Preserve all original main, production, and experiment refs without rewriting.
+- The user-approved strict proof-completeness check may remain red while the
+  scaffold is unfinished; conditional proof and CPU checks must pass. Never
+  hide that failure with a soft-failure setting or claim the headline proved.
 
 ## Correctness and completion gates
 

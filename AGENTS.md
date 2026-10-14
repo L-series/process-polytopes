@@ -8,6 +8,12 @@ and its verified census are in progress. The current delivery covers the
 implemented descriptor/input-pool universe on the PALP reference lattice, not
 all lattice realizations or all five-dimensional reflexive polytopes.
 
+The separately approved theory programme targets all reflexive polytopes in
+every fixed dimension. Nonreflexive IP targets are excluded, but IP weights and
+possibly nonreflexive containers remain necessary intermediates. Its initial
+proof-contract scaffold is incomplete; conditional CI is not a proof of the
+headline classification result.
+
 - `PALP/`: pinned PALP submodule and current CPU executables.
 - `scripts/`: lint, commit-message checks, build detection, and CWS tests.
 - `tests/`: Python standard-library tests and exact CWS/NF reference fixtures.
@@ -16,7 +22,7 @@ all lattice realizations or all five-dimensional reflexive polytopes.
 - `docs/experiments/`: experiment index; benchmark records are planned.
 - `docs/PORTING_PLAN.md`: scope, source provenance, and execution status.
 - `.codex/agents/`: permanent theory-agent definitions; see `docs/THEORY_AGENTS.md`.
-- `proofs/`: planned Lean package; it does not exist yet.
+- `proofs/`: pinned Lean/Mathlib contract scaffold, obligations and CI audit tools.
 
 ## Existing build and test commands
 
@@ -49,10 +55,19 @@ multiplicities. They are PALP consistency regressions, not independent
 completeness certificates. Never regenerate goldens to make a test pass; see
 `tests/README.md` for the explicit baseline-review procedure.
 
-CUDA builds, the consolidated classification pipeline, benchmark runners, and
-`lake build` are planned, not available commands in this checkout. GPU acceptance
-will require an approved real device, not silent CPU fallback. Document the
-pinned Lean build command when the proof scaffold lands.
+With elan installed, the proof package pins Lean 4.30.0 and the full Mathlib lock:
+
+```bash
+(cd proofs && lake exe cache get && lake build)
+./scripts/test-proofs.sh conditional
+./scripts/test-proofs.sh strict
+```
+
+See [proofs/README.md](proofs/README.md). Strict completeness intentionally fails
+while registered proof/data holes remain; conditional proof CI and CPU CI must
+pass. Do not hide the strict failure or treat a conditional build as proof.
+CUDA builds, the native consolidated classifier and benchmark runners remain
+planned. GPU acceptance requires an approved real device, not silent CPU fallback.
 
 ## Benchmark and validation policy
 
@@ -93,6 +108,13 @@ long-term mathematical goal and source roles. `SINGLE_WS_5d.tex` is a separate
 single-weight paper, not the official manuscript or specification for this work;
 use it for cross-checks/reference leads and verify primary sources. Keep the
 global completeness goal distinct from the approved abstract port/native scope.
+
+Proof CI checks reviewed statement/definition locks and compiler-derived
+transitive axioms. Preserve the major target inventory, explicit reconstruction
+witnesses and already-closed results. Do not weaken statements, add completeness
+assumptions, replace routines with dummy outputs or update the lock merely to
+make CI pass. Interface/meaning changes require explicit approval and affected
+fresh two-way statement checks; proof bodies can be filled in approved chunks.
 
 Keep the Markdown literature notes and `LITERATURE_REVIEW.tex` compilation in
 sync. Its LuaLaTeX build instructions are in `docs/learning/README.md`; write PDF

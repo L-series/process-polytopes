@@ -13,6 +13,13 @@ The [mathematical roadmap](THEORY_ROADMAP.md) records the long-term goal of
 complete WS/CWS-based enumeration in every fixed dimension, its proposed
 dependency structure and the distinction from the current scoped proof port.
 
+The approved final theory target is now **reflexive polytopes only**.
+Nonreflexive IP examples in the notes remain useful for delimiting hypotheses
+and for understanding intermediate containers; they are not an additional
+classification promise. The [Lean scaffold](../../proofs/README.md) specifies
+the generic endpoint with conditional composition and an intentionally failing
+strict completeness gate.
+
 ## Reusable primary documents
 
 During approved research, agents may save PDFs and available author TeX sources
@@ -67,5 +74,6 @@ affected checks again. These definitions are available, but research, auditing
 and optimization still require approval of their respective chunks.
 
 See [the consolidation status](../PORTING_PLAN.md) for the reviewed source and
-approval-gated sequence. The tracked audit synthesis and the formal package
-remain pending.
+approval-gated sequence. The tracked frozen-source audit synthesis and full
+proof port remain pending; the initial contract scaffold is present but its
+supporting proofs and scientific routines are unfinished.

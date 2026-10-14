@@ -62,6 +62,16 @@ sandbox. Report accidental exposure and repeat affected blind readings in a
 fresh context. If the runtime cannot supply a fresh context, postpone the blind
 check rather than presenting an informed reconstruction as independent.
 
+A task tool may automatically inject project intent or prior-audit metadata
+even into a new conversation window. A refused/contaminated attempt is retained
+as provenance, not counted as a completed blind audit. A supported alternative
+is a new noninteractive CLI process in a neutral directory, with no resume/fork,
+`--no-custom-instructions`, builtin MCPs disabled and no available/permitted
+tools. Prompt-mode memory stays disabled. Supply only the sanitized formal packet
+inline and capture the response verbatim; keep intent, ID mappings, sources and
+the other report outside that directory. Verify and record the actual isolation
+settings and disclosure before accepting the result.
+
 Give `proof_optimizer` the final audited package, pinned dependencies, reconciled
 statement inventory, assigned files and a review-only or bounded-edit brief.
 The integrator verifies the clean full build and axiom guards before publication.
@@ -88,4 +98,8 @@ LaTeX compilation](learning/README.md). A pinned staging build and the paired
 round-2 statement-check reports are archived outside Git; round 1 is superseded
 because blind provenance was unconfirmed. The tracked audit synthesis and issue
 dispositions remain pending. Proof-port and final optimization work have not
-started.
+started in full. The separately approved first proof-CI chunk introduces a
+dimension-generic reflexive-only contract scaffold, conditional composition and
+strict/conditional gates. Its new interfaces receive fresh scoped checks.
+Completing that review does not complete the old T-A0 synthesis or authorize the
+next proof-filling chunk; final optimization remains deferred.

@@ -11,13 +11,17 @@ reflexive polytopes arising from them.
 - **Combined weight systems:** consolidation and the verified census are in
   progress. This checkout has PALP CPU generation and exact reference regressions;
   the consolidated classifier and CUDA pipeline are planned.
-- **Theory:** the reviewed sibling proof source has been frozen. Seven literature
-  notes and a consolidated LaTeX review are available. The tracked proof-audit
-  synthesis and the pinned Lean port remain pending.
+- **Theory:** seven literature notes and their LaTeX compilation are available.
+  The pinned [Lean proof-contract scaffold](proofs/README.md) has a genuine
+  conditional composition proof, but its supporting proofs and scientific
+  routines remain unfinished. The full frozen-source audit synthesis and
+  incremental port remain pending.
 
 The [long-term mathematical goal](docs/learning/THEORY_ROADMAP.md) is complete
-KS WS/CWS-based enumeration in every fixed dimension with lattice realizations
-and subpolytope recovery accounted for. The existing single-weight paper is a
+KS WS/CWS-based enumeration of **all reflexive polytopes** in every fixed
+dimension with lattice realizations and subpolytope recovery accounted for.
+Nonreflexive IP targets are excluded from that theory programme; IP weights and
+containers remain intermediates. The existing single-weight paper is a
 separate work, not the official manuscript for that development. The current
 integration scope below does not yet deliver the full mathematical endpoint.
 
@@ -56,8 +60,8 @@ nix develop -i -c ./scripts/lint.sh
 nix develop -i -c make -C PALP all-dims
 ```
 
-Add `--fix` to the lint command to apply formatting. CUDA and Lean environments
-will be documented when their setup chunks land; neither is available here yet.
+Add `--fix` to the lint command to apply formatting. CUDA setup remains planned.
+The Lean environment is separately pinned under `proofs/` and does not need Nix.
 
 Nix is optional locally. With GCC, GNU Make, and Python 3 installed, the CPU
 commands are:
@@ -78,6 +82,23 @@ These tests preserve exact CWS rows and vertex normal forms of P. They do not
 independently certify mathematical completeness, and accepted CWS counts are not
 distinct-polytope counts.
 
+### Proof CI
+
+With [elan](https://github.com/leanprover/elan) installed:
+
+```bash
+(cd proofs && lake exe cache get && lake build)
+./scripts/test-proofs.sh conditional
+./scripts/test-proofs.sh strict
+```
+
+The **conditional** gate checks that the precise major statements compose and
+that reviewed interfaces/closed results do not regress. The **strict** gate
+rejects all unproved dependencies and requires executable compilation; it is
+intentionally red while the scaffold contains holes. A green conditional check
+does not establish the headline theorem. Both jobs run on each push/PR; the
+existing CPU checks remain independent. See the [statement chain](proofs/STATEMENTS.md).
+
 ## Documentation
 
 - [Agent operating manual](AGENTS.md)
@@ -88,8 +109,10 @@ distinct-polytope counts.
 - [Reusable local literature sources](docs/learning/sources/README.md)
 - [Experiment index](docs/experiments/README.md)
 - [Benchmark contract](docs/BENCHMARKING.md)
+- [Lean proof scaffold and gate commands](proofs/README.md)
+- [Major formal contracts and unfinished obligations](proofs/STATEMENTS.md)
+- [Proof source provenance](proofs/SOURCES.md)
 
-The Lean package will live in `proofs/`; that directory and its build instructions
-are planned. Execution is theory-first after the operating bootstrap, with an
+The Lean package is in `proofs/`. Execution remains theory-first, with an
 approval check-in after every small chunk. Original experiment branches remain
 archival and must not be deleted or force-pushed.
