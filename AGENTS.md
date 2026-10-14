@@ -23,6 +23,8 @@ headline classification result.
 - `docs/PORTING_PLAN.md`: scope, source provenance, and execution status.
 - `.codex/agents/`: permanent theory-agent definitions; see `docs/THEORY_AGENTS.md`.
 - `proofs/`: pinned Lean/Mathlib contract scaffold, obligations and CI audit tools.
+  The complete donor `Basic` and `ReflexiveDuality` ports are imported; the
+  eighteen KS proof obligations and seven scientific routines remain open.
 - `docs/proof-audit.md`: source-to-contract map, audit dispositions, dependency
   ledger and outstanding donor blind-review isolation debt.
 

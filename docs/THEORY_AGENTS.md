@@ -102,7 +102,11 @@ attempted blind context received excluded repository metadata, so its report
 is qualified historical evidence and clean donor blind-review closure remains
 outstanding. Repeat the context-affected donor readings in verified isolation
 before claiming that closure; retain the frozen informed report and literature.
-Proof-port and final optimization work have not started in full. The separately
+The foundation port now includes the complete faithful `Basic` and
+`ReflexiveDuality` modules, with 26 additional donor theorem bodies imported
+and covered by compiler-derived axiom auditing. The remaining donor port,
+eighteen KS obligations and seven routines are unfinished; final optimization
+remains deferred. The separately
 approved first proof-CI chunk introduces a
 dimension-generic reflexive-only contract scaffold, conditional composition and
 strict/conditional gates. Its new interfaces receive fresh scoped checks.

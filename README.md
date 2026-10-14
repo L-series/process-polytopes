@@ -17,6 +17,8 @@ reflexive polytopes arising from them.
   routines remain unfinished. The [frozen-source audit synthesis](docs/proof-audit.md)
   maps all eighteen proof obligations and seven routines. The full port and
   clean donor blind-review closure remain pending.
+  The complete `Basic` and `ReflexiveDuality` modules are now faithfully ported
+  and included in compiler-derived axiom auditing; no KS hole is closed yet.
 
 The [long-term mathematical goal](docs/learning/THEORY_ROADMAP.md) is complete
 KS WS/CWS-based enumeration of **all reflexive polytopes** in every fixed

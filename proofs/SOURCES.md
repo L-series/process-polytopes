@@ -8,20 +8,27 @@ working-tree changes. The dirty sibling checkout was not modified.
 
 The frozen identities recorded by the operating bootstrap are:
 
-| Artifact                             | SHA-256                                                            |
-| ------------------------------------ | ------------------------------------------------------------------ |
-| HEAD-to-working-tree proof patch     | `f4acf9b4c35bae350e8aac0a9f202e823d83d6f66d9f6cadbf74d397ec72590f` |
-| Complete 29-file source ledger       | `04ed9be4f1df0e0013f84a13566a6c39bbaef7f3f74503ae4cc09696acca4091` |
-| Original `Refpoly/Basic.lean`        | `a716a1508842b4f4ed1b24eaf978d43758efbdb87990b4a64e80c8795089dfc4` |
-| Original `Refpoly/WeightSystem.lean` | `c874f2101fb944637922b022b765a357f96f38ba1a1595c716e811df5ca5f85a` |
-| Full dependency manifest             | `0d6def3ad257f03d2d0301868135497e764c1121813de38a7edbf81903510c1f` |
+| Artifact                                 | SHA-256                                                            |
+| ---------------------------------------- | ------------------------------------------------------------------ |
+| HEAD-to-working-tree proof patch         | `f4acf9b4c35bae350e8aac0a9f202e823d83d6f66d9f6cadbf74d397ec72590f` |
+| Complete 29-file source ledger           | `04ed9be4f1df0e0013f84a13566a6c39bbaef7f3f74503ae4cc09696acca4091` |
+| Original `Refpoly/Basic.lean`            | `a716a1508842b4f4ed1b24eaf978d43758efbdb87990b4a64e80c8795089dfc4` |
+| Original `Refpoly/ReflexiveDuality.lean` | `5389d21a9567b6cb0e22a10906b75f1592c488f7170d2c0af60301e96d3185ca` |
+| Original `Refpoly/WeightSystem.lean`     | `c874f2101fb944637922b022b765a357f96f38ba1a1595c716e811df5ca5f85a` |
+| Full dependency manifest                 | `0d6def3ad257f03d2d0301868135497e764c1121813de38a7edbf81903510c1f` |
 
-`Refpoly/Basic.lean` extracts the existing ambient/lattice/reflexivity/polarity
-definitions and the three `GLEquiv` equivalence lemmas. `WeightSystem.lean`
-extracts the dot functional, kernel, integer-hull and relative-IP definitions.
-Their mathematical meanings and namespaces are retained; their original module
-headers are replaced with extraction notices. The remainder of both original
-modules and the other original proof modules are **not** ported by this chunk.
+`Refpoly/Basic.lean` now ports the complete donor module after its original
+introductory header, with every definition, theorem statement and proof body
+unchanged. `Refpoly/ReflexiveDuality.lean` ports the complete donor source with
+an attribution header added. The foundation chunk adds 24 `Basic` theorem bodies
+and two duality theorem bodies beyond the initial extraction. Both modules are
+imported and covered by the existing compiler-derived axiom audit.
+
+`WeightSystem.lean` still extracts only the dot functional, kernel,
+integer-hull and relative-IP definitions. Its remaining theorems and the other
+donor modules are not yet ported. Mathematical meanings and namespaces are
+retained. References to the donor's `PROOF_PLAN.md` in original docstrings refer
+to the frozen donor package, not a new specification in this checkout.
 
 `Refpoly/KS/` is the new dimension-generic contract scaffold, not a claim that
 the frozen sibling already supplied its stronger executable endpoint. The

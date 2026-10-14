@@ -94,7 +94,12 @@ proofs or routines. The separately approved first proof-CI chunk adds
 generic contracts, conditional composition and strict/conditional gates, with
 fresh scoped statement checks; it does not discharge that donor isolation debt.
 
-Subsequent approved chunks port applicable audited source proofs and implement
+The complete `Basic` and `ReflexiveDuality` modules are now faithfully ported
+and imported, with 26 additional donor theorem bodies covered by the existing
+compiler-derived axiom audit. This supplies foundations and reflexive dual
+closure; it closes none of the eighteen KS contracts or seven routines.
+
+Subsequent approved chunks port the remaining applicable source proofs and implement
 the missing search/lattice/recovery obligations. Keep faithful extraction,
 statement repair and new behaviour separate. T-C0 still concerns the implemented
 descriptor catalogue and does not prove global geometric completeness. Final

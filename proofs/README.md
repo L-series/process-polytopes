@@ -7,8 +7,9 @@ in every fixed dimension, with lattice realizations and subpolytope search.
 Nonreflexive IP classification is excluded; IP weights and possibly nonreflexive
 containers remain intermediate objects.
 
-The package currently contains extracted foundational definitions/equivalence
-lemmas, eighteen major statement contracts, list-pipeline orchestration, genuine
+The package now contains the complete faithful `Basic` and `ReflexiveDuality`
+ports, extracted weight-system definitions, eighteen major statement contracts,
+list-pipeline orchestration, genuine
 conditional composition and dimension-zero proofs, seven data holes, and
 eighteen supporting proof holes. See [STATEMENTS.md](STATEMENTS.md) for the exact
 chain and [SOURCES.md](SOURCES.md) for attribution and dependency provenance.
@@ -16,6 +17,14 @@ The [proof audit ledger](../docs/proof-audit.md) maps every obligation and routi
 to donor support, missing bridges, prerequisites and acceptance criteria. Its
 tracked synthesis is complete; the donor's clean blind-review closure and full
 port remain open. No supporting hole is closed by that documentation work.
+
+The foundation port adds 26 donor theorem bodies beyond the initial extraction,
+including compactness, bounded lattice-point finiteness, bipolarity, uniqueness
+of the interior lattice point, lattice-equivalence invariants and reflexive
+dual closure. `Refpoly.lean` imports the new duality module, so the existing
+compiler exporter and axiom audit inspect both modules and all their helpers.
+The eight designated closed targets and statement lock remain unchanged; none
+of the eighteen KS proof holes or seven routine holes is discharged by this port.
 
 ## Pinned setup and commands
 

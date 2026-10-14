@@ -2,8 +2,9 @@
 
 This is the tracked synthesis of the frozen T-A0 source audit and the revised
 dependency plan for the dimension-generic reflexive KS programme. It records
-support and dispositions; it does not close a Lean obligation. The approved
-2026-10-15 chunk changes documentation only. Further ports, statement repairs,
+support and dispositions; the initial synthesis chunk changed documentation
+only. The subsequently approved foundation chunk faithfully ports the complete
+`Basic` and `ReflexiveDuality` modules. Further ports, statement repairs,
 implementations and independent checks require their own approved chunks.
 
 The target remains `Refpoly.KS.classifies_reflexive : Classifies procedures`:
@@ -40,7 +41,9 @@ repository dependencies. Frozen sources and private reports remain out of Git.
 The 2026-10-15 inventory verified the donor ledger, patch, dependency manifest
 and every file in the T-A0 archive manifest. The separate scaffold packet and
 accepted reports match the hashes in [STATEMENTS.md](../proofs/STATEMENTS.md).
-Its frozen mathematical sources match the active sources. Post-review changes
+At the synthesis baseline its frozen mathematical sources matched the active
+sources; the foundation chunk adds faithful donor bodies to `Basic` without
+changing existing definitions or signatures. Post-review changes
 in `ci/proof_audit.py` lock explicit constant dependencies and reject direct
 holes in derived compositions; `.gitignore` additionally ignores Python caches.
 
@@ -111,7 +114,8 @@ be maximal or reflexive.
 
 ## Contract map: eighteen proof obligations
 
-All rows are **open** in the active package. `O` below means
+All eighteen contract rows are **open** in the active package, including those
+whose foundation prerequisites are now ported. `O` below means
 `proofs/Refpoly/KS/Obligations.lean`; `I` means
 `proofs/Refpoly/KS/Implementation.lean`. Donor paths are relative to its
 `proofs/Refpoly/`. A numbered work unit refers to the dependency ledger below.
@@ -177,7 +181,7 @@ implemented by noncomputable choice.
 | Unit                                      | Source modules / deliverable                                                                                                  | Prerequisites and acceptance                                                                                                                                                                   |
 | ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 0: synthesis                              | This ledger and synchronized status docs                                                                                      | Current approved documentation chunk; all findings disposed, all 25 holes mapped, isolation debt explicit; no mathematical changes                                                             |
-| 1: foundations                            | Remaining `Basic`, then `ReflexiveDuality` (T-P1)                                                                             | Unit 0; faithful bodies, unchanged existing definitions/types; each module builds from landed imports and is imported by the umbrella/compiler audit                                           |
+| 1: foundations (ported)                   | Complete `Basic` and `ReflexiveDuality` (T-P1)                                                                                | Unit 0; faithful bodies, unchanged existing definitions/types; both modules build from landed imports and are imported by the umbrella/compiler audit                                          |
 | 2: weights and box tools                  | Remaining `WeightSystem`, `BoxReduction` (T-P2)                                                                               | Unit 1; preserve topology, component-lifting and normalization hypotheses                                                                                                                      |
 | 3a: search support                        | `Algorithm`, `WeightSystemFinite`, `GeometricCWS` (T-P3)                                                                      | Unit 2; distinguish reachability/finite sets from executable lists                                                                                                                             |
 | 3b: circuits                              | `CircuitGeometry`, `CircuitInterior`, `CircuitSpan` (T-P4)                                                                    | Unit 2; independent of 3a until combined downstream; preserve full relation-kernel spanning                                                                                                    |
@@ -197,13 +201,15 @@ inventory. New public interfaces, predicate meanings or changes to existing
 statement types require explicit approval and fresh affected two-way checks;
 never regenerate a lock merely to suppress a comparison failure.
 
-The proposed next chunk is **unit 1 only**: faithful remaining foundations and
-reflexive duality, with import/audit wiring, attribution and status updates.
-Keep proof-body reuse separate from any proposed interface repair. Acceptance:
-targeted module builds, full pinned package build, conditional proof gate, strict
-gate with its unchanged known incompleteness reported, required CPU/lint checks
-and remote results. A clean donor blind-review packet remains a separate
-semantic closure task; do not claim it was completed by this synthesis.
+Unit 1 is now ported: complete faithful foundations and reflexive duality, with
+umbrella imports, compiler-audit coverage, attribution and status updates. The
+proposed next chunk is **unit 2 only**: remaining `WeightSystem` results and
+`BoxReduction`. Preserve intrinsic topology, normalization and the component-IP
+lifting hypothesis. Keep proof-body reuse separate from interface repairs.
+Acceptance remains targeted builds from landed imports, full pinned build,
+conditional gate, strict gate with known incompleteness reported, CPU/lint
+checks and remote results. A clean donor blind-review packet remains a separate
+semantic closure task; it is not completed by the synthesis or faithful port.
 
 ## Remaining scope decisions and audit debt
 
@@ -335,7 +341,7 @@ At the synthesis baseline, eight designated targets are closed: lattice zero,
 the three `GLEquiv` equivalence lemmas, `originCode_hull`, `reflexive_zero`,
 `reflexive_zero_unique` and `classifies_of_contracts`. Eighteen proof holes and
 seven routine holes remain. `procedures`, `contracts` and the concrete headline
-inherit those holes. This documentation chunk closes **zero** Lean results.
+inherit those holes. The initial documentation chunk closed **zero** Lean results.
 
 The baseline's conditional and CPU CI passed; strict CI failed intentionally.
 Historical run references are recorded in the uncommitted planning artifact.
@@ -353,6 +359,46 @@ it was not a fresh independent statement audit. No new literature or TeX claims
 changed, so no literature compilation was rebuilt. Remote run results are
 reported at publication; none of these dispositions is a new mathematical
 certificate.
+
+### Foundation port: unit 1
+
+The approved foundation chunk ports the remaining `Basic` module and the complete
+`ReflexiveDuality` module. Compared with the initial extraction it adds 26
+explicit donor theorem bodies: 24 in `Basic` and two in `ReflexiveDuality`.
+Every definition, statement and proof from the first import onward is
+byte-identical to the verified donor; only attribution/header comments differ.
+The source ledger was checked again before reuse. A bounded source-fidelity
+review also confirmed preservation and audit wiring; it is not a new blind
+semantic check.
+
+The newly available results include integral pairings, lattice-polytope
+convexity/compactness/closedness, lattice-hull identities, convex-hull inequality
+transport, polar order/closedness/convexity and bipolarity, linear-functional
+helpers, bounded lattice-point finiteness, lattice-equivalence invariants,
+unique interior lattice point, reflexive bipolarity and reflexive dual closure.
+Their original hypotheses and dimensions are unchanged.
+The designated donor readings S21, S24, S37 and S39 now have imported proof
+bodies; the other S01–S71 declarations remain outside this foundation chunk.
+
+`Refpoly.lean` imports `ReflexiveDuality`, which imports `Basic`. The existing
+exporter consequently includes all 57 constants defined in these modules,
+including generated helpers and structure projections. All have only approved
+standard foundations in their compiler-derived axiom closures. All 37 exported
+theorem types in these modules, including generated declarations, agree with
+the frozen donor compiler inventory after whitespace normalization. No major
+target, semantic lock, dependency pin, KS definition or procedure changed.
+No lock regeneration or new mathematical statement was needed.
+
+Targeted module builds, the full pinned project build and the conditional gate
+pass, including the 19 audit/compiler regressions. The designated eight closed
+targets remain closed. The same eighteen KS proof holes, seven routine holes
+and three transitive targets remain; the foundation port supplies prerequisites
+without discharging any of those holes. Strict remains an explicit failing
+completeness gate: its local failure consists of exactly the known 25 direct
+and three transitive `sorryAx` targets, with no other audit failure. All 20 CPU
+regressions and full native lint pass. Remote results are reported with the
+published chunk. Native tool versions are the same as the synthesis record.
+No literature claim or compilation changed.
 
 See [proof commands](../proofs/README.md),
 [statement policy](../proofs/STATEMENTS.md),

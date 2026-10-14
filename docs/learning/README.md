@@ -79,3 +79,6 @@ is complete; clean donor blind-review closure and the full proof port remain
 pending. The initial contract scaffold is present but its supporting proofs and
 scientific routines are unfinished. The synthesis changes no literature-note
 claims or mathematical contracts.
+The complete `Basic` and `ReflexiveDuality` foundation modules are now faithfully
+ported and imported into the audited package. This port changes no literature
+claims and closes no KS obligation.
