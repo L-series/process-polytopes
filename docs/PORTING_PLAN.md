@@ -69,7 +69,9 @@ every descriptor against the oracle (V1). The reference exposed unsound donor
 prefix pruning that lost IP classes for twelve descriptors, including s12 and
 s13, plus three legacy `-n3 -t` defects; all are fixed (`31cbe55`). Historical
 runs of the affected descriptors are not complete. Descriptors 13, 17-18, 26-27
-and 31-32 are relabelings of 12, 16, 25 and 30 and generate identical classes.
+and 31-32 are relabelings of 12, 16, 25 and 30 and generate identical classes. C03a
+(PALP `f274e5b`) keeps descriptor weight pools and PRINT_CWS workspaces in memory
+with byte-identical output.
 
 **C00 is complete, and the approved consolidated T-L1–T-L3 research batch has
 produced all seven literature notes.** The [learning index](learning/README.md)
