@@ -1,3 +1,4 @@
+import Refpoly.CircuitSpan
 import Refpoly.WeightSystemFinite
 import Refpoly.GeometricCWS
 import Refpoly.BoxReduction

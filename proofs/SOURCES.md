@@ -19,6 +19,9 @@ The frozen identities recorded by the operating bootstrap are:
 | Original `Refpoly/Algorithm.lean`          | `0071873dae87fa805377c5a24d4fddac291826300030bfb0f454a157c85b568d` |
 | Original `Refpoly/WeightSystemFinite.lean` | `ee3474a8ede4ecaf80963191c95f1450a504f7cf6e62e60e1fb131c216f811f1` |
 | Original `Refpoly/GeometricCWS.lean`       | `4ded4d265dc6341931d1de6b89badd45ac22fabe9fb9b1d68bbe61886b0b1be1` |
+| Original `Refpoly/CircuitGeometry.lean`    | `4a290977596325ffd7cc1400b6edf1a9140caa9dcf47b60593f59d5a85ffc9de` |
+| Original `Refpoly/CircuitInterior.lean`    | `fcc66c79d2b5751844b8533e7f32a52957a0d35815aa1889cd416a92b6d98678` |
+| Original `Refpoly/CircuitSpan.lean`        | `db8fb5bf5303cbd72fbbb4c1c138cae0ba3a0bef8299c0ba3be8d9510f771d77` |
 | Full dependency manifest                   | `0d6def3ad257f03d2d0301868135497e764c1121813de38a7edbf81903510c1f` |
 
 `Refpoly/Basic.lean` now ports the complete donor module after its original
@@ -67,3 +70,13 @@ donor declarations, issue dispositions and the source map for the eighteen
 contracts and seven routines. It qualifies the historical round-2 blind report's
 context exposure; clean donor blind-review closure remains outstanding. The
 synthesis does not change the source identities or certify an executable port.
+
+The complete faithful `CircuitGeometry`, `CircuitInterior` and `CircuitSpan`
+ports add 24 theorem/lemma bodies, including the private boundary helper.
+Positive simplex circuits span the entire real relation kernel under the
+specified intrinsic-interior hypothesis. All three modules are imported and
+compiler-audited. Primitive integer normalization and the KS circuit contract
+remain open; this port closes no KS obligation or scientific routine.
+
+Every declaration and proof after the first import matches the frozen donor;
+only attribution headers differ.

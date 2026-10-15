@@ -96,6 +96,13 @@ zero relation and dual
 lattice-point witnesses, including lower-dimensional blocks. All three modules
 are imported and compiler-audited; no KS obligation or routine is closed.
 
+The complete faithful `CircuitGeometry`, `CircuitInterior` and `CircuitSpan`
+ports add 24 theorem/lemma bodies, including the private boundary helper.
+Positive simplex circuits span the entire real relation kernel under the
+specified intrinsic-interior hypothesis. All three modules are imported and
+compiler-audited. Primitive integer normalization and the KS circuit contract
+remain open; this port closes no KS obligation or scientific routine.
+
 The scoped interface review is separate from the donor audit and does not
 discharge its isolation debt.
 

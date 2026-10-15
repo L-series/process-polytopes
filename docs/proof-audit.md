@@ -186,8 +186,8 @@ implemented by noncomputable choice.
 | 0: synthesis                              | This ledger and synchronized status docs                                                                                      | Current approved documentation chunk; all findings disposed, all 25 holes mapped, isolation debt explicit; no mathematical changes                                                             |
 | 1: foundations (ported)                   | Complete `Basic` and `ReflexiveDuality` (T-P1)                                                                                | Unit 0; faithful bodies, unchanged existing definitions/types; both modules build from landed imports and are imported by the umbrella/compiler audit                                          |
 | 2: weights and box tools (ported)         | Complete `WeightSystem` and `BoxReduction` (T-P2)                                                                             | Unit 1; both imported and compiler-audited; topology, component-lifting and normalization hypotheses preserved                                                                                 |
-| 3a: search support                        | `Algorithm`, `WeightSystemFinite`, `GeometricCWS` (T-P3)                                                                      | Unit 2; distinguish reachability/finite sets from executable lists                                                                                                                             |
-| 3b: circuits                              | `CircuitGeometry`, `CircuitInterior`, `CircuitSpan` (T-P4)                                                                    | Unit 2; independent of 3a until combined downstream; preserve full relation-kernel spanning                                                                                                    |
+| 3a: search support (ported)               | `Algorithm`, `WeightSystemFinite`, `GeometricCWS` (T-P3)                                                                      | Unit 2; distinguish reachability/finite sets from executable lists                                                                                                                             |
+| 3b: circuits (ported)                     | `CircuitGeometry`, `CircuitInterior`, `CircuitSpan` (T-P4)                                                                    | Unit 2; independent of 3a until combined downstream; preserve full relation-kernel spanning                                                                                                    |
 | 4: finite geometry and containers         | `ReflexiveVolume`, `Finiteness`, `MaxMin`, `Minimal`, `Classification`, `CWSBasis`, `CWSContainer`, `CWSAssembly` (T-P5–T-P7) | Units 2, 3a, 3b; serialize coherent landed modules, not one large commit; keep weak legacy headlines scoped and retain stronger witnesses                                                      |
 | 5: scoped side results and donor guards   | `DegreeBound`, `Sylvester`, `PyramidLemma`, `BoxReductionAudit`, `CoverageAudit` (T-P8–T-P9)                                  | Side results require 2/3a; complete audit imports require unit 4 and all side results; preserve original target inventory and closed results                                                   |
 | 6: seed/circuit bridges                   | Bounded indexed minimal seeds, primitive circuit normalization, exact code transport                                          | Applicable unit 4 results; new proofs with existing contracts unchanged; no assumption that the eighteen holes are independent                                                                 |
@@ -204,13 +204,12 @@ inventory. New public interfaces, predicate meanings or changes to existing
 statement types require explicit approval and fresh affected two-way checks;
 never regenerate a lock merely to suppress a comparison failure.
 
-Units 1, 2 and 3a are now ported: complete faithful `Basic`,
-`ReflexiveDuality`, `WeightSystem`, `BoxReduction`, `Algorithm`,
-`WeightSystemFinite` and `GeometricCWS` modules, with imports, compiler-audit
-coverage, attribution and status updates. The proposed next chunk is **unit 3b
-only**: `CircuitGeometry`, `CircuitInterior` and `CircuitSpan`. Preserve the
-complete relation-kernel span, circuit support and positivity hypotheses.
-Keep faithful reuse separate from interface repairs or executable behaviour.
+Units 1, 2, 3a and 3b are now ported and imported, including the complete
+relation-kernel spanning theorem. The requester approved units 3b and all of
+unit 4 as one batch. The next dependency groups within that authorization are
+`ReflexiveVolume`/`Finiteness`, then `MaxMin`/`Minimal`/`Classification`, then
+`CWSBasis`/`CWSContainer`/`CWSAssembly`. Keep faithful reuse separate from
+interface repairs and executable behaviour. This approval does not include unit 5.
 Acceptance remains targeted builds from landed imports, full pinned build,
 conditional gate, strict gate with known incompleteness reported, CPU/lint
 checks and remote results. A clean donor blind-review packet remains a separate
@@ -494,6 +493,28 @@ remain closed. Eighteen KS proof obligations and seven routines remain open.
 The proposed next chunk is unit 3b: `CircuitGeometry`, `CircuitInterior` and
 `CircuitSpan`. Native tool versions remain as recorded above; no literature
 claim or compilation changed.
+
+### Circuits: unit 3b, approved units 3–4 batch
+
+The complete faithful `CircuitGeometry`, `CircuitInterior` and `CircuitSpan`
+ports add 24 theorem/lemma bodies (including one private helper), with positive
+circuit construction, relative-interior/positive-relation bridges, and spanning
+of the entire real relation kernel. All definitions, statements and proofs
+match the verified donor from the first import onward. The 29-file source
+ledger was reverified before reuse; only attribution headers differ.
+
+`Refpoly.lean` imports `CircuitSpan`, transitively importing both prerequisites.
+The compiler inventory assigns 57 constants and 54 theorem declarations,
+including generated helpers, to these modules. Every axiom closure uses only
+approved foundations; all 54 theorem types match the frozen donor display after
+whitespace normalization. Targeted builds and the full conditional gate with
+19 policy regressions pass. Batch-wide strict, CPU, lint and remote checks are
+reported after unit 4 integration; none is inferred from a targeted build.
+
+Circuit spanning retains the intrinsic-interior hypothesis and real normalized
+relations. Primitive integral normalization, exact code transport and the KS
+`circuit_basis` contract remain open. No KS obligation or routine is closed.
+The unit 4 ports remain authorized within this batch, followed by a stop.
 
 See [proof commands](../proofs/README.md),
 [statement policy](../proofs/STATEMENTS.md),

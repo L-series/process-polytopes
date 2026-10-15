@@ -25,6 +25,8 @@ reflexive polytopes arising from them.
   `Algorithm`, `WeightSystemFinite` and `GeometricCWS` now add 21 faithful
   results on abstract reachability, finite normalized weights and explicitly
   witnessed geometric simplex blocks. Executable weight search remains open.
+  The three circuit modules now add 24 faithful results, including complete
+  real relation-kernel spanning; primitive integer encoding remains open.
 
 The [long-term mathematical goal](docs/learning/THEORY_ROADMAP.md) is complete
 KS WS/CWS-based enumeration of **all reflexive polytopes** in every fixed
