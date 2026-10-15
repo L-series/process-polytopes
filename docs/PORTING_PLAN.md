@@ -71,7 +71,9 @@ s13, plus three legacy `-n3 -t` defects; all are fixed (`31cbe55`). Historical
 runs of the affected descriptors are not complete. Descriptors 13, 17-18, 26-27
 and 31-32 are relabelings of 12, 16, 25 and 30 and generate identical classes. C03a
 (PALP `f274e5b`) keeps descriptor weight pools and PRINT_CWS workspaces in memory
-with byte-identical output.
+with byte-identical output. C03b (`529be73`) reuses selection pools within a run
+and accepts a `PALP_W5_POOL` length-5 pool file only after verifying its content
+digest; output is unchanged and no performance claim is made before B00.
 
 **C00 is complete, and the approved consolidated T-L1–T-L3 research batch has
 produced all seven literature notes.** The [learning index](learning/README.md)

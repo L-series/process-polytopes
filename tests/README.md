@@ -141,6 +141,19 @@ The 46 descriptors have 39 distinct incidence structures: 12 and 13; 16, 17, and
 gate requires isomorphic descriptors to give identical IP class sets, so their
 production runs generate the same CWS classes.
 
+### Length-5 pool cache
+
+Builtin descriptors with five-weight blocks normally regenerate the 184,026 IP
+weight systems of length 5 (about ten minutes). `PALP_W5_POOL=<file>` makes PALP
+load them instead, but only if the parsed file has exactly that many entries and
+the SHA-256 of one `d w_1 ... w_5` line per entry, in generation order, equals
+`1aaa401a4cccad8826c97c61e9496a5c337b756a76bc3efb71391c86081f2b35`. A missing,
+truncated, reordered, or edited file exits nonzero rather than changing the
+candidates; the generator suite checks these rejections. `cws -w4` output in its
+printed order is accepted, as is that list without the trailing `rt` and summary
+text. Selection pools are reused only within one process, keyed by the builtin
+pool or the file already read.
+
 ### Defects found and fixed
 
 The reference found these defects. PALP `c4a565f` and `31cbe55` fix them, and the

@@ -66,6 +66,10 @@ rather than skipped. Recorded repeated-row counts and any known-defect entries
 are exact expectations, not waivers: never extend them or rerun
 `tests/record_cws_reference.py` to make a gate pass.
 
+`PALP_W5_POOL` may point builtin dimension-five runs at the generated length-5
+IP weight pool; PALP verifies its exact content and fails otherwise. Keep such
+pool files out of Git.
+
 Native linting uses `./scripts/lint.sh` with `clang-format`, Prettier, and `shfmt`
 on PATH; match the versions in the pinned environment. Record local tool versions
 when using host tools. CI continues to use Nix.

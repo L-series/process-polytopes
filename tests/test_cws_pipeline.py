@@ -18,6 +18,7 @@ import os
 import pathlib
 import random
 import shutil
+import subprocess
 import sys
 import tempfile
 import time
@@ -171,6 +172,25 @@ class GeneratorGates(unittest.TestCase):
                         self.assertEqual(result[kind], [], f"{kind} classes")
                     self.assertEqual(result["repeated"], repeated, "Repeated PALP rows")
                     self.assertEqual(len(rows), summary["ip_classes"] + repeated, "PALP row accounting")
+
+    def test_five_weight_pool_cache_requires_exact_content(self):
+        # PALP_W5_POOL may replace the generated length-5 pool only if its parsed
+        # content is identical; missing, short, or same-length altered files fail.
+        with tempfile.TemporaryDirectory() as workspace:
+            short = pathlib.Path(workspace) / "short.txt"
+            short.write_text("5 1 1 1 1 1\n")
+            altered = pathlib.Path(workspace) / "altered.txt"
+            altered.write_text("5 1 1 1 1 1\n" * 184026)
+            for path in (pathlib.Path(workspace) / "missing.txt", short, altered):
+                with self.subTest(pool=path.name):
+                    result = subprocess.run(
+                        [str(BIN_DIR / "cws-5d.x"), "-c5", "-s2"], text=True, timeout=120,
+                        stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                        env={**os.environ, "PALP_W5_POOL": str(path)},
+                    )
+                    self.assertNotEqual(result.returncode, 0)
+                    self.assertIn("PALP_W5_POOL", result.stderr)
+                    self.assertNotIn(" M:", result.stdout)
 
     def test_known_missing_cases_exist(self):
         names = {case["name"] for case in MANIFEST["cases"]}
