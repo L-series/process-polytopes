@@ -59,10 +59,11 @@ make -C PALP all-dims
 ./scripts/test-cws-pipeline.sh --suite generator
 ```
 
-The pipeline suites compare PALP with an independent bounded Python reference
-(see `tests/README.md`); only `generator` and `points` have landed, and other
-planned suites are rejected rather than skipped. Recorded known PALP generator
-defects are exact expectations, not waivers: never extend that list or rerun
+The pipeline suites compare PALP, including all dimension-five descriptors 2-47,
+with an independent bounded Python reference (see `tests/README.md`); only
+`generator` and `points` have landed, and other planned suites are rejected
+rather than skipped. Recorded repeated-row counts and any known-defect entries
+are exact expectations, not waivers: never extend them or rerun
 `tests/record_cws_reference.py` to make a gate pass.
 
 Native linting uses `./scripts/lint.sh` with `clang-format`, Prettier, and `shfmt`

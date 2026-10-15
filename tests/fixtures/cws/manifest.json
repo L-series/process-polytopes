@@ -1,5 +1,5 @@
 {
-  "baseline_palp_commit": "968bb4b3c6c42a0893c95340e81718548e13f12a",
+  "baseline_palp_commit": "31cbe5591cca8b8338a46b51d243ba3cce204837",
   "normal_form_option": "poly -fN: vertices of P; omit whitespace and informational perm= only",
   "compiler": "GCC 11.4.0, GNUmakefile default -O3 -g -W -Wall",
   "cases": [
@@ -821,11 +821,11 @@
         "1",
         "1"
       ],
-      "count": 1401,
+      "count": 851,
       "types": {
-        "3WS:2,2,0,2,1,1,0": 1401
+        "3WS:2,2,0,2,1,1,0": 851
       },
-      "distinct_normal_forms": 816,
+      "distinct_normal_forms": 851,
       "reference": {
         "structures": [
           {
@@ -860,11 +860,11 @@
         "non_ip_classes": 223,
         "failures": 0,
         "digest": "0eb39c6e18bdadfd3ea746bd4b0b7b78e3d096b9a27128953fe4f8af52ca552d",
-        "palp_repeated_rows": 585
+        "palp_repeated_rows": 0
       },
       "outputs": {
-        "cws": "18855d0335de8f70f6f7ce77b490a68d0ed8790b9d45edc8ecd41892f37efead",
-        "nf": "6d36749b7324c022eaaaa838b6efc6d901e85504baeff6b5d578b294550ed596"
+        "cws": "9b524df92e0c5ea9a7d0829561e5c3deadccac23a06131756f2e4f10f2a92cdb",
+        "nf": "d8b2f2b5cc0b1d0859775f8d22a40a4de01ecda58364937d26f7fd375edd8c5c"
       }
     },
     {
@@ -882,9 +882,9 @@
         "2",
         "1"
       ],
-      "count": 1468,
+      "count": 798,
       "types": {
-        "3WS:2,2,0,2,0,1,1": 1468
+        "3WS:2,2,0,2,0,1,1": 798
       },
       "distinct_normal_forms": 784,
       "reference": {
@@ -922,11 +922,11 @@
         "non_ip_classes": 242,
         "failures": 0,
         "digest": "0dcdc6cbbc4f0f60d294a2cb2fa9989d345d3c27e7b9a64225ae18af2afe7d08",
-        "palp_repeated_rows": 684
+        "palp_repeated_rows": 14
       },
       "outputs": {
-        "cws": "957278b5c7ff54d0240af700281bb64c89c78c5ea12f41e432df56451fb7d398",
-        "nf": "be94e7c7036aa73683ba567265659aac66baf400b5d3502e129a6d9592a0ad36"
+        "cws": "b379fc7de5adceb46e2cc63e9ec5e1899dc40bca979145c5833ef6d6bc7976f8",
+        "nf": "7956411e1517f5683ba60070d5ef869f6e3562a3fd08961259bc449d8b3cc482"
       }
     },
     {
@@ -944,11 +944,11 @@
         "2",
         "2"
       ],
-      "count": 1622,
+      "count": 1790,
       "types": {
-        "3WS:2,2,0,2,0,0,2": 1622
+        "3WS:2,2,0,2,0,0,2": 1790
       },
-      "distinct_normal_forms": 1543,
+      "distinct_normal_forms": 1667,
       "reference": {
         "structures": [
           {
@@ -985,11 +985,11 @@
         "non_ip_classes": 1370,
         "failures": 0,
         "digest": "ea17101dbc8777aaa777aacc6c4dc6ff17800f65a37958aae0041c6dab0a05e2",
-        "palp_repeated_rows": 20
+        "palp_repeated_rows": 60
       },
       "outputs": {
-        "cws": "9ab7576fc45d955a47c44b8951c548c23fc8f6f7c20029c880eb775cc11bb19a",
-        "nf": "501fc9fb2b5736b74d7e094b53baa798c283e26e25b2d8215574bfffcdeb9cc7"
+        "cws": "745e79128595397e1c52b3dc201e0724520c4037d8b7630ae2cc07bd1e279a57",
+        "nf": "62cf1cfdf26de550c0ebe14bf44a670075a316127abe4a04266423234455a993"
       }
     },
     {
@@ -1094,6 +1094,2577 @@
     "ws-3d-swapped.txt": "304d490628e56ca3efdde3e53e83c9eac4b1fd1e754207fba1117b0506b43e48",
     "ws-3d.txt": "e13f755b6475ea763881edd2da4597e9274b5cbf406137bb8c358565e5e82ada",
     "ws-4d-first1000.txt": "988f22dac806b1916a83cb9f760bcc61e70d2fabc4136f86e11cbd26b3f48ad3",
-    "ws-4d-first12.txt": "cb137080ed6c66e82174ba93ba4414d130c50ae02146cedc396439eb32977a47"
-  }
+    "ws-4d-first12.txt": "cb137080ed6c66e82174ba93ba4414d130c50ae02146cedc396439eb32977a47",
+    "ws-4d-first6.txt": "7caa01e7817ca14b06e23b422aae797b15f87766c5b4575bcaa1d57b08cf01c1"
+  },
+  "descriptors": [
+    {
+      "id": 2,
+      "ambient": 7,
+      "sizes": [
+        2,
+        5
+      ],
+      "shared": [
+        0,
+        0
+      ],
+      "blocks": [
+        [
+          1,
+          2
+        ],
+        [
+          3,
+          4,
+          5,
+          6,
+          7
+        ]
+      ]
+    },
+    {
+      "id": 3,
+      "ambient": 7,
+      "sizes": [
+        5,
+        5
+      ],
+      "shared": [
+        3,
+        3
+      ],
+      "blocks": [
+        [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        [
+          1,
+          2,
+          3,
+          6,
+          7
+        ]
+      ]
+    },
+    {
+      "id": 4,
+      "ambient": 7,
+      "sizes": [
+        3,
+        5
+      ],
+      "shared": [
+        1,
+        1
+      ],
+      "blocks": [
+        [
+          1,
+          2,
+          3
+        ],
+        [
+          1,
+          4,
+          5,
+          6,
+          7
+        ]
+      ]
+    },
+    {
+      "id": 5,
+      "ambient": 7,
+      "sizes": [
+        3,
+        4
+      ],
+      "shared": [
+        0,
+        0
+      ],
+      "blocks": [
+        [
+          1,
+          2,
+          3
+        ],
+        [
+          4,
+          5,
+          6,
+          7
+        ]
+      ]
+    },
+    {
+      "id": 6,
+      "ambient": 7,
+      "sizes": [
+        4,
+        5
+      ],
+      "shared": [
+        2,
+        2
+      ],
+      "blocks": [
+        [
+          1,
+          2,
+          3,
+          4
+        ],
+        [
+          1,
+          2,
+          5,
+          6,
+          7
+        ]
+      ]
+    },
+    {
+      "id": 7,
+      "ambient": 7,
+      "sizes": [
+        4,
+        4
+      ],
+      "shared": [
+        1,
+        1
+      ],
+      "blocks": [
+        [
+          1,
+          2,
+          3,
+          4
+        ],
+        [
+          1,
+          5,
+          6,
+          7
+        ]
+      ]
+    },
+    {
+      "id": 8,
+      "ambient": 8,
+      "sizes": [
+        2,
+        4,
+        4
+      ],
+      "shared": [
+        2,
+        2,
+        0
+      ],
+      "blocks": [
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          2,
+          3,
+          4
+        ],
+        [
+          5,
+          6,
+          7,
+          8
+        ]
+      ]
+    },
+    {
+      "id": 9,
+      "ambient": 8,
+      "sizes": [
+        2,
+        2,
+        4
+      ],
+      "shared": [
+        0,
+        0,
+        0
+      ],
+      "blocks": [
+        [
+          1,
+          2
+        ],
+        [
+          3,
+          4
+        ],
+        [
+          5,
+          6,
+          7,
+          8
+        ]
+      ]
+    },
+    {
+      "id": 10,
+      "ambient": 8,
+      "sizes": [
+        2,
+        4,
+        4
+      ],
+      "shared": [
+        0,
+        2,
+        2
+      ],
+      "blocks": [
+        [
+          1,
+          2
+        ],
+        [
+          3,
+          4,
+          5,
+          6
+        ],
+        [
+          3,
+          4,
+          7,
+          8
+        ]
+      ]
+    },
+    {
+      "id": 11,
+      "ambient": 8,
+      "sizes": [
+        4,
+        4,
+        4
+      ],
+      "shared": [
+        2,
+        2,
+        2
+      ],
+      "blocks": [
+        [
+          1,
+          2,
+          3,
+          4
+        ],
+        [
+          1,
+          2,
+          5,
+          6
+        ],
+        [
+          1,
+          2,
+          7,
+          8
+        ]
+      ]
+    },
+    {
+      "id": 12,
+      "ambient": 8,
+      "sizes": [
+        4,
+        4,
+        5
+      ],
+      "shared": [
+        4,
+        2,
+        3
+      ],
+      "blocks": [
+        [
+          1,
+          2,
+          3,
+          4
+        ],
+        [
+          1,
+          2,
+          5,
+          6
+        ],
+        [
+          1,
+          3,
+          4,
+          7,
+          8
+        ]
+      ]
+    },
+    {
+      "id": 13,
+      "ambient": 8,
+      "sizes": [
+        4,
+        4,
+        5
+      ],
+      "shared": [
+        4,
+        2,
+        3
+      ],
+      "blocks": [
+        [
+          1,
+          2,
+          3,
+          4
+        ],
+        [
+          1,
+          2,
+          5,
+          6
+        ],
+        [
+          2,
+          3,
+          4,
+          7,
+          8
+        ]
+      ]
+    },
+    {
+      "id": 14,
+      "ambient": 8,
+      "sizes": [
+        4,
+        4,
+        4
+      ],
+      "shared": [
+        4,
+        2,
+        2
+      ],
+      "blocks": [
+        [
+          1,
+          2,
+          3,
+          4
+        ],
+        [
+          1,
+          2,
+          5,
+          6
+        ],
+        [
+          3,
+          4,
+          7,
+          8
+        ]
+      ]
+    },
+    {
+      "id": 15,
+      "ambient": 8,
+      "sizes": [
+        2,
+        5,
+        4
+      ],
+      "shared": [
+        2,
+        3,
+        1
+      ],
+      "blocks": [
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        [
+          3,
+          6,
+          7,
+          8
+        ]
+      ]
+    },
+    {
+      "id": 16,
+      "ambient": 8,
+      "sizes": [
+        2,
+        3,
+        4
+      ],
+      "shared": [
+        0,
+        1,
+        1
+      ],
+      "blocks": [
+        [
+          1,
+          2
+        ],
+        [
+          3,
+          4,
+          5
+        ],
+        [
+          3,
+          6,
+          7,
+          8
+        ]
+      ]
+    },
+    {
+      "id": 17,
+      "ambient": 8,
+      "sizes": [
+        2,
+        3,
+        4
+      ],
+      "shared": [
+        0,
+        1,
+        1
+      ],
+      "blocks": [
+        [
+          1,
+          2
+        ],
+        [
+          4,
+          3,
+          5
+        ],
+        [
+          4,
+          6,
+          7,
+          8
+        ]
+      ]
+    },
+    {
+      "id": 18,
+      "ambient": 8,
+      "sizes": [
+        2,
+        3,
+        4
+      ],
+      "shared": [
+        0,
+        1,
+        1
+      ],
+      "blocks": [
+        [
+          1,
+          2
+        ],
+        [
+          5,
+          3,
+          4
+        ],
+        [
+          5,
+          6,
+          7,
+          8
+        ]
+      ]
+    },
+    {
+      "id": 19,
+      "ambient": 8,
+      "sizes": [
+        2,
+        3,
+        3
+      ],
+      "shared": [
+        0,
+        0,
+        0
+      ],
+      "blocks": [
+        [
+          1,
+          2
+        ],
+        [
+          3,
+          4,
+          5
+        ],
+        [
+          6,
+          7,
+          8
+        ]
+      ]
+    },
+    {
+      "id": 20,
+      "ambient": 8,
+      "sizes": [
+        3,
+        5,
+        4
+      ],
+      "shared": [
+        3,
+        3,
+        1
+      ],
+      "blocks": [
+        [
+          1,
+          2,
+          3
+        ],
+        [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        [
+          1,
+          6,
+          7,
+          8
+        ]
+      ]
+    },
+    {
+      "id": 21,
+      "ambient": 8,
+      "sizes": [
+        3,
+        5,
+        3
+      ],
+      "shared": [
+        3,
+        3,
+        0
+      ],
+      "blocks": [
+        [
+          1,
+          2,
+          3
+        ],
+        [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        [
+          6,
+          7,
+          8
+        ]
+      ]
+    },
+    {
+      "id": 22,
+      "ambient": 8,
+      "sizes": [
+        3,
+        3,
+        4
+      ],
+      "shared": [
+        1,
+        1,
+        1
+      ],
+      "blocks": [
+        [
+          1,
+          2,
+          3
+        ],
+        [
+          1,
+          4,
+          5
+        ],
+        [
+          1,
+          6,
+          7,
+          8
+        ]
+      ]
+    },
+    {
+      "id": 23,
+      "ambient": 8,
+      "sizes": [
+        3,
+        3,
+        3
+      ],
+      "shared": [
+        1,
+        1,
+        0
+      ],
+      "blocks": [
+        [
+          1,
+          2,
+          3
+        ],
+        [
+          1,
+          4,
+          5
+        ],
+        [
+          6,
+          7,
+          8
+        ]
+      ]
+    },
+    {
+      "id": 24,
+      "ambient": 8,
+      "sizes": [
+        3,
+        4,
+        4
+      ],
+      "shared": [
+        1,
+        2,
+        2
+      ],
+      "blocks": [
+        [
+          1,
+          2,
+          3
+        ],
+        [
+          1,
+          4,
+          5,
+          6
+        ],
+        [
+          1,
+          4,
+          7,
+          8
+        ]
+      ]
+    },
+    {
+      "id": 25,
+      "ambient": 8,
+      "sizes": [
+        3,
+        4,
+        5
+      ],
+      "shared": [
+        3,
+        2,
+        3
+      ],
+      "blocks": [
+        [
+          1,
+          2,
+          3
+        ],
+        [
+          1,
+          4,
+          5,
+          6
+        ],
+        [
+          2,
+          3,
+          4,
+          7,
+          8
+        ]
+      ]
+    },
+    {
+      "id": 26,
+      "ambient": 8,
+      "sizes": [
+        3,
+        4,
+        5
+      ],
+      "shared": [
+        3,
+        2,
+        3
+      ],
+      "blocks": [
+        [
+          1,
+          2,
+          3
+        ],
+        [
+          1,
+          5,
+          4,
+          6
+        ],
+        [
+          2,
+          3,
+          5,
+          7,
+          8
+        ]
+      ]
+    },
+    {
+      "id": 27,
+      "ambient": 8,
+      "sizes": [
+        3,
+        4,
+        5
+      ],
+      "shared": [
+        3,
+        2,
+        3
+      ],
+      "blocks": [
+        [
+          1,
+          2,
+          3
+        ],
+        [
+          1,
+          6,
+          4,
+          5
+        ],
+        [
+          2,
+          3,
+          6,
+          7,
+          8
+        ]
+      ]
+    },
+    {
+      "id": 28,
+      "ambient": 8,
+      "sizes": [
+        3,
+        4,
+        4
+      ],
+      "shared": [
+        3,
+        1,
+        2
+      ],
+      "blocks": [
+        [
+          1,
+          2,
+          3
+        ],
+        [
+          1,
+          4,
+          5,
+          6
+        ],
+        [
+          2,
+          3,
+          7,
+          8
+        ]
+      ]
+    },
+    {
+      "id": 29,
+      "ambient": 8,
+      "sizes": [
+        3,
+        4,
+        5
+      ],
+      "shared": [
+        1,
+        4,
+        3
+      ],
+      "blocks": [
+        [
+          1,
+          2,
+          3
+        ],
+        [
+          1,
+          4,
+          5,
+          6
+        ],
+        [
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
+      ]
+    },
+    {
+      "id": 30,
+      "ambient": 8,
+      "sizes": [
+        3,
+        4,
+        3
+      ],
+      "shared": [
+        1,
+        2,
+        1
+      ],
+      "blocks": [
+        [
+          1,
+          2,
+          3
+        ],
+        [
+          1,
+          4,
+          5,
+          6
+        ],
+        [
+          4,
+          7,
+          8
+        ]
+      ]
+    },
+    {
+      "id": 31,
+      "ambient": 8,
+      "sizes": [
+        3,
+        4,
+        3
+      ],
+      "shared": [
+        1,
+        2,
+        1
+      ],
+      "blocks": [
+        [
+          2,
+          1,
+          3
+        ],
+        [
+          2,
+          4,
+          5,
+          6
+        ],
+        [
+          4,
+          7,
+          8
+        ]
+      ]
+    },
+    {
+      "id": 32,
+      "ambient": 8,
+      "sizes": [
+        3,
+        4,
+        3
+      ],
+      "shared": [
+        1,
+        2,
+        1
+      ],
+      "blocks": [
+        [
+          3,
+          1,
+          2
+        ],
+        [
+          3,
+          4,
+          5,
+          6
+        ],
+        [
+          4,
+          7,
+          8
+        ]
+      ]
+    },
+    {
+      "id": 33,
+      "ambient": 9,
+      "sizes": [
+        2,
+        4,
+        2,
+        3
+      ],
+      "shared": [
+        2,
+        2,
+        0,
+        0
+      ],
+      "blocks": [
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          2,
+          3,
+          4
+        ],
+        [
+          5,
+          6
+        ],
+        [
+          7,
+          8,
+          9
+        ]
+      ]
+    },
+    {
+      "id": 34,
+      "ambient": 9,
+      "sizes": [
+        2,
+        4,
+        3,
+        3
+      ],
+      "shared": [
+        2,
+        2,
+        1,
+        1
+      ],
+      "blocks": [
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          2,
+          3,
+          4
+        ],
+        [
+          5,
+          6,
+          7
+        ],
+        [
+          5,
+          8,
+          9
+        ]
+      ]
+    },
+    {
+      "id": 35,
+      "ambient": 9,
+      "sizes": [
+        2,
+        5,
+        3,
+        3
+      ],
+      "shared": [
+        2,
+        3,
+        1,
+        1
+      ],
+      "blocks": [
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        [
+          3,
+          6,
+          7
+        ],
+        [
+          3,
+          8,
+          9
+        ]
+      ]
+    },
+    {
+      "id": 36,
+      "ambient": 9,
+      "sizes": [
+        2,
+        5,
+        3,
+        2
+      ],
+      "shared": [
+        2,
+        3,
+        1,
+        0
+      ],
+      "blocks": [
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        [
+          3,
+          6,
+          7
+        ],
+        [
+          8,
+          9
+        ]
+      ]
+    },
+    {
+      "id": 37,
+      "ambient": 9,
+      "sizes": [
+        2,
+        2,
+        2,
+        3
+      ],
+      "shared": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "blocks": [
+        [
+          1,
+          2
+        ],
+        [
+          3,
+          4
+        ],
+        [
+          5,
+          6
+        ],
+        [
+          7,
+          8,
+          9
+        ]
+      ]
+    },
+    {
+      "id": 38,
+      "ambient": 9,
+      "sizes": [
+        2,
+        2,
+        3,
+        5
+      ],
+      "shared": [
+        0,
+        0,
+        3,
+        3
+      ],
+      "blocks": [
+        [
+          1,
+          2
+        ],
+        [
+          3,
+          4
+        ],
+        [
+          5,
+          6,
+          7
+        ],
+        [
+          5,
+          6,
+          7,
+          8,
+          9
+        ]
+      ]
+    },
+    {
+      "id": 39,
+      "ambient": 9,
+      "sizes": [
+        2,
+        2,
+        3,
+        3
+      ],
+      "shared": [
+        0,
+        0,
+        1,
+        1
+      ],
+      "blocks": [
+        [
+          1,
+          2
+        ],
+        [
+          3,
+          4
+        ],
+        [
+          5,
+          6,
+          7
+        ],
+        [
+          5,
+          8,
+          9
+        ]
+      ]
+    },
+    {
+      "id": 40,
+      "ambient": 9,
+      "sizes": [
+        2,
+        3,
+        5,
+        3
+      ],
+      "shared": [
+        0,
+        3,
+        3,
+        1
+      ],
+      "blocks": [
+        [
+          1,
+          2
+        ],
+        [
+          3,
+          4,
+          5
+        ],
+        [
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        [
+          3,
+          8,
+          9
+        ]
+      ]
+    },
+    {
+      "id": 41,
+      "ambient": 9,
+      "sizes": [
+        2,
+        3,
+        3,
+        3
+      ],
+      "shared": [
+        0,
+        1,
+        1,
+        1
+      ],
+      "blocks": [
+        [
+          1,
+          2
+        ],
+        [
+          3,
+          4,
+          5
+        ],
+        [
+          3,
+          6,
+          7
+        ],
+        [
+          3,
+          8,
+          9
+        ]
+      ]
+    },
+    {
+      "id": 42,
+      "ambient": 9,
+      "sizes": [
+        2,
+        3,
+        3,
+        4
+      ],
+      "shared": [
+        0,
+        3,
+        1,
+        2
+      ],
+      "blocks": [
+        [
+          1,
+          2
+        ],
+        [
+          3,
+          4,
+          5
+        ],
+        [
+          3,
+          6,
+          7
+        ],
+        [
+          4,
+          5,
+          8,
+          9
+        ]
+      ]
+    },
+    {
+      "id": 43,
+      "ambient": 9,
+      "sizes": [
+        3,
+        5,
+        3,
+        3
+      ],
+      "shared": [
+        3,
+        3,
+        1,
+        1
+      ],
+      "blocks": [
+        [
+          1,
+          2,
+          3
+        ],
+        [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        [
+          1,
+          6,
+          7
+        ],
+        [
+          1,
+          8,
+          9
+        ]
+      ]
+    },
+    {
+      "id": 44,
+      "ambient": 9,
+      "sizes": [
+        3,
+        3,
+        3,
+        3
+      ],
+      "shared": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "blocks": [
+        [
+          1,
+          2,
+          3
+        ],
+        [
+          1,
+          4,
+          5
+        ],
+        [
+          1,
+          6,
+          7
+        ],
+        [
+          1,
+          8,
+          9
+        ]
+      ]
+    },
+    {
+      "id": 45,
+      "ambient": 9,
+      "sizes": [
+        3,
+        3,
+        3,
+        4
+      ],
+      "shared": [
+        3,
+        1,
+        1,
+        2
+      ],
+      "blocks": [
+        [
+          1,
+          2,
+          3
+        ],
+        [
+          1,
+          4,
+          5
+        ],
+        [
+          1,
+          6,
+          7
+        ],
+        [
+          2,
+          3,
+          8,
+          9
+        ]
+      ]
+    },
+    {
+      "id": 46,
+      "ambient": 10,
+      "sizes": [
+        2,
+        4,
+        2,
+        2,
+        2
+      ],
+      "shared": [
+        2,
+        2,
+        0,
+        0,
+        0
+      ],
+      "blocks": [
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          2,
+          3,
+          4
+        ],
+        [
+          5,
+          6
+        ],
+        [
+          7,
+          8
+        ],
+        [
+          9,
+          10
+        ]
+      ]
+    },
+    {
+      "id": 47,
+      "ambient": 10,
+      "sizes": [
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      "shared": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "blocks": [
+        [
+          1,
+          2
+        ],
+        [
+          3,
+          4
+        ],
+        [
+          5,
+          6
+        ],
+        [
+          7,
+          8
+        ],
+        [
+          9,
+          10
+        ]
+      ]
+    }
+  ],
+  "descriptor_pools": {
+    "explicit": {
+      "2": "ws-1d.txt",
+      "3": "ws-2d.txt",
+      "4": "ws-3d-first5.txt",
+      "5": "ws-4d-first6.txt"
+    },
+    "builtin": {
+      "2": "ws-1d.txt",
+      "3": "ws-2d.txt",
+      "4": "ws-3d.txt"
+    }
+  },
+  "descriptor_cases": [
+    {
+      "name": "s2",
+      "descriptor": 2,
+      "pools": "explicit",
+      "palp_repeated_rows": {
+        "same-file": 0,
+        "copies": 0
+      },
+      "reference": {
+        "candidates": 6,
+        "classes": 6,
+        "ip_classes": 6,
+        "non_ip_classes": 0,
+        "failures": 0,
+        "digest": "0402e628698cd59de126b3e6041377c32082cd5ff5afbcd239862133ee1f0d5d"
+      }
+    },
+    {
+      "name": "s3",
+      "descriptor": 3,
+      "pools": "explicit",
+      "palp_repeated_rows": {
+        "same-file": 1,
+        "copies": 121
+      },
+      "reference": {
+        "candidates": 1089,
+        "classes": 151,
+        "ip_classes": 144,
+        "non_ip_classes": 7,
+        "failures": 0,
+        "digest": "7d587b1592b16cca3681d3508895a04cdeec7202de52cf830438c60408c5a38e"
+      }
+    },
+    {
+      "name": "s4",
+      "descriptor": 4,
+      "pools": "explicit",
+      "palp_repeated_rows": {
+        "same-file": 0,
+        "copies": 0
+      },
+      "reference": {
+        "candidates": 72,
+        "classes": 72,
+        "ip_classes": 66,
+        "non_ip_classes": 6,
+        "failures": 0,
+        "digest": "5bb5e67f600f53c29dec33925e6fe907b7b62a11fb3c39072de13de1a3d97a38"
+      }
+    },
+    {
+      "name": "s5",
+      "descriptor": 5,
+      "pools": "explicit",
+      "palp_repeated_rows": {
+        "same-file": 0,
+        "copies": 0
+      },
+      "reference": {
+        "candidates": 15,
+        "classes": 15,
+        "ip_classes": 15,
+        "non_ip_classes": 0,
+        "failures": 0,
+        "digest": "5405736f8da5eb645f3a93bf173455869e960190a6b93d7e3a3fd76014bfdd0e"
+      }
+    },
+    {
+      "name": "s6",
+      "descriptor": 6,
+      "pools": "explicit",
+      "palp_repeated_rows": {
+        "same-file": 0,
+        "copies": 0
+      },
+      "reference": {
+        "candidates": 378,
+        "classes": 210,
+        "ip_classes": 205,
+        "non_ip_classes": 5,
+        "failures": 0,
+        "digest": "11c6a12ad8e748e949c883c1e0af2894f68b70fb3d2f56fe3108b06596846ea8"
+      }
+    },
+    {
+      "name": "s7",
+      "descriptor": 7,
+      "pools": "explicit",
+      "palp_repeated_rows": {
+        "same-file": 0,
+        "copies": 45
+      },
+      "reference": {
+        "candidates": 100,
+        "classes": 55,
+        "ip_classes": 55,
+        "non_ip_classes": 0,
+        "failures": 0,
+        "digest": "e0093741d2a335c1017e8d7c068ffae62f9add83effb6543b2bbed65473d2777"
+      }
+    },
+    {
+      "name": "s8",
+      "descriptor": 8,
+      "pools": "explicit",
+      "palp_repeated_rows": {
+        "same-file": 0,
+        "copies": 0
+      },
+      "reference": {
+        "candidates": 90,
+        "classes": 60,
+        "ip_classes": 35,
+        "non_ip_classes": 25,
+        "failures": 0,
+        "digest": "d28d575e98db33f47a50e5aaa0a96c169f8e3fc89a9191eaf1732baf5f667c9e"
+      }
+    },
+    {
+      "name": "s9",
+      "descriptor": 9,
+      "pools": "explicit",
+      "palp_repeated_rows": {
+        "same-file": 0,
+        "copies": 0
+      },
+      "reference": {
+        "candidates": 5,
+        "classes": 5,
+        "ip_classes": 5,
+        "non_ip_classes": 0,
+        "failures": 0,
+        "digest": "d5103c7528cd164e15604dec7eed60772ca3b2ddb3435c31b1e84bf28a1a73f5"
+      }
+    },
+    {
+      "name": "s10",
+      "descriptor": 10,
+      "pools": "explicit",
+      "palp_repeated_rows": {
+        "same-file": 0,
+        "copies": 71
+      },
+      "reference": {
+        "candidates": 324,
+        "classes": 99,
+        "ip_classes": 86,
+        "non_ip_classes": 13,
+        "failures": 0,
+        "digest": "b660b4658d564193146435580474d605c61515a11e81d3f92df7159966a442f4"
+      }
+    },
+    {
+      "name": "s11",
+      "descriptor": 11,
+      "pools": "explicit",
+      "palp_repeated_rows": {
+        "same-file": 21,
+        "copies": 1643
+      },
+      "reference": {
+        "candidates": 5832,
+        "classes": 616,
+        "ip_classes": 436,
+        "non_ip_classes": 180,
+        "failures": 0,
+        "digest": "88966b2bd9898b13df9f4e176ee8b61dc7bfadd129320821977bfd29dd0fbf5f"
+      }
+    },
+    {
+      "name": "s12",
+      "descriptor": 12,
+      "pools": "explicit",
+      "palp_repeated_rows": {
+        "same-file": 0,
+        "copies": 0
+      },
+      "reference": {
+        "candidates": 16038,
+        "classes": 9072,
+        "ip_classes": 5994,
+        "non_ip_classes": 3078,
+        "failures": 0,
+        "digest": "7bc6923a8298636b3434f8008b95b04d39a888d5c2ab7d97b36166000130dd18"
+      }
+    },
+    {
+      "name": "s13",
+      "descriptor": 13,
+      "pools": "explicit",
+      "palp_repeated_rows": {
+        "same-file": 0,
+        "copies": 0
+      },
+      "reference": {
+        "candidates": 16038,
+        "classes": 9072,
+        "ip_classes": 5994,
+        "non_ip_classes": 3078,
+        "failures": 0,
+        "digest": "0d354a87ad1a2abf651e22f0791af64388becd512e1cf878c68bba94928ed1b6"
+      }
+    },
+    {
+      "name": "s14",
+      "descriptor": 14,
+      "pools": "explicit",
+      "palp_repeated_rows": {
+        "same-file": 933,
+        "copies": 933
+      },
+      "reference": {
+        "candidates": 8748,
+        "classes": 1365,
+        "ip_classes": 956,
+        "non_ip_classes": 409,
+        "failures": 0,
+        "digest": "9684885511c7a77c6dce3702cc7e16b153f29354c48b8f808a0e1c48ad8b84e7"
+      }
+    },
+    {
+      "name": "s15",
+      "descriptor": 15,
+      "pools": "explicit",
+      "palp_repeated_rows": {
+        "same-file": 0,
+        "copies": 0
+      },
+      "reference": {
+        "candidates": 330,
+        "classes": 230,
+        "ip_classes": 164,
+        "non_ip_classes": 66,
+        "failures": 0,
+        "digest": "327bb0b6f3b2d825d0c50087caca018f6b04670a6fbf8ac7e55bfb0eac560991"
+      }
+    },
+    {
+      "name": "s16",
+      "descriptor": 16,
+      "pools": "explicit",
+      "palp_repeated_rows": {
+        "same-file": 0,
+        "copies": 0
+      },
+      "reference": {
+        "candidates": 60,
+        "classes": 60,
+        "ip_classes": 54,
+        "non_ip_classes": 6,
+        "failures": 0,
+        "digest": "0c5f7113be0ae68f19353828953d27aed69ddd6345a33e1b0066ec6b79d96622"
+      }
+    },
+    {
+      "name": "s17",
+      "descriptor": 17,
+      "pools": "explicit",
+      "palp_repeated_rows": {
+        "same-file": 0,
+        "copies": 0
+      },
+      "reference": {
+        "candidates": 60,
+        "classes": 60,
+        "ip_classes": 54,
+        "non_ip_classes": 6,
+        "failures": 0,
+        "digest": "0c5f7113be0ae68f19353828953d27aed69ddd6345a33e1b0066ec6b79d96622"
+      }
+    },
+    {
+      "name": "s18",
+      "descriptor": 18,
+      "pools": "explicit",
+      "palp_repeated_rows": {
+        "same-file": 0,
+        "copies": 0
+      },
+      "reference": {
+        "candidates": 60,
+        "classes": 60,
+        "ip_classes": 54,
+        "non_ip_classes": 6,
+        "failures": 0,
+        "digest": "0c5f7113be0ae68f19353828953d27aed69ddd6345a33e1b0066ec6b79d96622"
+      }
+    },
+    {
+      "name": "s19",
+      "descriptor": 19,
+      "pools": "explicit",
+      "palp_repeated_rows": {
+        "same-file": 0,
+        "copies": 3
+      },
+      "reference": {
+        "candidates": 9,
+        "classes": 6,
+        "ip_classes": 6,
+        "non_ip_classes": 0,
+        "failures": 0,
+        "digest": "6d3dffc0ea5ae81c16ce78c2afa2c60d76e22080a69783a70163d935699c6d37"
+      }
+    },
+    {
+      "name": "s20",
+      "descriptor": 20,
+      "pools": "explicit",
+      "palp_repeated_rows": {
+        "same-file": 0,
+        "copies": 0
+      },
+      "reference": {
+        "candidates": 3300,
+        "classes": 1780,
+        "ip_classes": 819,
+        "non_ip_classes": 961,
+        "failures": 0,
+        "digest": "8d2ab89e7fed72027f0fc01f15a26c90b3f9455332cfc1f559c0fdc86895fb2a"
+      }
+    },
+    {
+      "name": "s21",
+      "descriptor": 21,
+      "pools": "explicit",
+      "palp_repeated_rows": {
+        "same-file": 0,
+        "copies": 0
+      },
+      "reference": {
+        "candidates": 990,
+        "classes": 210,
+        "ip_classes": 105,
+        "non_ip_classes": 105,
+        "failures": 0,
+        "digest": "537267c8337ea081f0c22d641275ffc273a47e1212b160fdeda8a5475b6b69ed"
+      }
+    },
+    {
+      "name": "s22",
+      "descriptor": 22,
+      "pools": "explicit",
+      "palp_repeated_rows": {
+        "same-file": 0,
+        "copies": 95
+      },
+      "reference": {
+        "candidates": 360,
+        "classes": 210,
+        "ip_classes": 149,
+        "non_ip_classes": 61,
+        "failures": 0,
+        "digest": "041a5d8c0d926779b4e6c390c438893d49f9995b79ff40fb68358cbaa623911d"
+      }
+    },
+    {
+      "name": "s23",
+      "descriptor": 23,
+      "pools": "explicit",
+      "palp_repeated_rows": {
+        "same-file": 0,
+        "copies": 33
+      },
+      "reference": {
+        "candidates": 108,
+        "classes": 63,
+        "ip_classes": 51,
+        "non_ip_classes": 12,
+        "failures": 0,
+        "digest": "53e4e93227e48b8d0b3636eb42a4dc49692b4bff8c6fb085008528d8dcdcedf9"
+      }
+    },
+    {
+      "name": "s24",
+      "descriptor": 24,
+      "pools": "explicit",
+      "palp_repeated_rows": {
+        "same-file": 14,
+        "copies": 684
+      },
+      "reference": {
+        "candidates": 1944,
+        "classes": 1026,
+        "ip_classes": 784,
+        "non_ip_classes": 242,
+        "failures": 0,
+        "digest": "ea98a9d3996b72f97017460763ea37cd5e3631b16caed977aeb78ccf6cdbb4dc"
+      }
+    },
+    {
+      "name": "s25",
+      "descriptor": 25,
+      "pools": "explicit",
+      "palp_repeated_rows": {
+        "same-file": 0,
+        "copies": 0
+      },
+      "reference": {
+        "candidates": 5940,
+        "classes": 3204,
+        "ip_classes": 2037,
+        "non_ip_classes": 1167,
+        "failures": 0,
+        "digest": "0bff1151e6032cc63011c4047f1da7e89ac39bf63110b2ce2470b0a1e3100c36"
+      }
+    },
+    {
+      "name": "s26",
+      "descriptor": 26,
+      "pools": "explicit",
+      "palp_repeated_rows": {
+        "same-file": 0,
+        "copies": 0
+      },
+      "reference": {
+        "candidates": 5940,
+        "classes": 3204,
+        "ip_classes": 2037,
+        "non_ip_classes": 1167,
+        "failures": 0,
+        "digest": "0bff1151e6032cc63011c4047f1da7e89ac39bf63110b2ce2470b0a1e3100c36"
+      }
+    },
+    {
+      "name": "s27",
+      "descriptor": 27,
+      "pools": "explicit",
+      "palp_repeated_rows": {
+        "same-file": 0,
+        "copies": 0
+      },
+      "reference": {
+        "candidates": 5940,
+        "classes": 3204,
+        "ip_classes": 2037,
+        "non_ip_classes": 1167,
+        "failures": 0,
+        "digest": "0bff1151e6032cc63011c4047f1da7e89ac39bf63110b2ce2470b0a1e3100c36"
+      }
+    },
+    {
+      "name": "s28",
+      "descriptor": 28,
+      "pools": "explicit",
+      "palp_repeated_rows": {
+        "same-file": 0,
+        "copies": 0
+      },
+      "reference": {
+        "candidates": 1800,
+        "classes": 960,
+        "ip_classes": 474,
+        "non_ip_classes": 486,
+        "failures": 0,
+        "digest": "33de6990120420d1b14e8d854a9402abc1dd6570e0991fc1a0e7598e5a1ef53f"
+      }
+    },
+    {
+      "name": "s29",
+      "descriptor": 29,
+      "pools": "explicit",
+      "palp_repeated_rows": {
+        "same-file": 0,
+        "copies": 0
+      },
+      "reference": {
+        "candidates": 5346,
+        "classes": 1278,
+        "ip_classes": 896,
+        "non_ip_classes": 382,
+        "failures": 0,
+        "digest": "af388aaca68264d7f5f22954767d3f541745a3dc9063ead67193b8fcabb97d8a"
+      }
+    },
+    {
+      "name": "s30",
+      "descriptor": 30,
+      "pools": "explicit",
+      "palp_repeated_rows": {
+        "same-file": 258,
+        "copies": 258
+      },
+      "reference": {
+        "candidates": 648,
+        "classes": 342,
+        "ip_classes": 294,
+        "non_ip_classes": 48,
+        "failures": 0,
+        "digest": "8d80f0d8817bb74e3ddf90c6189c221d94b29bbd5eb49352953b1bccbc596291"
+      }
+    },
+    {
+      "name": "s31",
+      "descriptor": 31,
+      "pools": "explicit",
+      "palp_repeated_rows": {
+        "same-file": 258,
+        "copies": 258
+      },
+      "reference": {
+        "candidates": 648,
+        "classes": 342,
+        "ip_classes": 294,
+        "non_ip_classes": 48,
+        "failures": 0,
+        "digest": "8d80f0d8817bb74e3ddf90c6189c221d94b29bbd5eb49352953b1bccbc596291"
+      }
+    },
+    {
+      "name": "s32",
+      "descriptor": 32,
+      "pools": "explicit",
+      "palp_repeated_rows": {
+        "same-file": 258,
+        "copies": 258
+      },
+      "reference": {
+        "candidates": 648,
+        "classes": 342,
+        "ip_classes": 294,
+        "non_ip_classes": 48,
+        "failures": 0,
+        "digest": "8d80f0d8817bb74e3ddf90c6189c221d94b29bbd5eb49352953b1bccbc596291"
+      }
+    },
+    {
+      "name": "s33",
+      "descriptor": 33,
+      "pools": "explicit",
+      "palp_repeated_rows": {
+        "same-file": 0,
+        "copies": 0
+      },
+      "reference": {
+        "candidates": 54,
+        "classes": 36,
+        "ip_classes": 21,
+        "non_ip_classes": 15,
+        "failures": 0,
+        "digest": "01b6d3749e70bd8cbcca7d8daff1c73f8b82b18a03906c047301a74624106f86"
+      }
+    },
+    {
+      "name": "s34",
+      "descriptor": 34,
+      "pools": "explicit",
+      "palp_repeated_rows": {
+        "same-file": 0,
+        "copies": 77
+      },
+      "reference": {
+        "candidates": 648,
+        "classes": 252,
+        "ip_classes": 119,
+        "non_ip_classes": 133,
+        "failures": 0,
+        "digest": "5f6ec27bfaeb4ce4af543e0f2fad62c4e143a0bee12269890b54b1e79f1c1007"
+      }
+    },
+    {
+      "name": "s35",
+      "descriptor": 35,
+      "pools": "explicit",
+      "palp_repeated_rows": {
+        "same-file": 0,
+        "copies": 157
+      },
+      "reference": {
+        "candidates": 1188,
+        "classes": 483,
+        "ip_classes": 247,
+        "non_ip_classes": 236,
+        "failures": 0,
+        "digest": "937314184743d9df2115f481a79049dcae998834c2eae038593e4c19d74090f4"
+      }
+    },
+    {
+      "name": "s36",
+      "descriptor": 36,
+      "pools": "explicit",
+      "palp_repeated_rows": {
+        "same-file": 0,
+        "copies": 0
+      },
+      "reference": {
+        "candidates": 198,
+        "classes": 138,
+        "ip_classes": 90,
+        "non_ip_classes": 48,
+        "failures": 0,
+        "digest": "979415451937659f4e6098bc3a3493de81bcd404613d807703d7a5380ba0d49d"
+      }
+    },
+    {
+      "name": "s37",
+      "descriptor": 37,
+      "pools": "explicit",
+      "palp_repeated_rows": {
+        "same-file": 0,
+        "copies": 0
+      },
+      "reference": {
+        "candidates": 3,
+        "classes": 3,
+        "ip_classes": 3,
+        "non_ip_classes": 0,
+        "failures": 0,
+        "digest": "908a182988bb75e1b4777bde6c79e47cc811516b1fb8ad5da402dfbcdfc99ca2"
+      }
+    },
+    {
+      "name": "s38",
+      "descriptor": 38,
+      "pools": "explicit",
+      "palp_repeated_rows": {
+        "same-file": 0,
+        "copies": 0
+      },
+      "reference": {
+        "candidates": 330,
+        "classes": 70,
+        "ip_classes": 35,
+        "non_ip_classes": 35,
+        "failures": 0,
+        "digest": "9014926ca847714885d93787a2e5348052ee24e5b6de1d690cd33f89b1eaac60"
+      }
+    },
+    {
+      "name": "s39",
+      "descriptor": 39,
+      "pools": "explicit",
+      "palp_repeated_rows": {
+        "same-file": 0,
+        "copies": 11
+      },
+      "reference": {
+        "candidates": 36,
+        "classes": 21,
+        "ip_classes": 17,
+        "non_ip_classes": 4,
+        "failures": 0,
+        "digest": "a4ea475dce6fc5804410aa72bfeef1aeaf0661bb1fc9044fe5b9dd9f1e470226"
+      }
+    },
+    {
+      "name": "s40",
+      "descriptor": 40,
+      "pools": "explicit",
+      "palp_repeated_rows": {
+        "same-file": 0,
+        "copies": 0
+      },
+      "reference": {
+        "candidates": 1980,
+        "classes": 1068,
+        "ip_classes": 414,
+        "non_ip_classes": 654,
+        "failures": 0,
+        "digest": "b34a7766f2b3430998d0dd9a5716391c5310287ba97f853ba753e1f27e1551b2"
+      }
+    },
+    {
+      "name": "s41",
+      "descriptor": 41,
+      "pools": "explicit",
+      "palp_repeated_rows": {
+        "same-file": 0,
+        "copies": 84
+      },
+      "reference": {
+        "candidates": 216,
+        "classes": 56,
+        "ip_classes": 36,
+        "non_ip_classes": 20,
+        "failures": 0,
+        "digest": "7152e0221d40a85f86de82f4729e8bba2aff2d1ad72bbb1c1196e42e344a16a1"
+      }
+    },
+    {
+      "name": "s42",
+      "descriptor": 42,
+      "pools": "explicit",
+      "palp_repeated_rows": {
+        "same-file": 0,
+        "copies": 0
+      },
+      "reference": {
+        "candidates": 1080,
+        "classes": 576,
+        "ip_classes": 253,
+        "non_ip_classes": 323,
+        "failures": 0,
+        "digest": "111ef3d6493a1cb9c7e46a5742ebc9ae5bc656d3a2fa05babf0e9132f17dda05"
+      }
+    },
+    {
+      "name": "s43",
+      "descriptor": 43,
+      "pools": "explicit",
+      "palp_repeated_rows": {
+        "same-file": 0,
+        "copies": 671
+      },
+      "reference": {
+        "candidates": 11880,
+        "classes": 3738,
+        "ip_classes": 1085,
+        "non_ip_classes": 2653,
+        "failures": 0,
+        "digest": "c97208515d5c26de361502c4ecab81d7a7ca223292763ae4c0fd86f153155470"
+      }
+    },
+    {
+      "name": "s44",
+      "descriptor": 44,
+      "pools": "explicit",
+      "palp_repeated_rows": {
+        "same-file": 0,
+        "copies": 431
+      },
+      "reference": {
+        "candidates": 1296,
+        "classes": 126,
+        "ip_classes": 65,
+        "non_ip_classes": 61,
+        "failures": 0,
+        "digest": "79a03ef1cc0e90eb624c0c19122bf9b17644edc276192170b2cba3ca3a0c9841"
+      }
+    },
+    {
+      "name": "s45",
+      "descriptor": 45,
+      "pools": "explicit",
+      "palp_repeated_rows": {
+        "same-file": 0,
+        "copies": 414
+      },
+      "reference": {
+        "candidates": 6480,
+        "classes": 2016,
+        "ip_classes": 667,
+        "non_ip_classes": 1349,
+        "failures": 0,
+        "digest": "646c58f135ac8d9f37e1df42b80830ef11a624a0cf8cf6233be3e2ebf838811e"
+      }
+    },
+    {
+      "name": "s46",
+      "descriptor": 46,
+      "pools": "explicit",
+      "palp_repeated_rows": {
+        "same-file": 0,
+        "copies": 0
+      },
+      "reference": {
+        "candidates": 18,
+        "classes": 12,
+        "ip_classes": 7,
+        "non_ip_classes": 5,
+        "failures": 0,
+        "digest": "a01fbc30f50877a305a56a32bfcda90d26f52e1e627185fdd93c1e0dedea0801"
+      }
+    },
+    {
+      "name": "s47",
+      "descriptor": 47,
+      "pools": "explicit",
+      "palp_repeated_rows": {
+        "same-file": 0,
+        "copies": 0
+      },
+      "reference": {
+        "candidates": 1,
+        "classes": 1,
+        "ip_classes": 1,
+        "non_ip_classes": 0,
+        "failures": 0,
+        "digest": "7c8bc5d58aa21c940b8693f6bb9861fdcff1acaa232555914aa029f68edda1f5"
+      }
+    },
+    {
+      "name": "s5-builtin",
+      "descriptor": 5,
+      "pools": "builtin",
+      "palp_repeated_rows": {
+        "builtin": 0
+      },
+      "reference": {
+        "candidates": 285,
+        "classes": 285,
+        "ip_classes": 285,
+        "non_ip_classes": 0,
+        "failures": 0,
+        "digest": "8d02023d6005ed7ce2814a1fa68e3e9a7744b58f2966412df893c21df43d5369"
+      }
+    },
+    {
+      "name": "s9-builtin",
+      "descriptor": 9,
+      "pools": "builtin",
+      "palp_repeated_rows": {
+        "builtin": 0
+      },
+      "reference": {
+        "candidates": 95,
+        "classes": 95,
+        "ip_classes": 95,
+        "non_ip_classes": 0,
+        "failures": 0,
+        "digest": "4ad61ec798036f75855720f7d0d4fdce58670aeca433f3d38f579b2661d49da7"
+      }
+    },
+    {
+      "name": "s16-builtin",
+      "descriptor": 16,
+      "pools": "builtin",
+      "palp_repeated_rows": {
+        "builtin": 0
+      },
+      "reference": {
+        "candidates": 2142,
+        "classes": 2142,
+        "ip_classes": 1122,
+        "non_ip_classes": 1020,
+        "failures": 0,
+        "digest": "3095dd8c06e3e1197daf9a63877a1a9ecdd6299daaf718272bb9376ad51ea87f"
+      }
+    },
+    {
+      "name": "s17-builtin",
+      "descriptor": 17,
+      "pools": "builtin",
+      "palp_repeated_rows": {
+        "builtin": 0
+      },
+      "reference": {
+        "candidates": 2142,
+        "classes": 2142,
+        "ip_classes": 1122,
+        "non_ip_classes": 1020,
+        "failures": 0,
+        "digest": "3095dd8c06e3e1197daf9a63877a1a9ecdd6299daaf718272bb9376ad51ea87f"
+      }
+    },
+    {
+      "name": "s18-builtin",
+      "descriptor": 18,
+      "pools": "builtin",
+      "palp_repeated_rows": {
+        "builtin": 0
+      },
+      "reference": {
+        "candidates": 2142,
+        "classes": 2142,
+        "ip_classes": 1122,
+        "non_ip_classes": 1020,
+        "failures": 0,
+        "digest": "3095dd8c06e3e1197daf9a63877a1a9ecdd6299daaf718272bb9376ad51ea87f"
+      }
+    },
+    {
+      "name": "s19-builtin",
+      "descriptor": 19,
+      "pools": "builtin",
+      "palp_repeated_rows": {
+        "builtin": 0
+      },
+      "reference": {
+        "candidates": 9,
+        "classes": 6,
+        "ip_classes": 6,
+        "non_ip_classes": 0,
+        "failures": 0,
+        "digest": "6d3dffc0ea5ae81c16ce78c2afa2c60d76e22080a69783a70163d935699c6d37"
+      }
+    },
+    {
+      "name": "s23-builtin",
+      "descriptor": 23,
+      "pools": "builtin",
+      "palp_repeated_rows": {
+        "builtin": 0
+      },
+      "reference": {
+        "candidates": 108,
+        "classes": 63,
+        "ip_classes": 51,
+        "non_ip_classes": 12,
+        "failures": 0,
+        "digest": "53e4e93227e48b8d0b3636eb42a4dc49692b4bff8c6fb085008528d8dcdcedf9"
+      }
+    },
+    {
+      "name": "s33-builtin",
+      "descriptor": 33,
+      "pools": "builtin",
+      "palp_repeated_rows": {
+        "builtin": 0
+      },
+      "reference": {
+        "candidates": 3099,
+        "classes": 1578,
+        "ip_classes": 87,
+        "non_ip_classes": 1491,
+        "failures": 0,
+        "digest": "fda0c362b09cc03f05aa033f1b9eddad0828e5ba0bb3baadf846ddc9b5590957"
+      }
+    },
+    {
+      "name": "s37-builtin",
+      "descriptor": 37,
+      "pools": "builtin",
+      "palp_repeated_rows": {
+        "builtin": 0
+      },
+      "reference": {
+        "candidates": 3,
+        "classes": 3,
+        "ip_classes": 3,
+        "non_ip_classes": 0,
+        "failures": 0,
+        "digest": "908a182988bb75e1b4777bde6c79e47cc811516b1fb8ad5da402dfbcdfc99ca2"
+      }
+    },
+    {
+      "name": "s39-builtin",
+      "descriptor": 39,
+      "pools": "builtin",
+      "palp_repeated_rows": {
+        "builtin": 0
+      },
+      "reference": {
+        "candidates": 36,
+        "classes": 21,
+        "ip_classes": 17,
+        "non_ip_classes": 4,
+        "failures": 0,
+        "digest": "a4ea475dce6fc5804410aa72bfeef1aeaf0661bb1fc9044fe5b9dd9f1e470226"
+      }
+    },
+    {
+      "name": "s41-builtin",
+      "descriptor": 41,
+      "pools": "builtin",
+      "palp_repeated_rows": {
+        "builtin": 0
+      },
+      "reference": {
+        "candidates": 216,
+        "classes": 56,
+        "ip_classes": 36,
+        "non_ip_classes": 20,
+        "failures": 0,
+        "digest": "7152e0221d40a85f86de82f4729e8bba2aff2d1ad72bbb1c1196e42e344a16a1"
+      }
+    },
+    {
+      "name": "s44-builtin",
+      "descriptor": 44,
+      "pools": "builtin",
+      "palp_repeated_rows": {
+        "builtin": 0
+      },
+      "reference": {
+        "candidates": 1296,
+        "classes": 126,
+        "ip_classes": 65,
+        "non_ip_classes": 61,
+        "failures": 0,
+        "digest": "79a03ef1cc0e90eb624c0c19122bf9b17644edc276192170b2cba3ca3a0c9841"
+      }
+    },
+    {
+      "name": "s46-builtin",
+      "descriptor": 46,
+      "pools": "builtin",
+      "palp_repeated_rows": {
+        "builtin": 0
+      },
+      "reference": {
+        "candidates": 1033,
+        "classes": 526,
+        "ip_classes": 29,
+        "non_ip_classes": 497,
+        "failures": 0,
+        "digest": "99211ab3673768cf9709f5b6821b47c7fa2bea4b6db244af23f1f904aaca2b42"
+      }
+    },
+    {
+      "name": "s47-builtin",
+      "descriptor": 47,
+      "pools": "builtin",
+      "palp_repeated_rows": {
+        "builtin": 0
+      },
+      "reference": {
+        "candidates": 1,
+        "classes": 1,
+        "ip_classes": 1,
+        "non_ip_classes": 0,
+        "failures": 0,
+        "digest": "7c8bc5d58aa21c940b8693f6bb9861fdcff1acaa232555914aa029f68edda1f5"
+      }
+    }
+  ]
 }

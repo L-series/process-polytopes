@@ -76,14 +76,15 @@ Five malformed fixtures cover missing weights, inconsistent degrees in either ro
 
 `./scripts/test-cws-pipeline.sh --suite <name>` runs gates that do not trust
 PALP's own generation or point code. Only `generator` and `points` have landed;
-`schema`, `classification`, `merge`, and native descriptor checks are planned and
-any unlanded suite exits with an error instead of passing. `--case NAME` limits
-the generator reference to one case, and `--jobs N` sets reference parallelism.
+`schema`, `classification`, and `merge` are planned, and any unlanded suite exits
+with an error instead of passing. `--case NAME` limits the generator suite to one
+legacy or descriptor case (for example `s12`), and `--jobs N` sets reference
+parallelism.
 
 `cws_reference.py` is an independent, standard-library oracle:
 
 - Each manifest case lists explicit `reference.structures`: input pools and
-  one-based coordinate blocks, in the same shape as PALP's planned dimension-5
+  one-based coordinate blocks, in the same shape as PALP's dimension-5
   descriptors. The gate checks that their incidence signatures equal the case's
   recorded combination types. The 3D and 4D cases use pool files equal to PALP's
   built-in lists.
@@ -116,23 +117,54 @@ removing, duplicating, or changing a row is detected. The recorded summary
 digest of every class, label, point count, and representative ID) detects oracle
 drift.
 
-Findings at the pinned PALP revision, all exact expectations rather than waivers:
+## Dimension-five descriptors (V1)
 
-| Case           | Reference IP classes | PALP rows | Missing IP classes | Repeated rows |
-| -------------- | -------------------: | --------: | -----------------: | ------------: |
-| `5d-3ws-211`   |                  851 |     1,401 |                 35 |           585 |
-| `5d-3ws-221`   |                  784 |     1,468 |                  0 |           684 |
-| `5d-3ws-222`   |                1,730 |     1,622 |                128 |            20 |
-| Other 12 cases |   equal to PALP rows |           |                  0 |             0 |
+PALP's `dim5_structures.inc` defines descriptor IDs 2-47 (ID 1, the single
+six-coordinate simplex, is not a combination). The manifest's `descriptors` is a
+reviewed copy; the gate requires PALP's include to equal it, the IDs to be exactly
+2-47, every polytope dimension to be five, and each block's shared prefix to be
+exactly its coordinates used by another block.
 
-`Make_211_CWS` and `Make_222_CWS` decide whether to emit a swapped orientation
-by comparing only shared weight values. Different weight systems with equal
-shared values are treated as symmetric, so valid orientations are skipped. The
-missing classes are listed in `fixtures/cws/known-palp-missing.txt`. Repeated
-rows are permutation-equivalent CWS, so accepted-row counts from these modes
-overstate distinct CWS. Fixing either behavior changes PALP output and needs a
-separately approved PALP chunk, which must then shrink these expectations. The
-oracle is bounded to these inputs and is not a completeness proof.
+Each descriptor is compared with the oracle on bounded pools
+(`descriptor_pools.explicit`: `ws-1d`, `ws-2d`, `ws-3d-first5`, and
+`ws-4d-first6` by block size) through `cws -c5 -n# wf_1 ... wf_# -s#` in two
+modes: one shared file per size, which exercises same-source pruning, and
+byte-identical per-slot copies. Fourteen descriptors without five-weight blocks
+also run builtin `cws -c5 -s#` against the complete 1D, 2D, and 3D lists. In every
+run PALP must emit exactly the oracle's IP classes; only the recorded number of
+repeated, permutation-equivalent rows may vary. Builtin five-weight blocks use
+`cws -w4`'s 184,026 systems, which take about ten minutes to generate and are not
+run here.
+
+The 46 descriptors have 39 distinct incidence structures: 12 and 13; 16, 17, and
+18; 25, 26, and 27; and 30, 31, and 32 differ only by relabeling coordinates. The
+gate requires isomorphic descriptors to give identical IP class sets, so their
+production runs generate the same CWS classes.
+
+### Defects found and fixed
+
+The reference found these defects. PALP `c4a565f` and `31cbe55` fix them, and the
+known-defect list is now empty:
+
+- The experimental descriptor generator's shared-prefix pruning sorted weights
+  on two shared coordinates whenever earlier blocks agreed on them, even if a
+  later block used only one. On the bounded pools it lost IP classes for
+  descriptors 12, 13, 14, 20, 25-28, 40, 42, 43, and 45 (for example 4,859 of
+  5,994 for descriptor 12). Historical runs of those descriptors are therefore
+  not complete.
+- Legacy `-t 2 1 1` compared only shared weight values to detect symmetry, and
+  `-t 2 2 2` emitted three of four relative pair orientations. They missed 35
+  and 128 IP classes on the regression pools; the recovered classes add 35 and
+  124 distinct normal forms.
+- Legacy `-t 2 1 1` and `-t 2 2 1` derived their same-file pruning flag from the
+  wrong two input files. Depending on file order this pruned distinct inputs or
+  emitted hundreds of repeated rows.
+
+The fixed modes' goldens were rerecorded after this review: every earlier CWS
+class is still emitted, and only `5d-3ws-211`, `5d-3ws-221`, and `5d-3ws-222`
+changed. Several modes still emit repeated permutation-equivalent rows, recorded
+exactly, so accepted-row counts overstate distinct CWS. The oracle is bounded to
+these inputs and is not a completeness proof.
 
 After an intentional change to inputs, goldens, or the oracle, review it and run:
 
@@ -140,8 +172,10 @@ After an intentional change to inputs, goldens, or the oracle, review it and run
 python3 tests/record_cws_reference.py --accept-reference
 ```
 
-The recorder writes only hashes, reference summaries, repeated-row counts, and
-the known-defect list; it never edits golden rows or normal forms.
+The recorder runs PALP from committed sources and refuses any missing,
+unexpected, non-IP, or undecided descriptor class. It writes only hashes,
+reference summaries, repeated-row counts, and the legacy known-defect list; it
+never edits golden rows, normal forms, or the descriptor table.
 
 ## Updating the reference
 

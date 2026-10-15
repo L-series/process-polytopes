@@ -135,3 +135,25 @@ def compute_forms(bin_dir, capacity, rows):
     data = "".join(line.split(" M:")[0] + "\n" for line, _ in rows)
     output = run(bin_dir / f"poly-{capacity}d.x", ["-fN"], data=data).stdout
     return normal_forms(output)
+
+
+def read_descriptor_include(path):
+    """Parse PALP's dim5_structures.inc into plain descriptor records."""
+    text = path.read_text()
+    numbers = list(map(int, re.findall(r"-?\d+", text[text.index("=") + 1:])))
+    width = 3 + 5 + 5 + 25
+    if len(numbers) % width:
+        raise AssertionError(f"Malformed descriptor include {path}")
+    descriptors = []
+    for start in range(0, len(numbers), width):
+        record = numbers[start:start + width]
+        identifier, ambient, count = record[:3]
+        sizes = record[3:3 + count]
+        descriptors.append({
+            "id": identifier,
+            "ambient": ambient,
+            "sizes": sizes,
+            "shared": record[8:8 + count],
+            "blocks": [record[13 + 5 * i:13 + 5 * i + sizes[i]] for i in range(count)],
+        })
+    return descriptors

@@ -38,7 +38,7 @@ fi
 
 if [[ "$base_palp" == "$head_palp" ]]; then
   printf '%s\n' false
-elif git -C PALP diff --quiet "$base_palp" "$head_palp" -- '*.c' '*.h' Makefile GNUmakefile; then
+elif git -C PALP diff --quiet "$base_palp" "$head_palp" -- '*.c' '*.h' '*.inc' Makefile GNUmakefile; then
   printf '%s\n' false
 else
   printf '%s\n' true

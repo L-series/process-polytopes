@@ -3,7 +3,8 @@
 
 Suites:
   generator  input/golden hashes, then live PALP rows against the independent
-             reference enumeration (missing, unexpected, repeated rows)
+             reference enumeration (missing, unexpected, repeated rows) for the
+             legacy cases and every dimension-five descriptor (V1)
   points     reference point-set and IP oracle self-tests, plus golden M:p counts
 """
 
@@ -16,7 +17,9 @@ import math
 import os
 import pathlib
 import random
+import shutil
 import sys
+import tempfile
 import time
 import unittest
 
@@ -25,12 +28,41 @@ from cws_reference import (
     lattice_points, read_pool, sha256_file, structure_matrix,
 )
 from cws_support import (
-    FIXTURES, arguments, combination_type, configure_limits, cws_rows, run,
+    FIXTURES, arguments, combination_type, configure_limits, cws_rows,
+    read_descriptor_include, run,
 )
 
 MANIFEST = json.loads((FIXTURES / "manifest.json").read_text())
 KNOWN_MISSING = FIXTURES / "known-palp-missing.txt"
 LANDED_SUITES = ("generator", "points")
+DESCRIPTORS = {d["id"]: d for d in MANIFEST["descriptors"]}
+
+
+def descriptor_case(entry):
+    """A reference case for one recorded descriptor run over bounded pools."""
+    descriptor = DESCRIPTORS[entry["descriptor"]]
+    pools = MANIFEST["descriptor_pools"][entry["pools"]]
+    structure = {"pools": [pools[str(size)] for size in descriptor["sizes"]], "blocks": descriptor["blocks"]}
+    return {**entry, "dimension": 5, "reference": {**entry.get("reference", {}), "structures": [structure]}}
+
+
+def descriptor_rows(case, mode, workspace):
+    """Run PALP on one descriptor: builtin pools, one shared file per size, or per-slot copies."""
+    descriptor = DESCRIPTORS[case["descriptor"]]
+    if mode == "builtin":
+        args = ["-c5", f"-s{descriptor['id']}"]
+    else:
+        pools = MANIFEST["descriptor_pools"][case["pools"]]
+        paths = []
+        for slot, size in enumerate(descriptor["sizes"]):
+            source = FIXTURES / "inputs" / pools[str(size)]
+            if mode == "copies":
+                target = workspace / f"slot{slot}-{source.name}"
+                shutil.copyfile(source, target)
+                source = target
+            paths.append(str(source))
+        args = ["-c5", f"-n{len(paths)}", *paths, f"-s{descriptor['id']}"]
+    return cws_rows(run(BIN_DIR / "cws-5d.x", args).stdout, 5)
 
 
 def known_missing():
@@ -64,7 +96,7 @@ class GeneratorGates(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.references = compute_references(CASES, JOBS)
+        cls.references = compute_references(CASES + DESCRIPTOR_CASES, JOBS)
 
     def test_input_pool_hashes(self):
         recorded = MANIFEST["inputs"]
@@ -89,6 +121,56 @@ class GeneratorGates(unittest.TestCase):
                     for s in case["reference"]["structures"]
                 }
                 self.assertEqual(signatures, set(case["types"]))
+
+    def test_descriptor_table_matches_palp(self):
+        native = read_descriptor_include(BIN_DIR / "dim5_structures.inc")
+        self.assertEqual(native, MANIFEST["descriptors"], "PALP descriptors differ from the reviewed table")
+        self.assertEqual([d["id"] for d in native], list(range(2, 48)), "Descriptor IDs 2-47")
+        for descriptor in native:
+            with self.subTest(descriptor=descriptor["id"]):
+                blocks = descriptor["blocks"]
+                ambient = structure_matrix(blocks)
+                self.assertEqual(len(ambient[0]) - 1, descriptor["ambient"])
+                self.assertEqual(descriptor["ambient"] - len(blocks), 5, "Polytope dimension")
+                uses = collections.Counter(c for block in blocks for c in block)
+                for block, shared in zip(blocks, descriptor["shared"]):
+                    self.assertEqual(block[:shared], [c for c in block if uses[c] > 1], "Shared prefix")
+                    self.assertEqual(len(block[:shared]), len([c for c in block if uses[c] > 1]))
+
+    def test_descriptor_cases_cover_catalogue(self):
+        explicit = sorted(e["descriptor"] for e in MANIFEST["descriptor_cases"] if e["pools"] == "explicit")
+        self.assertEqual(explicit, sorted(DESCRIPTORS), "One explicit-file case per descriptor")
+        for entry in MANIFEST["descriptor_cases"]:
+            modes = set(entry["palp_repeated_rows"])
+            expected = {"builtin"} if entry["pools"] == "builtin" else {"same-file", "copies"}
+            self.assertEqual(modes, expected, entry["name"])
+
+    def test_isomorphic_descriptors_generate_equal_classes(self):
+        groups = collections.defaultdict(list)
+        for entry in MANIFEST["descriptor_cases"]:
+            if entry["pools"] == "explicit" and entry["name"] in self.references:
+                key = canonical(tuple(map(tuple, structure_matrix(DESCRIPTORS[entry["descriptor"]]["blocks"]))))
+                groups[key].append(entry["name"])
+        for names in groups.values():
+            first = self.references[names[0]].ip_keys()
+            for name in names[1:]:
+                self.assertEqual(self.references[name].ip_keys(), first, f"{names[0]} vs {name}")
+
+    def check_descriptor(self, case):
+        reference = self.references[case["name"]]
+        summary = reference.summary()
+        for field in ("candidates", "classes", "ip_classes", "non_ip_classes", "failures", "digest"):
+            self.assertEqual(summary[field], case["reference"][field], f"Reference {field}")
+        self.assertEqual(reference.failures, [], "Oracle failures are never a pass")
+        with tempfile.TemporaryDirectory() as workspace:
+            for mode, repeated in case["palp_repeated_rows"].items():
+                with self.subTest(mode=mode):
+                    rows = descriptor_rows(case, mode, pathlib.Path(workspace))
+                    result = compare_with_palp(reference, rows)
+                    for kind in ("missing", "unexpected", "rejected_by_oracle", "undecided"):
+                        self.assertEqual(result[kind], [], f"{kind} classes")
+                    self.assertEqual(result["repeated"], repeated, "Repeated PALP rows")
+                    self.assertEqual(len(rows), summary["ip_classes"] + repeated, "PALP row accounting")
 
     def test_known_missing_cases_exist(self):
         names = {case["name"] for case in MANIFEST["cases"]}
@@ -233,13 +315,21 @@ if __name__ == "__main__":
     JOBS = max(1, options.jobs)
     configure_limits()
     CASES = [c for c in MANIFEST["cases"] if not options.case or c["name"] == options.case]
-    if not CASES:
+    DESCRIPTOR_CASES = [
+        descriptor_case(e) for e in MANIFEST["descriptor_cases"]
+        if not options.case or e["name"] == options.case
+    ]
+    if not CASES and not DESCRIPTOR_CASES:
         parser.error("No matching cases")
     if options.suite == "generator":
         for case in CASES:
             def test(self, case=case):
                 self.check_case(case)
             setattr(GeneratorGates, "test_case_" + case["name"].replace("-", "_"), test)
+        for case in DESCRIPTOR_CASES:
+            def test(self, case=case):
+                self.check_descriptor(case)
+            setattr(GeneratorGates, "test_descriptor_" + case["name"].replace("-", "_"), test)
         suite = unittest.defaultTestLoader.loadTestsFromTestCase(GeneratorGates)
     else:
         suite = unittest.defaultTestLoader.loadTestsFromTestCase(PointOracle)

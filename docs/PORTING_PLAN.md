@@ -61,13 +61,15 @@ PALP-linked distributions MIT-only.
 
 ## Current execution order
 
-**C01 (CPU workstream):** an independent bounded reference enumerator, exact
+**C01-C02 (CPU workstream):** an independent bounded reference enumerator, exact
 point-set/IP oracle, input/golden hashes, stable candidate IDs and failure
-accounting gate every fixture case in CI (`scripts/test-cws-pipeline.sh`). It
-found PALP's legacy `-t 2 1 1` and `-t 2 2 2` modes omit 35 and 128 IP classes
-of their bounded inputs and that three modes repeat permutation-equivalent rows;
-both are recorded exact expectations awaiting a separately approved PALP fix.
-Native descriptor checks join when C02 supplies that interface.
+accounting gate every fixture case in CI (`scripts/test-cws-pipeline.sh`). C02
+restores descriptor-driven generation (IDs 2-47) in PALP `c4a565f` and gates
+every descriptor against the oracle (V1). The reference exposed unsound donor
+prefix pruning that lost IP classes for twelve descriptors, including s12 and
+s13, plus three legacy `-n3 -t` defects; all are fixed (`31cbe55`). Historical
+runs of the affected descriptors are not complete. Descriptors 13, 17-18, 26-27
+and 31-32 are relabelings of 12, 16, 25 and 30 and generate identical classes.
 
 **C00 is complete, and the approved consolidated T-L1–T-L3 research batch has
 produced all seven literature notes.** The [learning index](learning/README.md)
