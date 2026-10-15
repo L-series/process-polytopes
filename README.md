@@ -87,6 +87,8 @@ commands are:
 ```bash
 make -C PALP all-dims
 ./scripts/test-cws.sh
+./scripts/test-cws-pipeline.sh --suite points
+./scripts/test-cws-pipeline.sh --suite generator
 ```
 
 For native linting, install `clang-format`, Prettier, and `shfmt` matching the
@@ -95,6 +97,8 @@ pinned environment, then run `./scripts/lint.sh`. CI retains the Nix commands.
 ### CWS regression tests
 
 Run `nix develop -i -c ./scripts/test-cws.sh` to build the four required CPU executables and check CWS counts, combination types, malformed input, and vertex normal forms. Add `--case 4d` to run one generation case. See [tests/README.md](tests/README.md) for fixture provenance and coverage. CI runs these tests on every push and pull request; the full `all-dims` build retains its source-change gate.
+
+`./scripts/test-cws-pipeline.sh --suite points` self-tests an independent Python point-set and IP oracle; `--suite generator` checks input and golden hashes and compares live PALP rows with an independent bounded enumeration of every fixture case, reporting missing, unexpected, repeated, and oracle-rejected rows. It currently records two known PALP generator defects; see [tests/README.md](tests/README.md#reference-and-provenance-gates).
 
 These tests preserve exact CWS rows and vertex normal forms of P. They do not
 independently certify mathematical completeness, and accepted CWS counts are not

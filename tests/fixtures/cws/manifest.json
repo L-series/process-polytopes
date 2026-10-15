@@ -20,7 +20,38 @@
       "types": {
         "2WS:2,2,0": 1
       },
-      "distinct_normal_forms": 1
+      "distinct_normal_forms": 1,
+      "reference": {
+        "structures": [
+          {
+            "pools": [
+              "ws-1d.txt",
+              "ws-1d.txt"
+            ],
+            "blocks": [
+              [
+                1,
+                2
+              ],
+              [
+                3,
+                4
+              ]
+            ]
+          }
+        ],
+        "candidates": 1,
+        "classes": 1,
+        "ip_classes": 1,
+        "non_ip_classes": 0,
+        "failures": 0,
+        "digest": "7939f0488805956a7302d96b96438d5e14a5bd777c091b5f1ff78dbc9892071e",
+        "palp_repeated_rows": 0
+      },
+      "outputs": {
+        "cws": "f18b9adfbbac4ae474427b8b155e20dc32d499842bc50a609c0f5c11f25ba76d",
+        "nf": "9406cc2d509ba7861d4b957c997a8de3e5ac7c625ef394e252071bd52f85c50d"
+      }
     },
     {
       "name": "3d",
@@ -35,7 +66,78 @@
         "2WS:2,3,0": 3,
         "3WS:2,2,0,2,0,0,0": 1
       },
-      "distinct_normal_forms": 21
+      "distinct_normal_forms": 21,
+      "reference": {
+        "structures": [
+          {
+            "pools": [
+              "ws-2d.txt",
+              "ws-2d.txt"
+            ],
+            "blocks": [
+              [
+                1,
+                2,
+                3
+              ],
+              [
+                3,
+                4,
+                5
+              ]
+            ]
+          },
+          {
+            "pools": [
+              "ws-1d.txt",
+              "ws-2d.txt"
+            ],
+            "blocks": [
+              [
+                1,
+                2
+              ],
+              [
+                3,
+                4,
+                5
+              ]
+            ]
+          },
+          {
+            "pools": [
+              "ws-1d.txt",
+              "ws-1d.txt",
+              "ws-1d.txt"
+            ],
+            "blocks": [
+              [
+                1,
+                2
+              ],
+              [
+                3,
+                4
+              ],
+              [
+                5,
+                6
+              ]
+            ]
+          }
+        ],
+        "candidates": 40,
+        "classes": 25,
+        "ip_classes": 21,
+        "non_ip_classes": 4,
+        "failures": 0,
+        "digest": "23686656fa5230e7faec98985be48ece73112cfe3c6c3d598b5eb9ab9d212a46",
+        "palp_repeated_rows": 0
+      },
+      "outputs": {
+        "cws": "4ab484496c5fe3e1649b0d73c39b85cc9ea247e30e9e65b150957b6cc2c66c0c",
+        "nf": "2012e7efbd245639424f7dd8d0947ffdb8edfc1db03038f5c4073bb7f95f5095"
+      }
     },
     {
       "name": "4d",
@@ -55,7 +157,192 @@
         "3WS:2,2,0,3,0,0,0": 3,
         "4WS:2,2,0,2,0,0,0,2,0,0,0,0,0,0,0": 1
       },
-      "distinct_normal_forms": 10780
+      "distinct_normal_forms": 10780,
+      "reference": {
+        "structures": [
+          {
+            "pools": [
+              "ws-3d.txt",
+              "ws-3d.txt"
+            ],
+            "blocks": [
+              [
+                1,
+                2,
+                3,
+                4
+              ],
+              [
+                3,
+                4,
+                5,
+                6
+              ]
+            ]
+          },
+          {
+            "pools": [
+              "ws-2d.txt",
+              "ws-3d.txt"
+            ],
+            "blocks": [
+              [
+                1,
+                2,
+                3
+              ],
+              [
+                3,
+                4,
+                5,
+                6
+              ]
+            ]
+          },
+          {
+            "pools": [
+              "ws-2d.txt",
+              "ws-2d.txt"
+            ],
+            "blocks": [
+              [
+                1,
+                2,
+                3
+              ],
+              [
+                4,
+                5,
+                6
+              ]
+            ]
+          },
+          {
+            "pools": [
+              "ws-1d.txt",
+              "ws-3d.txt"
+            ],
+            "blocks": [
+              [
+                1,
+                2
+              ],
+              [
+                3,
+                4,
+                5,
+                6
+              ]
+            ]
+          },
+          {
+            "pools": [
+              "ws-2d.txt",
+              "ws-2d.txt",
+              "ws-1d.txt"
+            ],
+            "blocks": [
+              [
+                1,
+                2,
+                3
+              ],
+              [
+                3,
+                4,
+                5
+              ],
+              [
+                6,
+                7
+              ]
+            ]
+          },
+          {
+            "pools": [
+              "ws-2d.txt",
+              "ws-1d.txt",
+              "ws-1d.txt"
+            ],
+            "blocks": [
+              [
+                1,
+                2,
+                3
+              ],
+              [
+                4,
+                5
+              ],
+              [
+                6,
+                7
+              ]
+            ]
+          },
+          {
+            "pools": [
+              "ws-2d.txt",
+              "ws-2d.txt",
+              "ws-2d.txt"
+            ],
+            "blocks": [
+              [
+                1,
+                2,
+                3
+              ],
+              [
+                3,
+                4,
+                5
+              ],
+              [
+                3,
+                6,
+                7
+              ]
+            ]
+          },
+          {
+            "pools": [
+              "ws-1d.txt",
+              "ws-1d.txt",
+              "ws-1d.txt",
+              "ws-1d.txt"
+            ],
+            "blocks": [
+              [
+                1,
+                2
+              ],
+              [
+                3,
+                4
+              ],
+              [
+                5,
+                6
+              ],
+              [
+                7,
+                8
+              ]
+            ]
+          }
+        ],
+        "candidates": 1069591,
+        "classes": 269703,
+        "ip_classes": 17320,
+        "non_ip_classes": 252383,
+        "failures": 0,
+        "digest": "b51fb89cc43b0a666f2d354eaf4c781b324fb022e42042ca6e99ad0bc334aca5",
+        "palp_repeated_rows": 0
+      },
+      "outputs": {
+        "cws": "4662a36eed52a943992fb6b2f97e6bb54c9da5c5ad651aa3e82128f85b6429fd",
+        "nf": "c3084bae4ea41138184d72dd69d28934adda3762b7cb89c1ba5fa635f2ced2dd"
+      }
     },
     {
       "name": "5d-2ws-00",
@@ -74,7 +361,41 @@
       "types": {
         "2WS:2,5,0": 1000
       },
-      "distinct_normal_forms": 997
+      "distinct_normal_forms": 997,
+      "reference": {
+        "structures": [
+          {
+            "pools": [
+              "ws-1d.txt",
+              "ws-4d-first1000.txt"
+            ],
+            "blocks": [
+              [
+                1,
+                2
+              ],
+              [
+                3,
+                4,
+                5,
+                6,
+                7
+              ]
+            ]
+          }
+        ],
+        "candidates": 1000,
+        "classes": 1000,
+        "ip_classes": 1000,
+        "non_ip_classes": 0,
+        "failures": 0,
+        "digest": "7e39b8938b5c3efddc0da4941e7a955e9a245b77034a1d2b7232cec02ccc5277",
+        "palp_repeated_rows": 0
+      },
+      "outputs": {
+        "cws": "501d7b59cc69f2585eb8ed019b7ae61845d8f73f884b18ba5219699a52887ce2",
+        "nf": "5d13f08b7979910c46f5805b126b999aef24f958e6805cad9d97879f7ad69c9e"
+      }
     },
     {
       "name": "5d-2ws-11",
@@ -93,7 +414,42 @@
       "types": {
         "2WS:3,3,1": 1539
       },
-      "distinct_normal_forms": 1538
+      "distinct_normal_forms": 1538,
+      "reference": {
+        "structures": [
+          {
+            "pools": [
+              "ws-3d-first20.txt",
+              "ws-3d-first20.txt"
+            ],
+            "blocks": [
+              [
+                1,
+                2,
+                3,
+                4
+              ],
+              [
+                4,
+                5,
+                6,
+                7
+              ]
+            ]
+          }
+        ],
+        "candidates": 3600,
+        "classes": 1830,
+        "ip_classes": 1539,
+        "non_ip_classes": 291,
+        "failures": 0,
+        "digest": "bbbfec783cfccc21d980d7b89a7cb8e6f49d85701889209432107d0640c0617a",
+        "palp_repeated_rows": 0
+      },
+      "outputs": {
+        "cws": "af6a52bbcd1a913a6f23de5a4e3fc9c74362b2b0a2233f3ec79a1b767e1386de",
+        "nf": "970c2ffe6607ce46ba81b1ac986045697f9441ca9ef412110e66f5517bd748fb"
+      }
     },
     {
       "name": "5d-2ws-22",
@@ -112,7 +468,43 @@
       "types": {
         "2WS:2,3,2": 1080
       },
-      "distinct_normal_forms": 1079
+      "distinct_normal_forms": 1079,
+      "reference": {
+        "structures": [
+          {
+            "pools": [
+              "ws-3d-first8.txt",
+              "ws-4d-first12.txt"
+            ],
+            "blocks": [
+              [
+                1,
+                2,
+                3,
+                4
+              ],
+              [
+                3,
+                4,
+                5,
+                6,
+                7
+              ]
+            ]
+          }
+        ],
+        "candidates": 2262,
+        "classes": 1203,
+        "ip_classes": 1080,
+        "non_ip_classes": 123,
+        "failures": 0,
+        "digest": "440815654dec7dd2e1cd1ec344e77c215a61052df77fd37839f38810e605e207",
+        "palp_repeated_rows": 0
+      },
+      "outputs": {
+        "cws": "d89f42be499bc4019684b1f8da7e6ca05be6f6c9bb94bc54b4b99a72bef3b77e",
+        "nf": "18792777b16152a98fb0cc3e7b7786179607d2bf98e38d2158402ab698cbb932"
+      }
     },
     {
       "name": "5d-3ws-000-113",
@@ -133,7 +525,45 @@
       "types": {
         "3WS:2,2,0,4,0,0,0": 95
       },
-      "distinct_normal_forms": 81
+      "distinct_normal_forms": 81,
+      "reference": {
+        "structures": [
+          {
+            "pools": [
+              "ws-1d.txt",
+              "ws-1d.txt",
+              "ws-3d.txt"
+            ],
+            "blocks": [
+              [
+                1,
+                2
+              ],
+              [
+                3,
+                4
+              ],
+              [
+                5,
+                6,
+                7,
+                8
+              ]
+            ]
+          }
+        ],
+        "candidates": 95,
+        "classes": 95,
+        "ip_classes": 95,
+        "non_ip_classes": 0,
+        "failures": 0,
+        "digest": "4ad61ec798036f75855720f7d0d4fdce58670aeca433f3d38f579b2661d49da7",
+        "palp_repeated_rows": 0
+      },
+      "outputs": {
+        "cws": "269066c529d076999d09fa9363e2df7a0c7fdb83ed7cd90931a43b20008619e1",
+        "nf": "bb7ee9f6268cb60c8095ebdc7fe8757aeb95ac0d7ca803e3c074b19b5857248b"
+      }
     },
     {
       "name": "5d-3ws-000-221",
@@ -154,7 +584,45 @@
       "types": {
         "3WS:2,3,0,3,0,0,0": 6
       },
-      "distinct_normal_forms": 6
+      "distinct_normal_forms": 6,
+      "reference": {
+        "structures": [
+          {
+            "pools": [
+              "ws-2d.txt",
+              "ws-2d.txt",
+              "ws-1d.txt"
+            ],
+            "blocks": [
+              [
+                1,
+                2,
+                3
+              ],
+              [
+                4,
+                5,
+                6
+              ],
+              [
+                7,
+                8
+              ]
+            ]
+          }
+        ],
+        "candidates": 9,
+        "classes": 6,
+        "ip_classes": 6,
+        "non_ip_classes": 0,
+        "failures": 0,
+        "digest": "06d46079dbbda28a2c60f65ff3368e107ccea7b956fd6b3a4f61dfdf0f66f3f8",
+        "palp_repeated_rows": 0
+      },
+      "outputs": {
+        "cws": "25f9467675360c74b0851cc3f00413bf09b3d83b2f72ff3ed0b9717d1a02a8bb",
+        "nf": "b4dff21adda760414797d87e35b78b1b9184c51d4373feec1a57ab258039253a"
+      }
     },
     {
       "name": "5d-3ws-110",
@@ -175,7 +643,46 @@
       "types": {
         "3WS:2,2,0,3,0,1,0": 1122
       },
-      "distinct_normal_forms": 969
+      "distinct_normal_forms": 969,
+      "reference": {
+        "structures": [
+          {
+            "pools": [
+              "ws-2d.txt",
+              "ws-3d.txt",
+              "ws-1d.txt"
+            ],
+            "blocks": [
+              [
+                1,
+                2,
+                3
+              ],
+              [
+                3,
+                4,
+                5,
+                6
+              ],
+              [
+                7,
+                8
+              ]
+            ]
+          }
+        ],
+        "candidates": 2142,
+        "classes": 2142,
+        "ip_classes": 1122,
+        "non_ip_classes": 1020,
+        "failures": 0,
+        "digest": "25f05578b376bc305667fd1e3384f39858b3108dff3a80e2997e1cd5488c9eb3",
+        "palp_repeated_rows": 0
+      },
+      "outputs": {
+        "cws": "b8db51e75c37586860c8d198bdbc2b4f772ae9c0c8b77f5c99279f3c0a2469d5",
+        "nf": "f0b791d228aa3c9cd8c13c6d4793c31f04b6e1f64c97ccb97ebff152527ef395"
+      }
     },
     {
       "name": "5d-3ws-220",
@@ -196,7 +703,47 @@
       "types": {
         "3WS:2,2,0,2,0,2,0": 1099
       },
-      "distinct_normal_forms": 1086
+      "distinct_normal_forms": 1086,
+      "reference": {
+        "structures": [
+          {
+            "pools": [
+              "ws-3d-first14.txt",
+              "ws-3d-first14.txt",
+              "ws-1d.txt"
+            ],
+            "blocks": [
+              [
+                1,
+                2,
+                3,
+                4
+              ],
+              [
+                3,
+                4,
+                5,
+                6
+              ],
+              [
+                7,
+                8
+              ]
+            ]
+          }
+        ],
+        "candidates": 8281,
+        "classes": 2158,
+        "ip_classes": 1099,
+        "non_ip_classes": 1059,
+        "failures": 0,
+        "digest": "7364b0cbed6cbcea3b72ad62acecf08af6993aeaa482eac959ee131fd9b192e1",
+        "palp_repeated_rows": 0
+      },
+      "outputs": {
+        "cws": "7d1e0c6fbab90f43ad58144cc41709ef6a09df79fa750f33ad5592e3fd3714fa",
+        "nf": "14ef8722111a46033e8f8c0d18d601f80e9e2832bc8021992976e734b38b85c2"
+      }
     },
     {
       "name": "5d-3ws-111",
@@ -217,7 +764,47 @@
       "types": {
         "3WS:2,2,0,3,0,0,1": 1505
       },
-      "distinct_normal_forms": 1488
+      "distinct_normal_forms": 1488,
+      "reference": {
+        "structures": [
+          {
+            "pools": [
+              "ws-3d-first40.txt",
+              "ws-2d.txt",
+              "ws-2d.txt"
+            ],
+            "blocks": [
+              [
+                1,
+                2,
+                3,
+                4
+              ],
+              [
+                4,
+                5,
+                6
+              ],
+              [
+                4,
+                7,
+                8
+              ]
+            ]
+          }
+        ],
+        "candidates": 4932,
+        "classes": 2877,
+        "ip_classes": 1505,
+        "non_ip_classes": 1372,
+        "failures": 0,
+        "digest": "20e854aaef5a0c3e9c9a7363ec092c4335ad9c8734d179893292f1eae67c1096",
+        "palp_repeated_rows": 0
+      },
+      "outputs": {
+        "cws": "1107b4f799b1b9d5b97324420245272953de82b0bd3c0575e0388f735b4fd778",
+        "nf": "40f1397141dd4d13b7ea248e108161d6988af4cf4c468e46d51a737b94278880"
+      }
     },
     {
       "name": "5d-3ws-211",
@@ -238,7 +825,47 @@
       "types": {
         "3WS:2,2,0,2,1,1,0": 1401
       },
-      "distinct_normal_forms": 816
+      "distinct_normal_forms": 816,
+      "reference": {
+        "structures": [
+          {
+            "pools": [
+              "ws-3d-first10.txt",
+              "ws-2d.txt",
+              "ws-2d.txt"
+            ],
+            "blocks": [
+              [
+                1,
+                2,
+                3,
+                4
+              ],
+              [
+                1,
+                5,
+                6
+              ],
+              [
+                2,
+                7,
+                8
+              ]
+            ]
+          }
+        ],
+        "candidates": 2088,
+        "classes": 1074,
+        "ip_classes": 851,
+        "non_ip_classes": 223,
+        "failures": 0,
+        "digest": "0eb39c6e18bdadfd3ea746bd4b0b7b78e3d096b9a27128953fe4f8af52ca552d",
+        "palp_repeated_rows": 585
+      },
+      "outputs": {
+        "cws": "18855d0335de8f70f6f7ce77b490a68d0ed8790b9d45edc8ecd41892f37efead",
+        "nf": "6d36749b7324c022eaaaa838b6efc6d901e85504baeff6b5d578b294550ed596"
+      }
     },
     {
       "name": "5d-3ws-221",
@@ -259,7 +886,48 @@
       "types": {
         "3WS:2,2,0,2,0,1,1": 1468
       },
-      "distinct_normal_forms": 784
+      "distinct_normal_forms": 784,
+      "reference": {
+        "structures": [
+          {
+            "pools": [
+              "ws-3d-first5.txt",
+              "ws-3d-first5.txt",
+              "ws-2d.txt"
+            ],
+            "blocks": [
+              [
+                1,
+                2,
+                3,
+                4
+              ],
+              [
+                3,
+                4,
+                5,
+                6
+              ],
+              [
+                4,
+                7,
+                8
+              ]
+            ]
+          }
+        ],
+        "candidates": 1944,
+        "classes": 1026,
+        "ip_classes": 784,
+        "non_ip_classes": 242,
+        "failures": 0,
+        "digest": "0dcdc6cbbc4f0f60d294a2cb2fa9989d345d3c27e7b9a64225ae18af2afe7d08",
+        "palp_repeated_rows": 684
+      },
+      "outputs": {
+        "cws": "957278b5c7ff54d0240af700281bb64c89c78c5ea12f41e432df56451fb7d398",
+        "nf": "be94e7c7036aa73683ba567265659aac66baf400b5d3502e129a6d9592a0ad36"
+      }
     },
     {
       "name": "5d-3ws-222",
@@ -280,7 +948,49 @@
       "types": {
         "3WS:2,2,0,2,0,0,2": 1622
       },
-      "distinct_normal_forms": 1543
+      "distinct_normal_forms": 1543,
+      "reference": {
+        "structures": [
+          {
+            "pools": [
+              "ws-3d-first7.txt",
+              "ws-3d-first7.txt",
+              "ws-3d-first7.txt"
+            ],
+            "blocks": [
+              [
+                1,
+                2,
+                3,
+                4
+              ],
+              [
+                3,
+                4,
+                5,
+                6
+              ],
+              [
+                3,
+                4,
+                7,
+                8
+              ]
+            ]
+          }
+        ],
+        "candidates": 32768,
+        "classes": 3100,
+        "ip_classes": 1730,
+        "non_ip_classes": 1370,
+        "failures": 0,
+        "digest": "ea17101dbc8777aaa777aacc6c4dc6ff17800f65a37958aae0041c6dab0a05e2",
+        "palp_repeated_rows": 20
+      },
+      "outputs": {
+        "cws": "9ab7576fc45d955a47c44b8951c548c23fc8f6f7c20029c880eb775cc11bb19a",
+        "nf": "501fc9fb2b5736b74d7e094b53baa798c283e26e25b2d8215574bfffcdeb9cc7"
+      }
     },
     {
       "name": "5d-3ws-220-swapped",
@@ -301,7 +1011,47 @@
       "types": {
         "3WS:2,2,0,2,0,2,0": 4
       },
-      "distinct_normal_forms": 4
+      "distinct_normal_forms": 4,
+      "reference": {
+        "structures": [
+          {
+            "pools": [
+              "ws-3d-swapped.txt",
+              "ws-3d-swapped.txt",
+              "ws-1d.txt"
+            ],
+            "blocks": [
+              [
+                1,
+                2,
+                3,
+                4
+              ],
+              [
+                3,
+                4,
+                5,
+                6
+              ],
+              [
+                7,
+                8
+              ]
+            ]
+          }
+        ],
+        "candidates": 9,
+        "classes": 4,
+        "ip_classes": 4,
+        "non_ip_classes": 0,
+        "failures": 0,
+        "digest": "d20a8fd66a3293e367ad3a077e9a2fc3d0a61144400ca842f3c6e67ec16da7b0",
+        "palp_repeated_rows": 0
+      },
+      "outputs": {
+        "cws": "0e7549c8f17721d86cfc7d9c87c989c6cce2bb5d1b60fd30f787ab720c0f5a36",
+        "nf": "342c7ac366e0dc37e09521134eee69c70d0a9db5a9c26531303d9546ef6c8eb8"
+      }
     }
   ],
   "malformed": [
@@ -330,5 +1080,20 @@
       "diagnostic": "Assertion",
       "nonzero_exit": true
     }
-  ]
+  ],
+  "inputs": {
+    "ws-1d.txt": "14c00cbe2875dac54a3e051f4f9728541bc5e6108e4e471111041c4e6b12d128",
+    "ws-2d.txt": "961735068f6ea4201ece055d39fa8c1af7f17723a0ee8f6f4ea7b30884cdf27b",
+    "ws-3d-first10.txt": "621286ebdfa17103fe0543f3469377fc8da68a47069bee5f7ae48d09e3eab499",
+    "ws-3d-first14.txt": "a9d03adb2dea4abe0809b33f0a9d8e6f178f63c34141cbb19b7534f06324cb97",
+    "ws-3d-first20.txt": "cea8b452b454705e766026d76e844c4cc133a1d54845a1e73b21d805fc6d317a",
+    "ws-3d-first40.txt": "3ba7cb4a554c1c92553b44b602b18310d3e270c34ce80eb343f2f62603fa5cc1",
+    "ws-3d-first5.txt": "432984b10a569c906a6dd5a6885f482fb97e504acf9cc981fe496fb234935d32",
+    "ws-3d-first7.txt": "c9513b69230e0c597194b1f3c92f431f31796c74ab341eca655d782a9295d6cf",
+    "ws-3d-first8.txt": "7d8ca9760521caebd15d5dd641f7337817b0b6a2064e9214baacd7079f37a404",
+    "ws-3d-swapped.txt": "304d490628e56ca3efdde3e53e83c9eac4b1fd1e754207fba1117b0506b43e48",
+    "ws-3d.txt": "e13f755b6475ea763881edd2da4597e9274b5cbf406137bb8c358565e5e82ada",
+    "ws-4d-first1000.txt": "988f22dac806b1916a83cb9f760bcc61e70d2fabc4136f86e11cbd26b3f48ad3",
+    "ws-4d-first12.txt": "cb137080ed6c66e82174ba93ba4414d130c50ae02146cedc396439eb32977a47"
+  }
 }

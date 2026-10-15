@@ -42,6 +42,8 @@ nix develop -i -c ./scripts/lint.sh
 nix develop -i -c make -C PALP all-dims
 nix develop -i -c ./scripts/test-cws.sh
 nix develop -i -c ./scripts/test-cws.sh --case 4d
+nix develop -i -c ./scripts/test-cws-pipeline.sh --suite points
+nix develop -i -c ./scripts/test-cws-pipeline.sh --suite generator
 ```
 
 The pinned flake currently targets `x86_64-linux`. Enable the commit hook with
@@ -53,7 +55,15 @@ available, run:
 ```bash
 make -C PALP all-dims
 ./scripts/test-cws.sh
+./scripts/test-cws-pipeline.sh --suite points
+./scripts/test-cws-pipeline.sh --suite generator
 ```
+
+The pipeline suites compare PALP with an independent bounded Python reference
+(see `tests/README.md`); only `generator` and `points` have landed, and other
+planned suites are rejected rather than skipped. Recorded known PALP generator
+defects are exact expectations, not waivers: never extend that list or rerun
+`tests/record_cws_reference.py` to make a gate pass.
 
 Native linting uses `./scripts/lint.sh` with `clang-format`, Prettier, and `shfmt`
 on PATH; match the versions in the pinned environment. Record local tool versions

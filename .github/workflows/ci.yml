@@ -41,3 +41,9 @@ jobs:
 
       - name: CWS regression tests
         run: nix develop -i -c ./scripts/test-cws.sh
+
+      - name: CWS reference oracle self-tests
+        run: nix develop -i -c ./scripts/test-cws-pipeline.sh --suite points
+
+      - name: CWS generator reference gates
+        run: nix develop -i -c ./scripts/test-cws-pipeline.sh --suite generator

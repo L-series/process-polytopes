@@ -61,6 +61,14 @@ PALP-linked distributions MIT-only.
 
 ## Current execution order
 
+**C01 (CPU workstream):** an independent bounded reference enumerator, exact
+point-set/IP oracle, input/golden hashes, stable candidate IDs and failure
+accounting gate every fixture case in CI (`scripts/test-cws-pipeline.sh`). It
+found PALP's legacy `-t 2 1 1` and `-t 2 2 2` modes omit 35 and 128 IP classes
+of their bounded inputs and that three modes repeat permutation-equivalent rows;
+both are recorded exact expectations awaiting a separately approved PALP fix.
+Native descriptor checks join when C02 supplies that interface.
+
 **C00 is complete, and the approved consolidated T-L1–T-L3 research batch has
 produced all seven literature notes.** The [learning index](learning/README.md)
 links the notes and their standalone LaTeX compilation with introductory
