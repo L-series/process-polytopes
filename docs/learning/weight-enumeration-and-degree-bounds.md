@@ -1,9 +1,9 @@
 # Weight enumeration, positive selection, and degree bounds
 
-This T-L1–T-L3 literature note follows the weight-system part of the proposed
-terminating, complete KS classification in every fixed dimension. Weight
-enumeration is one ingredient: CWS assembly, required lattice realizations,
-subpolytope search and exact equivalence still need their own coverage proofs.
+This note explains positive selection, finite branching and degree bounds in
+KS weight enumeration. The [concrete Lean classifier](../../proofs/STATEMENTS.md)
+uses exact rational selection and rank-bounded search, together with CWS
+assembly, compatible lattices and subpolytope recovery.
 The papers reviewed here target the reflexive construction. Their nonreflexive
 Newton polytopes do not establish coverage of all nonreflexive one-point lattice
 polytopes.
@@ -115,8 +115,8 @@ A normalized IP vector is rational even if initially defined over the reals:
 its integer Newton hull spans the affine hyperplane containing `ones`, so
 one can choose `n` linearly independent integer Newton points and solve an
 invertible integer linear system `Xq=ones`. This rationality argument is a
-mathematical deduction from full relative dimension, not a claim that the
-frozen files contain that declaration. Clearing denominators and making the
+mathematical deduction from full relative dimension, formalized in
+`KS/RationalWeights.lean`. Clearing denominators and making the
 weights primitive gives a unique integral encoding of such a rational ray.
 
 ## Half-weight reduction and the domains of pruning rules
@@ -164,13 +164,12 @@ Two scope details matter for a faithful port:
   feasibility must retain the split-domain restrictions. It is not a lemma
   about the frozen unrestricted `qPolytope` alone.
 
-## Actual frozen Lean declarations
+## Supporting formal weight theory
 
-The source inspected is the reviewed read-only snapshot at
-`/home/ahat01/.copilot/session-state/83ef73b2-4517-446c-9ac2-9437ff014965/files/refpoly-proof-snapshot/proofs`.
-Names below lie in `Refpoly`, except the explicit `WeightSystemFinite`
-subnamespace. These are verified type/definition observations, not a new
-build or independent axiom audit.
+Paths are relative to `proofs/Refpoly/`; [SOURCES.md](../../proofs/SOURCES.md)
+identifies the original editions. Names below lie in `Refpoly`, except the
+explicit `WeightSystemFinite` subnamespace. The abstract statements here are
+distinct from the executable definitions in `KS/WeightSearch`.
 
 | Declaration                                                                 | Exact scope and limit                                                                                                                                                                                                                                                                                       |
 | --------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -263,9 +262,9 @@ D. R. Curtiss, _On Kellogg's Diophantine Problem_, **American Mathematical
 Monthly 29** (10) (November–December 1922), 380–387,
 [JSTOR primary record](https://www.jstor.org/stable/2299023),
 [DOI 10.2307/2299023](https://doi.org/10.2307/2299023), is a verified
-bibliographic lead. Its attempted PDF download returned a robot-validation
-HTML document; the original text was **not accessible/read**, so no theorem
-number, exact statement or proof in Curtiss is asserted as directly verified.
+bibliographic lead. The original text was **not directly consulted**, so no
+theorem number, exact statement or proof in Curtiss is asserted as directly
+verified.
 
 The actually read substitute is Soundararajan's note, p. 1, opening statement
 and equation (1): for positive integral denominators `b_1≤…≤b_k` with
@@ -296,27 +295,24 @@ the sharp degree cutoff 3,263,442 for all IP weights. For the displayed
 equal 3,263,442 after primitive clearing. That arithmetic fact about one
 example must not be promoted to a universal theorem.
 
-## Remaining obligations
+## Executable search and scope
 
-| Obligation                             | Verified support                                                           | Missing connection                                                                                          |
-| -------------------------------------- | -------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| Complete normalized target coverage    | Paper descent argument; frozen reachable witness for any selector          | Computable candidate/branch enumeration and terminating output list.                                        |
-| Finite branching                       | Requires strictly positive candidate; guarded frozen finite sets           | Positive rational selector and exact feasibility test; arbitrary selector is insufficient.                  |
-| Rank/depth stopping                    | Paper linear independence; frozen affine-rank increase and bounded witness | Refine concrete recursion, empty/nonpositive exits and final stopping.                                      |
-| Soundness and pruning                  | Exact IP filtering described; seven paper pruning rules                    | Prove actual checker and every enabled native pruning rule in its correct search domain.                    |
-| Half-weight split                      | Frozen depth-two equivalence supported                                     | Refine reduced-run normalization and reconstruction; do not use ordinary depth-one IP on truncated weights. |
-| Primitive degree bounds                | Existential frozen bound; particular Sylvester arithmetic                  | Numerical universal certificate; observed maximum and Fermat denominator bound are different claims.        |
-| Census interpretation                  | Published weights, acceptance split and Hodge counts verified              | Exact distinct-polytope catalogue and lattice-equivalence deduplication.                                    |
-| Full all-dimensional KS classification | Weight generation supplies necessary ingredients                           | Exhaustive CWS structures, lattice realization, container/subpolytope coverage and native refinement.       |
-| Nonreflexive extension                 | Nonreflexive Newton hulls are included in the published WS census          | Coverage of arbitrary nonreflexive one-point polytopes needs a separate theorem.                            |
+| Connection                            | Concrete guarantee or boundary                                                                                                                             |
+| ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Complete normalized target coverage   | `KS/WeightSearch` returns every ordered primitive IP code, using the descent argument and exact normalization.                                             |
+| Finite branching                      | `KS/RationalSelection` computes a positive rational selector; exact arithmetic bounds every branch coordinate.                                             |
+| Rank/depth stopping                   | Strict affine-rank growth justifies the structural depth bound; infeasible nodes terminate without children.                                               |
+| Soundness                             | Exact integer Newton-hull IP acceptance is proved equivalent to `PrimitiveIP`; positivity alone is insufficient.                                           |
+| Native pruning and half-weight splits | Optimized native rules require their own domain, normalization and reconstruction guarantees; the reference search does not depend on those optimizations. |
+| Primitive degree bounds               | Supporting results are existential. No numerical universal certificate or sharp 3,263,442 cutoff is used by the search.                                    |
+| Generic reflexive coverage            | `KS/Composition` and `KS/Obligations` include exhaustive CWS, compatible lattices and subpolytope recovery.                                                |
+| Census and other targets              | Native refinement, exact distinct-class counts and nonreflexive one-point coverage are separate claims.                                                    |
 
 ## Cache and source evidence
 
-Shared PDFs were reused and their recorded SHA-256 values checked before
-reading. The new Soundararajan PDF and available author TeX were cached in
-the uniquely assigned ignored directory; original bytes are preserved.
-Each local provenance file records URLs, versions and retrieval date
-**2026-10-14**. No shared cache record was edited.
+The following original-file hashes identify the consulted editions. Local
+provenance records primary URLs, versions and retrieval date **2026-10-14**;
+downloaded PDFs and author sources are ignored by Git.
 
 | Source/version          | Cache path relative to `docs/learning`             | Original PDF SHA-256                                               |
 | ----------------------- | -------------------------------------------------- | ------------------------------------------------------------------ |
@@ -329,10 +325,8 @@ The Soundararajan source download is
 compressed `Egyptian.tex`) with a supplementary `source-extracted.tex`.
 Its original gzip SHA-256 is
 `4c9625625c2f3cd6f2619f82e98b7650f215f8607e71209ce0f30361f25f8c51`.
-The Curtiss directory retains `download-response.html` and provenance explicitly
-marking **no PDF/text verified**. Download success alone was not accepted as
-evidence of a readable PDF. No author-source availability is inferred from
-the absence of a journal PDF.
+Curtiss is a bibliographic reference only; no original PDF/text is identified
+as directly verified.
 
 Snapshot file hashes for the inspected declarations:
 
@@ -344,5 +338,5 @@ Snapshot file hashes for the inspected declarations:
 | `DegreeBound.lean`        | `46819d084db5bf1ff03979773a72b7ae7ca9fc90c4bb6743cc93234909583103` |
 | `Sylvester.lean`          | `ae1c4efb04ed58b3ec54cd6f8c7f596ee423c73d1eaf04f8520eeb7da92f2856` |
 
-No numerical census or maximum degree was recomputed, and no proof file,
-native code, dataset, shared plan or Git ref was changed by this assignment.
+The displayed Sylvester arithmetic is not a numerical census or a certified
+universal maximum degree.

@@ -1,62 +1,38 @@
-# Learning notes
+# Literature and mathematical background
 
-## Existing reference
+These notes explain the primary sources, geometric conventions and computational
+boundaries behind the [Lean classification](../../proofs/README.md).
+The formal endpoint covers reflexive lattice polytopes in every fixed
+dimension. IP weights and possibly nonreflexive containers are intermediate
+objects, not a promise to classify all nonreflexive IP polytopes.
 
-[SINGLE_WS_5d.tex](SINGLE_WS_5d.tex) is the author's separate paper on the
-single-weight-system part of the five-dimensional classification programme,
-not the official manuscript for this theory development. Its rough proof chain
-and theorem references can help locate primary sources and cross-check claims.
-The new work must independently verify those sources and the Lean statements;
-this index does not certify the paper's historical proof-status assertions.
+## Reading guide
 
-The [mathematical roadmap](THEORY_ROADMAP.md) records the long-term goal of
-complete WS/CWS-based enumeration in every fixed dimension, its proposed
-dependency structure and the distinction from the current scoped proof port.
+- [Weight systems, weighted projective spaces and simplex witnesses](weight-systems-and-wps.md)
+- [IP/reflexive polytopes, polarity and pyramid hypotheses](ip-reflexivity-and-pyramids.md)
+- [Minimal seeds, positive circuits and structural data](minimal-ip-circuits-and-types.md)
+- [Weight enumeration, half weights and degree bounds](weight-enumeration-and-degree-bounds.md)
+- [Combined weights, rank, lattices and reconstruction](cws-and-lattice-realizations.md)
+- [Finiteness, volume and lattice-box reduction](finiteness-and-box-reduction.md)
+- [Normal forms, exact equality and classification output](normal-forms-and-classification.md)
 
-The approved final theory target is now **reflexive polytopes only**.
-Nonreflexive IP examples in the notes remain useful for delimiting hypotheses
-and for understanding intermediate containers; they are not an additional
-classification promise. The [Lean package](../../proofs/README.md) now implements
-the generic endpoint with a kernel-closed concrete classification theorem and
-passing strict and conditional gates. This is not a native PALP/CUDA or
-normal-form census certificate.
+Each note gives primary references, precise hypotheses, source versions and
+formal declaration boundaries. Supporting-library declarations may be weaker
+than the concrete theorem; its full chain is specified in
+[STATEMENTS.md](../../proofs/STATEMENTS.md).
+Abstract existence, executable enumeration, native implementation and measured
+census evidence are distinct.
 
-## Reusable primary documents
+## Compiled review
 
-During approved research, agents may save PDFs and available author TeX sources
-in [`sources/`](sources/README.md), alongside the existing single-weight paper.
-Check this local cache before fetching a document again, retain exact versions
-and provenance, and direct later agents to matching cached sources. Downloads
-are ignored by Git; citations and provenance references belong in the notes.
+[LITERATURE_REVIEW.tex](LITERATURE_REVIEW.tex) collects all seven notes, preceded
+by definitions of lattices, IP/reflexivity, weights, Newton hulls, CWS and lattice
+equivalence. Its appendix identifies the Markdown source bytes by SHA-256.
+The Markdown notes are authoritative and the compilation must stay in sync.
+Use `$...$` and `$$...$$` for Markdown mathematics.
 
-## Literature review
-
-The seven completed research notes cover:
-
-- [Weight systems, weighted projective spaces, and simplex witnesses](weight-systems-and-wps.md).
-- [IP/reflexive polytopes, toric interpretation, and pyramid hypotheses](ip-reflexivity-and-pyramids.md).
-- [Kreuzer-Skarke minimal seeds, circuits, and the descriptor model](minimal-ip-circuits-and-types.md).
-- [Weight enumeration, half weights, and degree-bound claims](weight-enumeration-and-degree-bounds.md).
-- [Combined weights, rank, lattices, saturation, and index data](cws-and-lattice-realizations.md).
-- [Finiteness, volume, and lattice-box reduction](finiteness-and-box-reduction.md).
-- [Normal forms, equivalence, and collision-safe classification](normal-forms-and-classification.md).
-
-Each note cites primary sources with precise hypotheses and identifies the Lean
-declarations it supports. Abstract existence, executable enumeration, and
-completed census evidence remain distinct.
-
-[LITERATURE_REVIEW.tex](LITERATURE_REVIEW.tex) is a standalone compilation of all
-seven notes, preceded by basic definitions of lattices, polytopes, IP/reflexivity,
-weights, Newton hulls, CWS, lattice equivalence, and normal forms. It retains the
-full notes, tables, citations, examples, and provenance; links between included
-notes become internal references. The appendix records the Markdown source
-hashes. The Markdown notes remain authoritative, so refresh the compiled review
-when their content changes. Use `$...$` and `$$...$$` for Markdown mathematics so
-the repository formatter preserves its symbols. The roadmap, this index, and the separate
-single-weight paper are not included as review chapters.
-
-Build it with LuaLaTeX, `latexmk`, and the DejaVu Serif / DejaVu Sans Mono fonts.
-From the repository root, keep all PDF and auxiliary outputs outside the checkout:
+Build with LuaLaTeX, `latexmk` and the DejaVu Serif / DejaVu Sans Mono fonts.
+From the repository root:
 
 ```bash
 review_build="$(mktemp -d)"
@@ -64,69 +40,15 @@ latexmk -lualatex -interaction=nonstopmode -halt-on-error \
   -outdir="$review_build" docs/learning/LITERATURE_REVIEW.tex
 ```
 
-The PDF is written to `$review_build/LITERATURE_REVIEW.pdf`. Building this review
-does not run Lean or certify the mathematical or computational claims.
+The PDF is `$review_build/LITERATURE_REVIEW.pdf`. Keep PDF and auxiliary outputs
+outside the checkout. Compiling the review does not run Lean.
 
-The [permanent theory agents](../THEORY_AGENTS.md) provide bounded literature
-research, independent checking in both directions between prose and Lean
-statements, and final proof simplification using pinned Mathlib. The audit
-compares the two independently completed reports; semantic revisions trigger
-affected checks again. These definitions are available, but research, auditing
-and optimization still require approval of their respective chunks.
+## References and source documents
 
-See [the consolidation status](../PORTING_PLAN.md) for the reviewed source and
-approval-gated sequence. The [tracked frozen-source audit synthesis](../proof-audit.md)
-is complete, all applicable donor modules are ported, and a new isolated formal
-reading closes the historical donor blind-review debt for all 71 statements.
-All eighteen contracts and seven routines are now implemented and compiler-closed.
-The source/library history below does not change the literature chapters or
-their original donor-scope readings.
-The complete `Basic` and `ReflexiveDuality` foundation modules are now faithfully
-ported and imported into the audited package. This port changes no literature
-claims and closes no KS obligation.
-`WeightSystem` and `BoxReduction` are also faithfully ported and imported;
-their 30 results preserve the kernel-interior, projection-lifting and
-existential box-bound hypotheses. No literature claim or compilation changes.
+[SINGLE_WS_5d.tex](SINGLE_WS_5d.tex) is a separate paper on the single-weight
+dimension-five sector, not the specification or proof-status authority for the
+generic classifier.
 
-The faithful `Algorithm`, `WeightSystemFinite` and `GeometricCWS` ports add 21
-results and supporting definitions. Reachability remains abstract. The
-normalized-IP finiteness proof uses positive-feasibility-guarded nodes and
-classical selection; neither supplies executable search. Geometric simplex
-IP/reachability retains the explicit affine independence, normalized positive
-zero relation and dual
-lattice-point witnesses, including lower-dimensional blocks. All three modules
-are imported and compiler-audited; no KS obligation or routine is closed.
-
-The complete faithful `CircuitGeometry`, `CircuitInterior` and `CircuitSpan`
-ports add 24 theorem/lemma bodies, including the private boundary helper.
-Positive simplex circuits span the entire real relation kernel under the
-specified intrinsic-interior hypothesis. All three modules are imported and
-compiler-audited. The new KS bridges separately prove primitive integer
-normalization and the circuit contract.
-
-The faithful volume/finiteness and minimal-seed ports add `ReflexiveVolume`,
-`Finiteness`, `MaxMin`, `Minimal` and `Classification`, with 35 source results.
-The weight-finiteness → volume → box/finiteness dependency remains noncircular.
-Bounds are existential and reflexive-only. Minimal structure gives one
-step; the indexed $2d$ bound is now proved separately in `KS/SeedBound`.
-Legacy simplex signatures still omit
-seed-to-weight witness connections; stronger geometric witnesses are required
-for the new contracts. All modules are imported and compiler-audited; no KS
-obligation or routine is closed.
-
-The complete faithful `CWSBasis`, `CWSContainer` and `CWSAssembly` ports add
-20 source results. They provide independent complete real equations, coordinate
-coverage, explicit reached/padded blocks and forward-integral containers from a
-finite abstract catalogue. Container maps do not prove inverse integrality;
-noncomputable catalogues do not implement primitive integer search or lattice
-realizations. All units 3 and 4 are ported and compiler-audited; the new KS
-implementation supplies the executable and exact lattice bridges.
-
-Unit 5 now ports the remaining five donor modules: `DegreeBound`, `Sylvester`,
-`PyramidLemma`, `BoxReductionAudit` and `CoverageAudit`. Their 24 source results
-and 50 axiom guards are imported and built. Degree bounds remain existential;
-no sharp numerical certificate or general pyramid normalization is claimed.
-The applicable donor library is fully ported. The authorized completion batch
-now supplies the dimension-generic concrete endpoint with all 36 designated
-targets closed. Its clean build and strict/conditional gates pass; native
-regressions supplement, rather than establish, global completeness.
+Primary PDFs and available author TeX may be kept in the ignored
+[source cache](sources/README.md). Citations, exact editions and original-file
+hashes remain in the notes; downloaded documents are not distributed in Git.

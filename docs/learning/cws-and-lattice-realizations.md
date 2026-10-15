@@ -1,20 +1,16 @@
 # CWS equations, containers, and lattice realizations
 
-This review addresses how simplex weights become combined equations, how the equations recover a real pairing space, and what is additionally needed to recover every lattice realization. It belongs to the approved consolidated literature batch. Its long-term reference point is a terminating KS enumeration in each fixed dimension; its current formal evidence is the reviewed frozen source, not a new build or an implementation certificate. The [minimal-seed note](minimal-ip-circuits-and-types.md) treats decomposition, circuits, and the archived structure list separately.
+This note explains how simplex weights become combined equations, how complete relations recover a real pairing space, and how compatible lattices recover every lattice realization. The [concrete classification](../../proofs/STATEMENTS.md) proves these connections for its Lean reference algorithms. The [minimal-seed note](minimal-ip-circuits-and-types.md) treats decomposition, circuits and archived structure lists separately.
 
 ## Primary source and provenance
 
 **[KS00]** Maximilian Kreuzer and Harald Skarke, _Reflexive polyhedra, weights and toric Calabi-Yau fibrations_, Reviews in Mathematical Physics **14**, no. 4 (April 2002), 343–374, [DOI 10.1142/S0129055X0200120X](https://doi.org/10.1142/S0129055X0200120X). The DOI, authors, journal, issue, pages, and publication date were verified against the publisher-deposited [Crossref record](https://api.crossref.org/works/10.1142/S0129055X0200120X). Publisher HTML could not be fetched; the paper actually read was the primary [arXiv math/0001106v1](https://arxiv.org/abs/math/0001106v1), submitted 19 January 2000, [PDF](https://arxiv.org/pdf/math/0001106v1).
 
-The reused original PDF is `docs/learning/sources/kreuzer-skarke-math-0001106/v1/paper.pdf`, SHA-256 `7d400220d9bb4f0e0e2a121d46d75a7aad0b0a98ebbc1d6ad45e33407d0b01c1`, independently checked against local `provenance.json`. Retrieval was 2026-10-14 UTC; `paper.txt` is a derived reading aid. Source-license status is unverified. No duplicate/shared-cache write was made. Pagination below is the paper's printed pagination, not its PDF leaf index or journal pagination.
+The consulted PDF is `docs/learning/sources/kreuzer-skarke-math-0001106/v1/paper.pdf`, SHA-256 `7d400220d9bb4f0e0e2a121d46d75a7aad0b0a98ebbc1d6ad45e33407d0b01c1`. Retrieval was 2026-10-14 UTC; `paper.txt` is a derived reading aid. Source-license status is unverified. Pagination below is the paper's printed pagination, not its PDF leaf index or journal pagination.
 
 The central sources are **§2.2**, pages 9–12, and **§2.3**, pages 13–17. In particular, the lattice classification algorithm is Lemma 7 in §2.3, pages 13–15; §3 starts the geometric interpretation of classification results on page 17. Confusing the section number would direct a later implementation review to the wrong material.
 
-Lean paths below are relative to the read-only frozen root:
-
-`/home/ahat01/.copilot/session-state/83ef73b2-4517-446c-9ac2-9437ff014965/files/refpoly-proof-snapshot/proofs`.
-
-`GeometricCWS.lean`, `CWSBasis.lean`, `CWSContainer.lean`, `CWSAssembly.lean`, and the relevant definitions in `WeightSystem.lean`/`Algorithm.lean` were inspected directly. All declarations are in namespace `Refpoly`; filenames below identify source locations rather than extra namespaces. No sibling checkout, proof, dependency, code, archival ref, or commit was modified.
+Lean paths below are relative to `proofs/Refpoly/`; [SOURCES.md](../../proofs/SOURCES.md) identifies the original versions. All supporting declarations are in namespace `Refpoly`; filenames identify source locations rather than extra namespaces.
 
 ## Equations determine a space only when the relation family is complete
 
@@ -84,15 +80,15 @@ for any reflexive realization. This is now a bounded lattice interval: its endpo
 
 Lemma 7, page 13, diagonalizes `X` by unimodular integer row and column operations: `X=W D U`, with `D` an `n`-by-`n` positive diagonal integer matrix after discarding zero rows/columns. It describes compatible lattices by integer upper-triangular factorizations `D=T S`. The columns of `S U` give primal vertices in lattice coordinates; the rows of `W T` give dual vertices. The finest/coarsest realizations correspond to `D U`/`U` on the primal side and `W D`/`W` on the dual side. This is an actual lattice-coordinate reconstruction, stronger than a real forward-integral embedding.
 
-The proof on page 14 selects diagonal divisors of `D`, bounded off-diagonal representatives, and solves the triangular equations `T S=D` for integral entries. There are finitely many divisor choices and finitely many residue choices, giving an effective finite enumeration for the fixed integral VPM. Equivalently, one may enumerate subgroups of the finite quotient between the two endpoint lattices and recover intermediate lattices; this equivalence is a mathematical interpretation of the bounded interval, not a claim that the frozen package implements it.
+The proof on page 14 selects diagonal divisors of `D`, bounded off-diagonal representatives, and solves the triangular equations `T S=D` for integral entries. There are finitely many divisor choices and finitely many residue choices, giving an effective finite enumeration for the fixed integral VPM. Equivalently, one may enumerate subgroups of the finite quotient between the two endpoint lattices and recover intermediate lattices. The concrete `KS/Realizations` implementation uses this finite-quotient route.
 
-An indexing caution must accompany a faithful transcription: the extracted v1 statement/final proof inequality reads `0<=T_{ji}<T_{ii}`, while the worked discussion specifies `0<=T_{12}<T_{11}`. A future algorithm port must settle a consistent row/column Hermite-style normalization and check the PDF/source convention. The finite-factorization principle and integral reconstruction are clear, but this note does not silently resolve the residue-bound indexing or assert a canonical implementation from the extraction.
+An indexing caution accompanies direct transcription: the extracted v1 statement/final proof inequality reads `0<=T_{ji}<T_{ii}`, while the worked discussion specifies `0<=T_{12}<T_{11}`. The finite-factorization principle does not resolve those row/column conventions. The Lean reference implementation uses finite-quotient subgroup enumeration rather than treating the extracted inequalities as a canonical matrix algorithm.
 
 The next paragraph, page 15, says to construct all subpolytopes with integral VPM of the CWS containers and apply Lemma 7. It supplies no uniform finite-index enumeration for unrestricted sublattices independently of a chosen polytope. The program needs a finite container lattice-point search, exact hull/facet/VPM computations, integral-VPM tests, and then the finite interval reconstruction. Source existence claims and an implementable fixed-matrix procedure are different parts of that chain.
 
 The need is visible in the paper's own data: Proposition 2, page 17, identifies a three-dimensional reflexive polytope requiring a `Z_2` sublattice realization beyond the finest-lattice subpolytope list. This is historical evidence for the missing lattice stage, not a new census result or a benchmark.
 
-## Reachability and finite assembly in the frozen source
+## Abstract reachability and finite assembly
 
 | Declaration                                                          | Inspected conclusion                                                                                                                                                                | What it does not promise                                                                                                                   |
 | -------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -104,29 +100,19 @@ The need is visible in the paper's own data: Proposition 2, page 17, identifies 
 | `cwsCatalogue`, `dimensionCWSCatalogue`                              | Noncomputable finite-set choices from those finiteness proofs.                                                                                                                      | A computed output, canonical representatives, or proven equality with the 46 descriptors.                                                  |
 | `ws_cws_catalogue_coverage`, `finite_ws_cws_container_coverage`      | Every reflexive polytope has a forward-integral real bijective embedding into an IP container in the abstract catalogue, with an existential dimension bound in the latter theorem. | Inverse integrality, all image sublattices, all lattice realizations, maximality, subpolytope enumeration, or terminating end-to-end code. |
 
-The existence of finite row catalogues is valuable: it avoids an empirical numerical degree bound in the abstract coverage statement. It still must be connected to effective weight generation and the actual native input pools. The current approved delivery covers its implemented descriptor/input-pool universe on the PALP reference lattice, not the union of every possible lattice realization.
+The abstract finite row catalogues avoid an empirical numerical degree bound. `KS/WeightSearch` and `KS/Assembly` supply effective generation separately. Native input-pool and descriptor coverage on the PALP reference lattice is not implied by these generic results.
 
-## Remaining obligations and target boundary
+## Concrete reconstruction and target boundary
 
-| Obligation                                     | Supported evidence                                          | Missing refinement / limitation                                                                                                                    |
-| ---------------------------------------------- | ----------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Complete equations and expected real dimension | Circuit basis, pairing-range equality, coordinate count     | Bare nonnegative covering matrices require stronger hypotheses; concrete row ranks need exact checks.                                              |
-| IP component projection                        | Explicit `hlift`, or geometric simplex pairing surjectivity | Coordinate containment alone fails; real surjectivity must be established in the intended support semantics.                                       |
-| Finest lattice identification                  | Primary Lemma 4(c), rational geometric CWS                  | Formal endpoint lattice and integer preimage characterization are absent from the inspected container theorem signatures.                          |
-| Original image lattice                         | Forward integrality in frozen coverage                      | Record an integral basis/index/saturation witness; inverse integrality is neither proved nor generally true.                                       |
-| Compatible finite lattice realizations         | Primary Lemma 7, fixed integral VPM                         | Formal finite quotient, constructive integer normal forms, consistent normalization, reconstruction correctness, and exhaustive finite traversal.  |
-| Finite subpolytope recovery                    | Primary container strategy                                  | Implement/prove lattice-point bounds, hull search, target tests, and recovery on every relevant lattice.                                           |
-| Maximal starting objects                       | Separate minimality refinements in KS §2.3                  | IP containers need not be reflexive or maximal; Lemma 8's automatic reflexivity is explicitly limited to `n<=4`.                                   |
-| Native WS/CWS enumeration                      | Abstract reachability and finite catalogue                  | Executable branching/stopping/pruning, representation, input-pool and descriptor refinement, and termination proof.                                |
-| One representative per class                   | Lattice reconstruction and eventual equivalence relation    | Correct lattice normal forms and exact equivalence/deduplication require their own theorem; equal hashes are insufficient.                         |
-| General nonreflexive one-point IP route        | Real circuit geometry survives                              | Reflexive dual-lattice containment and integral-VPM recovery are not automatically available; rational polar extension or another route is needed. |
+| Connection                              | Formal guarantee or boundary                                                                                                                       |
+| --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Complete equations and dimension        | `KS/Circuits` retains full relation-kernel span; `KS/Assembly` checks exact independence, dimension and coverage.                                  |
+| IP component projection                 | The geometric simplex theorem supplies real surjectivity; bare covering rows still do not discharge `hlift`.                                       |
+| Saturated kernel coordinates            | `KS/IntegerKernel` proves integer preimages of every integer kernel point, not just real spanning.                                                 |
+| Original image lattice                  | `KS/Recovery` places the target image lattice between the actual-vertex coarse and polar-defined fine endpoints.                                   |
+| All compatible realizations             | `KS/Lattices` proves interval finiteness; `KS/Realizations` exhausts the finite quotient and proves exact hull/image-lattice reconstruction.       |
+| Finite subpolytope recovery             | `KS/IntegerPoints` enumerates all container lattice points; `KS/Recovery` proves an enumerated sublist recovers the target image.                  |
+| Maximality                              | IP containers need not be reflexive or maximal; Lemma 8's automatic reflexivity remains limited to `n<=4`.                                         |
+| Native enumeration and distinct classes | PALP refinement, optimized pruning, native descriptors and exact normal-form deduplication are separate guarantees; equal hashes are insufficient. |
 
-For reflexive targets, a minimal seed in the integral polar yields a container; Lemma 7 describes finite lattice choices after a candidate integral VPM is fixed. For general one-point lattice polytopes, the polar can be nonintegral, so the same dual-lattice circuit and pairing argument cannot simply be reused. The long-term theorem should state a concrete terminating procedure covering the declared target up to the declared lattice equivalence, including both subpolytope and lattice stages. The present source supplies substantial abstract coverage ingredients and exposes the remaining lattice information; it does not establish that complete executable theorem.
-
-## Evidence checklist
-
-- Verified exact primary preprint version, journal DOI/metadata, cache hash, and printed theorem locations.
-- Read KS §2.2–§2.3, including component projection, Lemmas 4 and 7–9, and the sublattice example in Proposition 2.
-- Inspected actual CWS, projection-lifting, circuit-basis, geometric container, reachability, and noncomputable catalogue declarations.
-- Labeled the projection and parity examples as independent deductions; no theorem number or computational result was invented for them.
-- No fresh build, global completeness, inverse-integrality theorem, native refinement, or new scientific count is claimed.
+For reflexive targets, the integral polar supplies a minimal seed and the compatible-lattice stage recovers the target's original lattice. These stages compose in `Refpoly.KS.classifies_reflexive`. For general nonreflexive one-point polytopes, polar integrality is unavailable, so the same argument does not extend automatically. The projection and parity examples above are independent deductions, not additional cited or formal theorems.

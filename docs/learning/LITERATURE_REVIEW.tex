@@ -41,11 +41,11 @@
 This document collects all seven literature-review notes in
 \texttt{docs/learning/}. The following definitions fix the notation needed
 to read them. Each review chapter retains its original citations, examples,
-provenance, and qualifications about the frozen formal source and native
-implementation. Research-stage status statements belong to the source notes;
-collecting them here does not certify a proof port or a completed census.
-The separate single-weight paper and the project roadmap are not themselves
-literature-review chapters.
+provenance, and qualifications about the supporting formal results and native
+implementation. The concrete Lean classification is described in
+\texttt{proofs/README.md} and \texttt{proofs/STATEMENTS.md}; it does not verify
+PALP or certify a completed census. The separate single-weight paper is not a
+literature-review chapter.
 
 \section{Lattices, polytopes, and interior}
 
@@ -300,15 +300,11 @@ boundary}\label{ip-reflexivity-and-pyramids--ip-reflexivity-polarity-and-the-pyr
 
 \noindent\textit{Markdown source: }\texttt{docs/\allowbreak{}learning\allowbreak{}/\allowbreak{}ip-\allowbreak{}reflexiv\allowbreak{}ity-\allowbreak{}and-\allowbreak{}pyramids\allowbreak{}.\allowbreak{}md}
 
-This note records the approved T-L1--T-L3 literature review. The
-mathematical target is the roadmap's eventual complete enumeration,
-while the current delivery is the implemented descriptor/input-pool
-universe on the PALP reference lattice and the audited abstract port.
-The separate
-\texttt{SINGLE\_\allowbreak{}WS\_\allowbreak{}5d.\allowbreak{}tex}
-supplied reference leads and cross-checks; its prose and proof-status
-comments are not the specification. Only the reviewed frozen snapshot
-was read; no proof build or proof edit was performed.
+This note fixes the distinctions between origin-IP, one-point and
+reflexive lattice polytopes, and records the scope of the pyramid
+results. The \href{../../proofs/STATEMENTS.md}{formal classification}
+targets reflexive polytopes only; the examples here explain why
+nonreflexive IP objects still occur as intermediates.
 
 \section{Fix the lattice, interior, and equivalence
 first}\label{ip-reflexivity-and-pyramids--fix-the-lattice-interior-and-equivalence-first}
@@ -541,13 +537,13 @@ is not attributed to Skarke, is not a checked Lean theorem, and is not a
 claim about census counts. It separately establishes the existence which
 the height example alone cannot establish.
 
-\section{Frozen Lean support: actual types, not
-comments}\label{ip-reflexivity-and-pyramids--frozen-lean-support-actual-types-not-comments}
+\section{Formal support: actual types, not
+comments}\label{ip-reflexivity-and-pyramids--formal-support-actual-types-not-comments}
 
-Read-only snapshot:
-\texttt{/\allowbreak{}home/\allowbreak{}ahat01/\allowbreak{}.\allowbreak{}copilot/\allowbreak{}session-\allowbreak{}state/\allowbreak{}83ef73b2\allowbreak{}-\allowbreak{}4517-\allowbreak{}446c-\allowbreak{}9ac2-\allowbreak{}9437ff01\allowbreak{}4965/\allowbreak{}files/\allowbreak{}refpoly-\allowbreak{}proof-\allowbreak{}snapshot\allowbreak{}/\allowbreak{}proofs/\allowbreak{}Refpoly/}.
-The table records inspected declarations and their scope; it is not a
-new clean-build or axiom audit.
+Paths are relative to \texttt{proofs/\allowbreak{}Refpoly/};
+\href{../../proofs/SOURCES.md}{SOURCES.md} identifies the original
+source versions. The table records the supporting declarations'
+mathematical scope.
 
 \begin{longtable}[]{@{}
   >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.2751}}
@@ -644,9 +640,9 @@ reflexivity fail are broader than the counterexample's type.
 gaps}\label{ip-reflexivity-and-pyramids--computational-consequences-and-gaps}
 
 \begin{longtable}[]{@{}
-  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.2825}}
-  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3094}}
-  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.4081}}@{}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.2395}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.2966}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.4639}}@{}}
 \toprule\noalign{}
 \begin{minipage}[b]{\linewidth}\raggedright
 Obligation
@@ -663,11 +659,11 @@ Separate IP from reflexivity in dimension five & Explicit WS derivation
 above; low-dimensional source theorem has n≤4 & Native tests must use
 the actual lattice and separate accepted
 IP/\allowbreak{}reflexiv\allowbreak{}e counts \\
-Recover all reflexive targets from CWS containers & {[}K00{]} §2.3
-requires suitable sublattices and integer-VPM subpolytopes & The
-implemented descriptor
-catalogu\allowbreak{}e/\allowbreak{}referenc\allowbreak{}e lattice is
-not global completeness \\
+Recover all reflexive targets from CWS containers & {[}K00{]} §2.3;
+concrete \texttt{KS} reconstruction and composition & The Lean endpoint
+includes lattice realizations; the native descriptor
+catalogu\allowbreak{}e/\allowbreak{}referenc\allowbreak{}e lattice is a
+separate guarantee \\
 Cover all nonreflexive one-point targets & Real polarity exists but may
 be nonintegral & Need a separate theorem or rational-dual extension
 preserving lattice data \\
@@ -684,23 +680,23 @@ Minimal/\allowbreak{}maximal equivalence & Frozen
 \texttt{maximal\_\allowbreak{}iff\_\allowbreak{}dual\_\allowbreak{}minimal}
 & Class and lattice fixed; vertex-minimal seeds are a different
 predicate \\
-Source-to-proof confidence & Exact source versions and declaration
-bodies inspected & T-A0 statement comparison and existing
-build/\allowbreak{}axiom evidence must supply formal validation \\
+Formal trust boundary & Exact source versions, reviewed interfaces and
+compiler-derived axiom closures & See \href{../proof-audit.md}{proof
+guarantees}; primary-source prose is not a substitute for the formal
+statement \\
 \end{longtable}
 
 PALP's accepted CWS rows and exact normal forms are consistency
-regression evidence. They do not certify the missing coverage or
-lattice-realization steps. No numerical speedup, census, or independent
-completeness certificate is claimed here.
+regression evidence. They do not establish native refinement of the
+generic Lean coverage and lattice-realization theorems, or a completed
+census.
 
 \section{Bibliography and cached source
 evidence}\label{ip-reflexivity-and-pyramids--bibliography-and-cached-source-evidence}
 
 All page references above are \textbf{printed preprint page numbers},
-not journal pagination. Cached bytes are local ignored artifacts; notes
-retain retrieval information. PDFs and available TeX were read from the
-approved cache. SHA-256 values identify the original downloads.
+not journal pagination. Cached bytes are local ignored artifacts; the
+citations record consulted editions and original-file SHA-256 values.
 
 \begin{itemize}
 \tightlist
@@ -730,58 +726,46 @@ approved cache. SHA-256 values identify the original downloads.
   Physics Letters A \textbf{11} (1996), 1637--1652, DOI
   \href{https://doi.org/10.1142/S0217732396001636}{10.\allowbreak{}1142/\allowbreak{}S0217732\allowbreak{}39600163\allowbreak{}6}.
   \href{https://arxiv.org/abs/alg-geom/9603007v1}{Primary v1}, 7 March
-  1996. Read shared cache
+  1996. Cache
   \texttt{sources/\allowbreak{}skarke-\allowbreak{}alg-\allowbreak{}geom-\allowbreak{}9603007/\allowbreak{}v1/\allowbreak{}paper.\allowbreak{}pdf},
   SHA-256
   \texttt{ee4357a5\allowbreak{}eadd242e\allowbreak{}9689546a\allowbreak{}7991a9e5\allowbreak{}c291bb7b\allowbreak{}4627674e\allowbreak{}59865a7e\allowbreak{}80698800};
-  provenance records retrieval 2026-10-14. §2 pp.~3--4 for exponent
-  lattice and hull IP; §3 pp.~6--7 for Lemma 1 and the unnumbered
-  reflexivity theorem. Shared author-source retrieval belongs to the
-  integrator; no duplicate download was made.
+  retrieval 2026-10-14. §2 pp.~3--4 for exponent lattice and hull IP; §3
+  pp.~6--7 for Lemma 1 and the unnumbered reflexivity theorem.
 \item
   \textbf{{[}K00{]}} Maximilian Kreuzer and Harald Skarke,
   \emph{Reflexive polyhedra, weights and toric Calabi--Yau fibrations},
   Reviews in Mathematical Physics \textbf{14(4)} (April 2002), 343--374,
   DOI
   \href{https://doi.org/10.1142/S0129055X0200120X}{10.\allowbreak{}1142/\allowbreak{}S0129055\allowbreak{}X0200120\allowbreak{}X}.
-  Journal volume/pages verified in the primary arXiv metadata;
-  DOI/issue/date verified against the primary Crossref record by the CWS
-  researcher and integrator.
+  Journal volume/pages agree with the primary arXiv metadata;
+  DOI/issue/date agree with the publisher-deposited Crossref record.
   \href{https://arxiv.org/abs/math/0001106}{Primary arXiv record},
   \href{https://arxiv.org/pdf/math/0001106v1}{v1 PDF}, v1, 19 January
-  2000. Read shared cache
+  2000. Cache
   \texttt{sources/\allowbreak{}kreuzer-\allowbreak{}skarke-\allowbreak{}math-\allowbreak{}0001106/\allowbreak{}v1/\allowbreak{}paper.\allowbreak{}pdf},
   SHA-256
   \texttt{7d400220\allowbreak{}d9bb4f0e\allowbreak{}0e2a121d\allowbreak{}46d75a7a\allowbreak{}ad0b0a98\allowbreak{}ebbc1d6a\allowbreak{}d45e3340\allowbreak{}7d0b01c1};
-  provenance records retrieval 2026-10-14. §2 pp.~5--6 definitions; §2.1
-  p.~7 minimality; §2.3 pp.~13--15 lattice recovery and refined
-  minimality. This note cites the checked preprint edition; publisher
-  full text was not read and the journal DOI does not identify a
-  separately checked edition.
+  retrieval 2026-10-14. §2 pp.~5--6 definitions; §2.1 p.~7 minimality;
+  §2.3 pp.~13--15 lattice recovery and refined minimality. The preprint
+  is the consulted edition; the journal DOI does not identify a
+  separately consulted edition.
 \end{itemize}
 
-Source-evidence checklist: assigned cache checked before fetching;
-original Batyrev PDF and gzip source retained with hashes; shared
-Skarke/KS PDFs reused and their hashes checked; actual source statements
-and surrounding arguments read; exact frozen definitions and theorem
-types inspected; original WS example kept separate from source and Lean
-claims; no shared-document, proof, code, or sibling-checkout edits and
-no commits performed.
+The original weight-system example is an exact derivation, separate from
+the cited source statements and the Lean theorem inventory.
 
 \chapter{Weight systems, simplex circuits, and weighted projective
 spaces}\label{weight-systems-and-wps--weight-systems-simplex-circuits-and-weighted-projective-spaces}
 
 \noindent\textit{Markdown source: }\texttt{docs/\allowbreak{}learning\allowbreak{}/\allowbreak{}weight-\allowbreak{}systems-\allowbreak{}and-\allowbreak{}wps.\allowbreak{}md}
 
-This is the approved literature topic on weights and weighted projective
-spaces (WPS). It uses the roadmap's mathematical goal while keeping the
-abstract port and implemented descriptor/reference-lattice delivery
-distinct from global classification. The separate single-weight paper
-supplied reference leads; its scope and proof-status prose were checked
-against primary sources and actual frozen declarations. Conrads'
-complete publisher article and Buczyńska's author source were read,
-together with the shared Skarke/KS cache. No proof build or proof edit
-was performed.
+This note distinguishes barycentric weights, integer Newton-hull IP and
+weighted projective spaces (WPS). Equal weights need not determine the
+same lattice polytope. The supporting formal declarations below retain
+their precise hypotheses; the complete executable reflexive
+classification is described in \href{../../proofs/STATEMENTS.md}{the
+statement guide}.
 
 \section{Three normalizations that must remain
 distinct}\label{weight-systems-and-wps--three-normalizations-that-must-remain-distinct}
@@ -1056,12 +1040,13 @@ the explicit lifting hypothesis in
 geometric simplex-block theorem below proves its own surjectivity under
 stronger geometric hypotheses.
 
-\section{Frozen Lean declarations and exact
-boundaries}\label{weight-systems-and-wps--frozen-lean-declarations-and-exact-boundaries}
+\section{Supporting formal declarations and exact
+boundaries}\label{weight-systems-and-wps--supporting-formal-declarations-and-exact-boundaries}
 
-Read-only source:
-\texttt{/\allowbreak{}home/\allowbreak{}ahat01/\allowbreak{}.\allowbreak{}copilot/\allowbreak{}session-\allowbreak{}state/\allowbreak{}83ef73b2\allowbreak{}-\allowbreak{}4517-\allowbreak{}446c-\allowbreak{}9ac2-\allowbreak{}9437ff01\allowbreak{}4965/\allowbreak{}files/\allowbreak{}refpoly-\allowbreak{}proof-\allowbreak{}snapshot\allowbreak{}/\allowbreak{}proofs/\allowbreak{}Refpoly/}.
-These are type inspections, not fresh build/axiom results.
+Paths are relative to \texttt{proofs/\allowbreak{}Refpoly/}.
+\href{../../proofs/SOURCES.md}{SOURCES.md} identifies the original
+source versions. The table describes supporting-library statements, not
+the stronger concrete \texttt{KS} endpoint.
 
 \begin{longtable}[]{@{}
   >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.2065}}
@@ -1155,9 +1140,9 @@ integral isomorphism.
 implications}\label{weight-systems-and-wps--obligations-and-computational-implications}
 
 \begin{longtable}[]{@{}
-  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.2239}}
-  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3166}}
-  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.4595}}@{}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.2222}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3142}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.4636}}@{}}
 \toprule\noalign{}
 \begin{minipage}[b]{\linewidth}\raggedright
 Required connection
@@ -1172,16 +1157,18 @@ Gap or consequence
 \endlastfoot
 Real simplex weights → rational primitive integral weights & Lattice
 vertices and rational affine-system argument; Conrads determinant
-weights & \texttt{simplex\_\allowbreak{}weights} type alone is real;
-rational\allowbreak{}ity/\allowbreak{}integer normalization bridge
-remains explicit work \\
+weights & \texttt{simplex\_\allowbreak{}weights} alone is real;
+\texttt{KS/\allowbreak{}Rational\allowbreak{}Weights} and
+\texttt{KS/\allowbreak{}CircuitW\allowbreak{}eights} supply the
+rational\allowbreak{}/\allowbreak{}primitiv\allowbreak{}e bridge \\
 Primitive relation → well-formed WPS presentation & {[}C02{]}
 Definitions 2.2--2.3, Corollary 3.7 & Preserve simplex data when passing
 to primitive fan rays; gcd one alone is insufficient \\
 WPS weights → all reflexive simplex realizations & {[}C02{]} Theorem
-4.4, Proposition 5.5 and dual-integrality test & Need finite-index
-lattice/\allowbreak{}Hermite enumeration and actual polar test, followed
-by exact equivalence checks \\
+4.4, Proposition 5.5 and dual-integrality test &
+\texttt{KS/\allowbreak{}Realizat\allowbreak{}ions} reconstructs
+compatible lattices; WPS-specific toric interpretation and exact normal
+forms are separate \\
 Positive circuit → Newton-hull IP & Fails for
 (\allowbreak{}1,\allowbreak{}1,\allowbreak{}3)\allowbreak{}/\allowbreak{}5;
 geometric block theorem supplies sufficient witness & Native weight
@@ -1193,20 +1180,21 @@ CWS IP → component IP & Frozen
 \texttt{cws\_\allowbreak{}ip\_\allowbreak{}componen\allowbreak{}t} with
 hlift; geometric circuits supply a different bridge & Arbitrary abstract
 rows do not guarantee projection surjectivity \\
-Abstract reachability → executable WS/\allowbreak{}CWS census & Frozen
-geometric reachability declaration & Native-algorithm refinement,
-catalogue coverage, lattice realization, termination and output
-guarantees remain separate \\
+Abstract reachability → executable WS/\allowbreak{}CWS search &
+\texttt{KS/\allowbreak{}WeightSe\allowbreak{}arch} and
+\texttt{KS/\allowbreak{}Assembly} prove terminating
+sound/\allowbreak{}complete enumeration & Native input pools,
+descriptors and pruning need separate refinement; this is not a
+production census \\
 Source's WPS Gorenstein criterion & Divisibility on a well-formed
 presentation & Conrads Corollary 5.2 needs that presentation
 qualification; do not copy its shorthand to arbitrary reduced tuples \\
 \end{longtable}
 
-No source or inspected type establishes that equality of weights is
-equality of lattice polytopes. Native consolidation still needs exact
-normal forms on the declared lattice, and future global coverage needs
-the additional lattice realizations and subpolytope searches. No speedup
-or independent completeness certificate is claimed.
+Equality of weights is not equality of lattice polytopes. The concrete
+Lean classifier includes compatible lattice realizations and subpolytope
+search, while native refinement and exact normal-form deduplication
+remain separate guarantees.
 
 \section{Verified bibliography and
 provenance}\label{weight-systems-and-wps--verified-bibliography-and-provenance}
@@ -1222,16 +1210,12 @@ provenance}\label{weight-systems-and-wps--verified-bibliography-and-provenance}
   \href{https://link.springer.com/article/10.1007/s002290100235}{publisher
   record}; full 13-page
   \href{https://link.springer.com/content/pdf/10.1007/s002290100235.pdf}{publisher
-  PDF} downloaded and read. Received 30 March 1999; revised 18 October
-  2001. Cache
+  PDF} consulted. Received 30 March 1999; revised 18 October 2001. Cache
   \texttt{sources/\allowbreak{}conrads-\allowbreak{}2002/\allowbreak{}publishe\allowbreak{}r/\allowbreak{}paper.\allowbreak{}pdf},
   SHA-256
   \texttt{5108867a\allowbreak{}34b4f449\allowbreak{}44e1f2e6\allowbreak{}5a34c642\allowbreak{}8a5132f8\allowbreak{}9124c8ac\allowbreak{}b949f7fe\allowbreak{}054a7f1e};
   retrieval 2026-10-14. Page citations are journal pages. Copyright
-  Springer-Verlag 2002; original author TeX was not located in this
-  approved retrieval, and no source archive is claimed. Browser preview
-  showed subscription content, but the direct publisher PDF returned the
-  complete article.
+  Springer-Verlag 2002; no author TeX source archive is identified here.
 \item
   \textbf{{[}Bu08{]}} Weronika Buczyńska, \emph{Fake weighted projective
   spaces},
@@ -1275,44 +1259,35 @@ provenance}\label{weight-systems-and-wps--verified-bibliography-and-provenance}
   Reviews in Mathematical Physics \textbf{14(4)} (April 2002), 343--374,
   DOI
   \href{https://doi.org/10.1142/S0129055X0200120X}{10.\allowbreak{}1142/\allowbreak{}S0129055\allowbreak{}X0200120\allowbreak{}X}.
-  The DOI/issue/date were verified against the primary Crossref record
-  by the CWS researcher and integrator; journal volume/pages also
-  verified in the \href{https://arxiv.org/abs/math/0001106}{primary
-  arXiv record}. Read version
-  \href{https://arxiv.org/pdf/math/0001106v1}{v1}, 19 January 2000,
-  shared cache
+  DOI/issue/date agree with the publisher-deposited Crossref record;
+  journal volume/pages agree with the
+  \href{https://arxiv.org/abs/math/0001106}{primary arXiv record}.
+  Consulted version \href{https://arxiv.org/pdf/math/0001106v1}{v1}, 19
+  January 2000, cache
   \texttt{sources/\allowbreak{}kreuzer-\allowbreak{}skarke-\allowbreak{}math-\allowbreak{}0001106/\allowbreak{}v1/\allowbreak{}paper.\allowbreak{}pdf},
   SHA-256
   \texttt{7d400220\allowbreak{}d9bb4f0e\allowbreak{}0e2a121d\allowbreak{}46d75a7a\allowbreak{}ad0b0a98\allowbreak{}ebbc1d6a\allowbreak{}d45e3340\allowbreak{}7d0b01c1}.
   §2.2, printed pp.~9--12, supplies the weights/container construction;
   §2.3, pp.~13--15, supplies lattice realization. The preprint is the
-  edition read; the publisher full text was not accessed and the journal
-  DOI does not identify a separately read edition. Provenance records
-  retrieval 2026-10-14.
+  consulted edition; the journal DOI does not identify a separately
+  consulted edition. Retrieval 2026-10-14.
 \end{itemize}
 
-Source-evidence checklist: checked assigned cache before retrieval; read
-complete Conrads PDF and readable Buczyńska author source, including
-theorem hypotheses and proofs; preserved original bytes/hashes and local
-provenance; reused shared sources; inspected exact frozen definitions,
-weight/circuit and projection types; original examples are explicitly
-derivations rather than formal certificates; no shared-document, code,
-proof, sibling-checkout or Git edits performed.
+Original examples are derivations rather than formal certificates. The
+source versions, theorem hypotheses and original-file hashes above
+distinguish primary mathematical evidence from the formal statements.
 
 \chapter{Minimal IP seeds, positive circuits, and finite structure
 data}\label{minimal-ip-circuits-and-types--minimal-ip-seeds-positive-circuits-and-finite-structure-data}
 
 \noindent\textit{Markdown source: }\texttt{docs/\allowbreak{}learning\allowbreak{}/\allowbreak{}minimal-\allowbreak{}ip-\allowbreak{}circuits\allowbreak{}-\allowbreak{}and-\allowbreak{}types.\allowbreak{}md}
 
-This note belongs to the consolidated T-L1--T-L3 literature review. It
-studies the minimal-seed step of the proposed all-dimension
-Kreuzer--Skarke (KS) enumeration, compares precise geometric statements
-with the reviewed frozen Lean source, and separates that source from the
-archived five-dimensional list. It does not certify a new Lean build, a
-native descriptor census, or global completeness. The current delivery
-remains the implemented descriptor/input-pool universe on the PALP
-reference lattice; the long-term endpoint additionally requires lattice
-realizations and subpolytope recovery.
+This note explains the minimal-seed and circuit geometry behind the
+dimension-generic Kreuzer--Skarke construction, and distinguishes it
+from archived five-dimensional structure lists. The
+\href{../../proofs/STATEMENTS.md}{formal endpoint} proves reflexive
+coverage with lattice realizations and subpolytope recovery; equality
+with a native descriptor catalogue is a separate claim.
 
 \section{Primary references and evidence
 scope}\label{minimal-ip-circuits-and-types--primary-references-and-evidence-scope}
@@ -1342,10 +1317,8 @@ structures; §2.2, page 10, states the CWS pairing-space and lattice
 result as Lemma 4. Publication metadata was checked against the arXiv
 records. The publication year and preprint year intentionally differ.
 
-The integrator downloaded both shared primary PDFs; this researcher
-reused their extracted text and independently checked PDF SHA-256 values
-against \texttt{provenan\allowbreak{}ce.\allowbreak{}json}. Retrieval
-date is 2026-10-14 UTC. Cache paths below are relative to
+The consulted primary PDF editions have the following original-file
+hashes. Retrieval date is 2026-10-14 UTC; cache paths are relative to
 \texttt{docs/\allowbreak{}learning\allowbreak{}/\allowbreak{}sources/}:
 
 \begin{longtable}[]{@{}
@@ -1378,29 +1351,23 @@ Each directory has the primary URL and retrieval timestamp in
 \texttt{provenan\allowbreak{}ce.\allowbreak{}json};
 \texttt{paper.\allowbreak{}txt} is a derived reading aid. Source
 licenses are unverified, so this is a local reading cache rather than a
-redistribution claim. No private or duplicate source download was made
-for this note.
-\texttt{SINGLE\_\allowbreak{}WS\_\allowbreak{}5d.\allowbreak{}tex} was
-used only as an auxiliary source of reference leads and cross-checks; it
-is a separate single-weight paper, not this review's specification or
-proof-status authority.
+redistribution claim.
+\texttt{SINGLE\_\allowbreak{}WS\_\allowbreak{}5d.\allowbreak{}tex} is a
+separate single-weight paper, not the specification or proof-status
+authority for this construction.
 
-Frozen Lean root, inspected read-only:
-
-\texttt{/\allowbreak{}home/\allowbreak{}ahat01/\allowbreak{}.\allowbreak{}copilot/\allowbreak{}session-\allowbreak{}state/\allowbreak{}83ef73b2\allowbreak{}-\allowbreak{}4517-\allowbreak{}446c-\allowbreak{}9ac2-\allowbreak{}9437ff01\allowbreak{}4965/\allowbreak{}files/\allowbreak{}refpoly-\allowbreak{}proof-\allowbreak{}snapshot\allowbreak{}/\allowbreak{}proofs}.
-
-All declaration paths below are relative to that root. Archived
-catalogue evidence was read using \texttt{git show}, from
-root-repository ref \texttt{gpu-\allowbreak{}run-\allowbreak{}43types},
-commit
-\texttt{452fbe8e\allowbreak{}1b296bf7\allowbreak{}5fa9e8be\allowbreak{}cf6c34d8\allowbreak{}d48bf00a}.
-Its actual paths are
+Formal declaration paths below are relative to
+\texttt{proofs/\allowbreak{}Refpoly/};
+\href{../../proofs/SOURCES.md}{SOURCES.md} identifies the original
+editions. Archived catalogue evidence is fixed to root-repository ref
+\texttt{gpu-\allowbreak{}run-\allowbreak{}43types}, commit
+\texttt{452fbe8e\allowbreak{}1b296bf7\allowbreak{}5fa9e8be\allowbreak{}cf6c34d8\allowbreak{}d48bf00a},
+at
 \texttt{lean/\allowbreak{}MinimalP\allowbreak{}olytopes\allowbreak{}5D/\allowbreak{}Profiles\allowbreak{}.\allowbreak{}lean},
 \texttt{lean/\allowbreak{}MinimalP\allowbreak{}olytopes\allowbreak{}5D/\allowbreak{}Structur\allowbreak{}es.\allowbreak{}lean},
 \texttt{paper/\allowbreak{}minimal\_\allowbreak{}polytope\allowbreak{}s\_\allowbreak{}5d.\allowbreak{}tex},
 and
 \texttt{paper/\allowbreak{}minimal\_\allowbreak{}polytope\allowbreak{}s\_\allowbreak{}5d\_\allowbreak{}table.\allowbreak{}tex}.
-None of those donor files or refs was changed.
 
 \section{Definitions that control the
 interpretation}\label{minimal-ip-circuits-and-types--definitions-that-control-the-interpretation}
@@ -1552,13 +1519,13 @@ on the extra vertices, whereas intrinsic interior in the larger affinely
 independent simplex requires every coordinate strictly positive.
 Uniqueness of barycentric coordinates gives a contradiction.
 
-\section{What the frozen Lean declarations actually
-support}\label{minimal-ip-circuits-and-types--what-the-frozen-lean-declarations-actually-support}
+\section{Supporting seed and circuit
+declarations}\label{minimal-ip-circuits-and-types--supporting-seed-and-circuit-declarations}
 
-These are source-level findings from inspected definitions, signatures,
-and proof bodies. They are not a fresh compilation or axiom audit. The
-namespace is \texttt{Refpoly}, and \texttt{V n} is the real coordinate
-space used by the package.
+The namespace is \texttt{Refpoly}, and \texttt{V n} is the real
+coordinate space used by the package. The table describes
+supporting-library statements; the concrete \texttt{KS} modules supply
+primitive encodings, bounded seeds and executable enumeration.
 
 \begin{longtable}[]{@{}
   >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.2153}}
@@ -1649,12 +1616,9 @@ hull. \\
 \end{longtable}
 
 \texttt{Minimal.\allowbreak{}lean} also contains maximal-dimension
-proper relative-IP selection and lifting lemmas used in the final proof.
-Its old section heading says ``statement only,'' while the final
-declaration has a substantial proof body; comments in the auxiliary
-single-weight paper also describe an earlier deferred state. Those
-comments must not override the actual signature/body. Conversely, the
-presence of a body must not be reported as a new successful build.
+proper relative-IP selection and lifting lemmas used in its
+decomposition proof. The general upper cardinality bound is proved in
+\texttt{KS/\allowbreak{}SeedBoun\allowbreak{}d.\allowbreak{}lean}.
 
 \subsection{A complete relation basis is stronger than circuit
 coverage}\label{minimal-ip-circuits-and-types--a-complete-relation-basis-is-stronger-than-circuit-coverage}
@@ -1810,129 +1774,70 @@ count.
 The 47-entry list includes the single-weight simplex. The project's 46
 genuine CWS descriptors omit that single-weight case; subtraction alone
 does not prove correspondence. Descriptor labels, overlaps, redundant
-rows, orderings, row independence, component input pools, and accepted
-lattice realizations still need the planned T-C0 cross-check after the
-CPU descriptor port. Neither source arithmetic nor a container theorem
-proves that concrete census complete beyond its declared input universe.
+rows, orderings, row independence, component input pools and accepted
+lattice realizations require a separate native-refinement argument.
+Neither source arithmetic nor a container theorem proves that concrete
+census complete beyond its declared input universe.
 
-\section{Gaps and the route to the all-dimension
-goal}\label{minimal-ip-circuits-and-types--gaps-and-the-route-to-the-all-dimension-goal}
+\section{Connection to the concrete
+classification}\label{minimal-ip-circuits-and-types--connection-to-the-concrete-classification}
 
 \begin{longtable}[]{@{}
-  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.1622}}
-  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.2046}}
-  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.6332}}@{}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 2\tabcolsep) * \real{0.1885}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 2\tabcolsep) * \real{0.8115}}@{}}
 \toprule\noalign{}
 \begin{minipage}[b]{\linewidth}\raggedright
-Obligation
+Connection
 \end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
-Inspected support
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
-Missing step / uncertainty
+Formal guarantee
 \end{minipage} \\
 \midrule\noalign{}
 \endhead
 \bottomrule\noalign{}
 \endlastfoot
-Finite descent to a vertex-minimal seed &
-\texttt{exists\_\allowbreak{}minimalI\allowbreak{}PGen\_\allowbreak{}subset}
-& Connect lattice subsets and the declared
-target/\allowbreak{}equivale\allowbreak{}nce consistently downstream. \\
-Positive simplex through a generator & Circuit
-geometry\allowbreak{}/\allowbreak{}interior declarations & Supply
-rational\allowbreak{}/\allowbreak{}integral bridges when lattice weights
-are needed. \\
-One-step KS decomposition &
-\texttt{minimal\_\allowbreak{}structur\allowbreak{}e} proof body & Fresh
-clean build and axiom audit are separate
-T-\allowbreak{}A0/\allowbreak{}port work. \\
-Iterated ordered decomposition & Primary Corollary 1 / IP
-simplex-structure corollary & A formal recursive structure, decreasing
-rank, relative-coordinate transport, and induction to an ordered output
-family are absent from inspected structural source. \\
-\texttt{k <=\allowbreak{} 2n}, stage/\allowbreak{}support bounds &
-Primary Corollary 2 and elementary deductions & Upper-bound theorem and
-its connection to structural search are absent here; existing catalogue
-uses a different bound. \\
-No-lonely necessity & Primary Lemma 2 & A formal geometric theorem and
-certified pruning rule are absent; archive Boolean filter proves only
-its own evaluations. \\
-Finite exhaustive geometric structure list & Finite labeled support
-universe follows from bounds & Need
-realizab\allowbreak{}ility/\allowbreak{}minimali\allowbreak{}ty
-semantics, sound/\allowbreak{}complete generation, and correct
-relabeling quotient. Archive count is insufficient. \\
-Complete independent relation basis &
-\texttt{simplex\_\allowbreak{}circuits\allowbreak{}\_\allowbreak{}span\_\allowbreak{}kernel},
-\texttt{exists\_\allowbreak{}circuitB\allowbreak{}asis} & Abstract
-choice must be refined to an executable
-extracti\allowbreak{}on/\allowbreak{}enumerat\allowbreak{}ion
-algorithm. \\
-Weight search and row assembly & Abstract
-reachabi\allowbreak{}lity/\allowbreak{}finite catalogue declarations &
-Tie actual branching, stopping, pool restrictions, pruning, and row
-permutations to the mathematical specification. \\
-All lattice realizations & KS finest/\allowbreak{}coarsest lattice
-framework & Enumerate and verify finite-index choices; forward lattice
-preservation is insufficient. \\
-All target polytopes & Abstract reflexive container inclusion & Finite
-lattice-subpolytope search, target tests, completeness, termination, and
-exact
-lattice-\allowbreak{}equivale\allowbreak{}nce/\allowbreak{}deduplic\allowbreak{}ation
-are additional obligations. \\
-General one-point IP target & Minimal-seed geometry applies & Reflexive
-polarity\allowbreak{}/\allowbreak{}containe\allowbreak{}r results do not
-automatically cover nonreflexive one-point lattice polytopes. \\
+Bounded minimal seed & \texttt{KS/\allowbreak{}SeedBoun\allowbreak{}d}
+combines minimal decomposition and relative-coordinate transport to
+prove \(n+1\le N\le2n\). \\
+Complete primitive circuit rows & \texttt{KS/\allowbreak{}Circuits}
+preserves supports, weighted-zero relations, independence and full
+relation-kernel span. \\
+Weight search and row assembly &
+\texttt{KS/\allowbreak{}WeightSe\allowbreak{}arch} and
+\texttt{KS/\allowbreak{}Assembly} enumerate every required ordered
+primitive IP row and bounded independent covering CWS. \\
+Compatible lattices and subpolytopes &
+\texttt{KS/\allowbreak{}Recovery}, \texttt{KS/\allowbreak{}Lattices} and
+\texttt{KS/\allowbreak{}Realizat\allowbreak{}ions} prove exact hull
+recovery, finite lattice choices and reconstruction. \\
+All reflexive targets &
+\texttt{Refpoly.\allowbreak{}KS.\allowbreak{}classifi\allowbreak{}es\_\allowbreak{}reflexiv\allowbreak{}e}
+in \texttt{KS/\allowbreak{}Obligati\allowbreak{}ons} composes the
+executable routines into terminating coverage up to two-sided lattice
+equivalence. \\
+Additional promises & Ordered simplex-decomposition catalogues,
+no-lonely pruning, native descriptor refinement and exact deduplication
+are not supplied by the headline theorem. \\
 \end{longtable}
 
-An eventual fixed-dimension KS algorithm theorem must combine structural
-seed generation, IP weight search, independent complete equations,
-lattice realization, finite subpolytope recovery, and exact target
-predicates. It should explicitly promise termination and coverage up to
-the chosen lattice equivalence. The all-dimension structural facts make
-this route plausible and constrain each step; neither a noncomputable
-finite container family nor the archived computed list is that
-end-to-end theorem.
-
-\section{Source-evidence
-checklist}\label{minimal-ip-circuits-and-types--source-evidence-checklist}
-
-\begin{itemize}
-\tightlist
-\item
-  Primary bibliographic records and exact arXiv versions checked; paper
-  text read at the cited geometric statements.
-\item
-  KS97 Lemma 1, Corollaries 1--2, Lemma 2 and five-dimensional example
-  inspected; KS00 simplex-structure definition/corollary, Lemmas 1--4
-  and CWS interpretation inspected.
-\item
-  Frozen definitions/signatures and substantive bodies of
-  \texttt{Minimal}, \texttt{CircuitG\allowbreak{}eometry},
-  \texttt{CircuitI\allowbreak{}nterior},
-  \texttt{CircuitS\allowbreak{}pan}, and \texttt{CWSBasis} inspected;
-  source claims separated from fresh build status.
-\item
-  Archived catalogue and numbered table read without donor mutation;
-  arithmetic output counts separated from geometric and unlabeled
-  completeness.
-\item
-  No proof, shared documentation, native code, sibling checkout, commit,
-  or archival ref was changed by this assignment.
-\end{itemize}
+The concrete enumeration conservatively assembles bounded relation rows;
+it need not identify every output row family with a unique minimal-IP
+simplex decomposition. The archived 47-entry computation is not used as
+its completeness certificate. Nonreflexive one-point targets remain
+outside the theorem.
 
 \chapter{Weight enumeration, positive selection, and degree
 bounds}\label{weight-enumeration-and-degree-bounds--weight-enumeration-positive-selection-and-degree-bounds}
 
 \noindent\textit{Markdown source: }\texttt{docs/\allowbreak{}learning\allowbreak{}/\allowbreak{}weight-\allowbreak{}enumerat\allowbreak{}ion-\allowbreak{}and-\allowbreak{}degree-\allowbreak{}bounds.\allowbreak{}md}
 
-This T-L1--T-L3 literature note follows the weight-system part of the
-proposed terminating, complete KS classification in every fixed
-dimension. Weight enumeration is one ingredient: CWS assembly, required
-lattice realizations, subpolytope search and exact equivalence still
-need their own coverage proofs. The papers reviewed here target the
-reflexive construction. Their nonreflexive Newton polytopes do not
-establish coverage of all nonreflexive one-point lattice polytopes.
+This note explains positive selection, finite branching and degree
+bounds in KS weight enumeration. The
+\href{../../proofs/STATEMENTS.md}{concrete Lean classifier} uses exact
+rational selection and rank-bounded search, together with CWS assembly,
+compatible lattices and subpolytope recovery. The papers reviewed here
+target the reflexive construction. Their nonreflexive Newton polytopes
+do not establish coverage of all nonreflexive one-point lattice
+polytopes.
 
 \section{Primary sources and
 conventions}\label{weight-enumeration-and-degree-bounds--primary-sources-and-conventions}
@@ -2079,10 +1984,10 @@ reals: its integer Newton hull spans the affine hyperplane containing
 \texttt{ones}, so one can choose \texttt{n} linearly independent integer
 Newton points and solve an invertible integer linear system
 \texttt{Xq=\allowbreak{}ones}. This rationality argument is a
-mathematical deduction from full relative dimension, not a claim that
-the frozen files contain that declaration. Clearing denominators and
-making the weights primitive gives a unique integral encoding of such a
-rational ray.
+mathematical deduction from full relative dimension, formalized in
+\texttt{KS/\allowbreak{}Rational\allowbreak{}Weights.\allowbreak{}lean}.
+Clearing denominators and making the weights primitive gives a unique
+integral encoding of such a rational ray.
 
 \section{Half-weight reduction and the domains of pruning
 rules}\label{weight-enumeration-and-degree-bounds--half-weight-reduction-and-the-domains-of-pruning-rules}
@@ -2151,15 +2056,15 @@ Two scope details matter for a faithful port:
   frozen unrestricted \texttt{qPolytop\allowbreak{}e} alone.
 \end{itemize}
 
-\section{Actual frozen Lean
-declarations}\label{weight-enumeration-and-degree-bounds--actual-frozen-lean-declarations}
+\section{Supporting formal weight
+theory}\label{weight-enumeration-and-degree-bounds--supporting-formal-weight-theory}
 
-The source inspected is the reviewed read-only snapshot at
-\texttt{/\allowbreak{}home/\allowbreak{}ahat01/\allowbreak{}.\allowbreak{}copilot/\allowbreak{}session-\allowbreak{}state/\allowbreak{}83ef73b2\allowbreak{}-\allowbreak{}4517-\allowbreak{}446c-\allowbreak{}9ac2-\allowbreak{}9437ff01\allowbreak{}4965/\allowbreak{}files/\allowbreak{}refpoly-\allowbreak{}proof-\allowbreak{}snapshot\allowbreak{}/\allowbreak{}proofs}.
-Names below lie in \texttt{Refpoly}, except the explicit
-\texttt{WeightSy\allowbreak{}stemFini\allowbreak{}te} subnamespace.
-These are verified type/definition observations, not a new build or
-independent axiom audit.
+Paths are relative to \texttt{proofs/\allowbreak{}Refpoly/};
+\href{../../proofs/SOURCES.md}{SOURCES.md} identifies the original
+editions. Names below lie in \texttt{Refpoly}, except the explicit
+\texttt{WeightSy\allowbreak{}stemFini\allowbreak{}te} subnamespace. The
+abstract statements here are distinct from the executable definitions in
+\texttt{KS/\allowbreak{}WeightSe\allowbreak{}arch}.
 
 \begin{longtable}[]{@{}
   >{\raggedright\arraybackslash}p{(\linewidth - 2\tabcolsep) * \real{0.2005}}
@@ -2346,8 +2251,7 @@ Mathematical Monthly 29} (10) (November--December 1922), 380--387,
 \href{https://www.jstor.org/stable/2299023}{JSTOR primary record},
 \href{https://doi.org/10.2307/2299023}{DOI
 10.\allowbreak{}2307/\allowbreak{}2299023}, is a verified bibliographic
-lead. Its attempted PDF download returned a robot-validation HTML
-document; the original text was \textbf{not accessible/read}, so no
+lead. The original text was \textbf{not directly consulted}, so no
 theorem number, exact statement or proof in Curtiss is asserted as
 directly verified.
 
@@ -2390,64 +2294,57 @@ denominator is divisible by the others, so its degree does equal
 3,263,442 after primitive clearing. That arithmetic fact about one
 example must not be promoted to a universal theorem.
 
-\section{Remaining
-obligations}\label{weight-enumeration-and-degree-bounds--remaining-obligations}
+\section{Executable search and
+scope}\label{weight-enumeration-and-degree-bounds--executable-search-and-scope}
 
 \begin{longtable}[]{@{}
-  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.1735}}
-  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3379}}
-  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.4886}}@{}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 2\tabcolsep) * \real{0.1937}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 2\tabcolsep) * \real{0.8063}}@{}}
 \toprule\noalign{}
 \begin{minipage}[b]{\linewidth}\raggedright
-Obligation
+Connection
 \end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
-Verified support
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
-Missing connection
+Concrete guarantee or boundary
 \end{minipage} \\
 \midrule\noalign{}
 \endhead
 \bottomrule\noalign{}
 \endlastfoot
-Complete normalized target coverage & Paper descent argument; frozen
-reachable witness for any selector & Computable
-candidat\allowbreak{}e/\allowbreak{}branch enumeration and terminating
-output list. \\
-Finite branching & Requires strictly positive candidate; guarded frozen
-finite sets & Positive rational selector and exact feasibility test;
-arbitrary selector is insufficient. \\
-Rank/\allowbreak{}depth stopping & Paper linear independence; frozen
-affine-rank increase and bounded witness & Refine concrete recursion,
-empty/\allowbreak{}nonposit\allowbreak{}ive exits and final stopping. \\
-Soundness and pruning & Exact IP filtering described; seven paper
-pruning rules & Prove actual checker and every enabled native pruning
-rule in its correct search domain. \\
-Half-weight split & Frozen depth-two equivalence supported & Refine
-reduced-run normalization and reconstruction; do not use ordinary
-depth-one IP on truncated weights. \\
-Primitive degree bounds & Existential frozen bound; particular Sylvester
-arithmetic & Numerical universal certificate; observed maximum and
-Fermat denominator bound are different claims. \\
-Census interpretation & Published weights, acceptance split and Hodge
-counts verified & Exact distinct-polytope catalogue and
-lattice-equivalence deduplication. \\
-Full all-dimensional KS classification & Weight generation supplies
-necessary ingredients & Exhaustive CWS structures, lattice realization,
-containe\allowbreak{}r/\allowbreak{}subpolyt\allowbreak{}ope coverage
-and native refinement. \\
-Nonreflexive extension & Nonreflexive Newton hulls are included in the
-published WS census & Coverage of arbitrary nonreflexive one-point
-polytopes needs a separate theorem. \\
+Complete normalized target coverage &
+\texttt{KS/\allowbreak{}WeightSe\allowbreak{}arch} returns every ordered
+primitive IP code, using the descent argument and exact
+normalization. \\
+Finite branching &
+\texttt{KS/\allowbreak{}Rational\allowbreak{}Selectio\allowbreak{}n}
+computes a positive rational selector; exact arithmetic bounds every
+branch coordinate. \\
+Rank/\allowbreak{}depth stopping & Strict affine-rank growth justifies
+the structural depth bound; infeasible nodes terminate without
+children. \\
+Soundness & Exact integer Newton-hull IP acceptance is proved equivalent
+to \texttt{Primitiv\allowbreak{}eIP}; positivity alone is
+insufficient. \\
+Native pruning and half-weight splits & Optimized native rules require
+their own domain, normalization and reconstruction guarantees; the
+reference search does not depend on those optimizations. \\
+Primitive degree bounds & Supporting results are existential. No
+numerical universal certificate or sharp 3,263,442 cutoff is used by the
+search. \\
+Generic reflexive coverage &
+\texttt{KS/\allowbreak{}Composit\allowbreak{}ion} and
+\texttt{KS/\allowbreak{}Obligati\allowbreak{}ons} include exhaustive
+CWS, compatible lattices and subpolytope recovery. \\
+Census and other targets & Native refinement, exact distinct-class
+counts and nonreflexive one-point coverage are separate claims. \\
 \end{longtable}
 
 \section{Cache and source
 evidence}\label{weight-enumeration-and-degree-bounds--cache-and-source-evidence}
 
-Shared PDFs were reused and their recorded SHA-256 values checked before
-reading. The new Soundararajan PDF and available author TeX were cached
-in the uniquely assigned ignored directory; original bytes are
-preserved. Each local provenance file records URLs, versions and
-retrieval date \textbf{2026-10-14}. No shared cache record was edited.
+The following original-file hashes identify the consulted editions.
+Local provenance records primary URLs, versions and retrieval date
+\textbf{2026-10-14}; downloaded PDFs and author sources are ignored by
+Git.
 
 \begin{longtable}[]{@{}
   >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.1655}}
@@ -2486,12 +2383,8 @@ saved as \texttt{source-\allowbreak{}original} (gzip compressed
 \texttt{source-\allowbreak{}extracte\allowbreak{}d.\allowbreak{}tex}.
 Its original gzip SHA-256 is
 \texttt{4c962562\allowbreak{}5c2f3cd6\allowbreak{}f2619f82\allowbreak{}e98b7650\allowbreak{}f215f860\allowbreak{}7e71209c\allowbreak{}e0f30361\allowbreak{}f25f8c51}.
-The Curtiss directory retains
-\texttt{download\allowbreak{}-\allowbreak{}response\allowbreak{}.\allowbreak{}html}
-and provenance explicitly marking \textbf{no PDF/text verified}.
-Download success alone was not accepted as evidence of a readable PDF.
-No author-source availability is inferred from the absence of a journal
-PDF.
+Curtiss is a bibliographic reference only; no original PDF/text is
+identified as directly verified.
 
 Snapshot file hashes for the inspected declarations:
 
@@ -2521,24 +2414,21 @@ SHA-256
 \texttt{ae1c4efb\allowbreak{}04ed58b3\allowbreak{}ec54cd6f\allowbreak{}8c7f596e\allowbreak{}e423c73d\allowbreak{}1eaf04f8\allowbreak{}520eeb7d\allowbreak{}a92f2856} \\
 \end{longtable}
 
-No numerical census or maximum degree was recomputed, and no proof file,
-native code, dataset, shared plan or Git ref was changed by this
-assignment.
+The displayed Sylvester arithmetic is not a numerical census or a
+certified universal maximum degree.
 
 \chapter{CWS equations, containers, and lattice
 realizations}\label{cws-and-lattice-realizations--cws-equations-containers-and-lattice-realizations}
 
 \noindent\textit{Markdown source: }\texttt{docs/\allowbreak{}learning\allowbreak{}/\allowbreak{}cws-\allowbreak{}and-\allowbreak{}lattice-\allowbreak{}realizat\allowbreak{}ions.\allowbreak{}md}
 
-This review addresses how simplex weights become combined equations, how
-the equations recover a real pairing space, and what is additionally
-needed to recover every lattice realization. It belongs to the approved
-consolidated literature batch. Its long-term reference point is a
-terminating KS enumeration in each fixed dimension; its current formal
-evidence is the reviewed frozen source, not a new build or an
-implementation certificate. The
+This note explains how simplex weights become combined equations, how
+complete relations recover a real pairing space, and how compatible
+lattices recover every lattice realization. The
+\href{../../proofs/STATEMENTS.md}{concrete classification} proves these
+connections for its Lean reference algorithms. The
 \hyperref[minimal-ip-circuits-and-types--minimal-ip-seeds-positive-circuits-and-finite-structure-data]{minimal-seed
-note} treats decomposition, circuits, and the archived structure list
+note} treats decomposition, circuits and archived structure lists
 separately.
 
 \section{Primary source and
@@ -2557,16 +2447,14 @@ was the primary \href{https://arxiv.org/abs/math/0001106v1}{arXiv
 math/\allowbreak{}0001106v\allowbreak{}1}, submitted 19 January 2000,
 \href{https://arxiv.org/pdf/math/0001106v1}{PDF}.
 
-The reused original PDF is
+The consulted PDF is
 \texttt{docs/\allowbreak{}learning\allowbreak{}/\allowbreak{}sources/\allowbreak{}kreuzer-\allowbreak{}skarke-\allowbreak{}math-\allowbreak{}0001106/\allowbreak{}v1/\allowbreak{}paper.\allowbreak{}pdf},
 SHA-256
-\texttt{7d400220\allowbreak{}d9bb4f0e\allowbreak{}0e2a121d\allowbreak{}46d75a7a\allowbreak{}ad0b0a98\allowbreak{}ebbc1d6a\allowbreak{}d45e3340\allowbreak{}7d0b01c1},
-independently checked against local
-\texttt{provenan\allowbreak{}ce.\allowbreak{}json}. Retrieval was
-2026-10-14 UTC; \texttt{paper.\allowbreak{}txt} is a derived reading
-aid. Source-license status is unverified. No duplicate/shared-cache
-write was made. Pagination below is the paper's printed pagination, not
-its PDF leaf index or journal pagination.
+\texttt{7d400220\allowbreak{}d9bb4f0e\allowbreak{}0e2a121d\allowbreak{}46d75a7a\allowbreak{}ad0b0a98\allowbreak{}ebbc1d6a\allowbreak{}d45e3340\allowbreak{}7d0b01c1}.
+Retrieval was 2026-10-14 UTC; \texttt{paper.\allowbreak{}txt} is a
+derived reading aid. Source-license status is unverified. Pagination
+below is the paper's printed pagination, not its PDF leaf index or
+journal pagination.
 
 The central sources are \textbf{§2.2}, pages 9--12, and \textbf{§2.3},
 pages 13--17. In particular, the lattice classification algorithm is
@@ -2574,20 +2462,10 @@ Lemma 7 in §2.3, pages 13--15; §3 starts the geometric interpretation of
 classification results on page 17. Confusing the section number would
 direct a later implementation review to the wrong material.
 
-Lean paths below are relative to the read-only frozen root:
-
-\texttt{/\allowbreak{}home/\allowbreak{}ahat01/\allowbreak{}.\allowbreak{}copilot/\allowbreak{}session-\allowbreak{}state/\allowbreak{}83ef73b2\allowbreak{}-\allowbreak{}4517-\allowbreak{}446c-\allowbreak{}9ac2-\allowbreak{}9437ff01\allowbreak{}4965/\allowbreak{}files/\allowbreak{}refpoly-\allowbreak{}proof-\allowbreak{}snapshot\allowbreak{}/\allowbreak{}proofs}.
-
-\texttt{Geometri\allowbreak{}cCWS.\allowbreak{}lean},
-\texttt{CWSBasis\allowbreak{}.\allowbreak{}lean},
-\texttt{CWSConta\allowbreak{}iner.\allowbreak{}lean},
-\texttt{CWSAssem\allowbreak{}bly.\allowbreak{}lean}, and the relevant
-definitions in
-\texttt{WeightSy\allowbreak{}stem.\allowbreak{}lean}/\texttt{Algorith\allowbreak{}m.\allowbreak{}lean}
-were inspected directly. All declarations are in namespace
-\texttt{Refpoly}; filenames below identify source locations rather than
-extra namespaces. No sibling checkout, proof, dependency, code, archival
-ref, or commit was modified.
+Lean paths below are relative to \texttt{proofs/\allowbreak{}Refpoly/};
+\href{../../proofs/SOURCES.md}{SOURCES.md} identifies the original
+versions. All supporting declarations are in namespace \texttt{Refpoly};
+filenames identify source locations rather than extra namespaces.
 
 \section{Equations determine a space only when the relation family is
 complete}\label{cws-and-lattice-realizations--equations-determine-a-space-only-when-the-relation-family-is-complete}
@@ -2857,20 +2735,19 @@ off-diagonal representatives, and solves the triangular equations
 many divisor choices and finitely many residue choices, giving an
 effective finite enumeration for the fixed integral VPM. Equivalently,
 one may enumerate subgroups of the finite quotient between the two
-endpoint lattices and recover intermediate lattices; this equivalence is
-a mathematical interpretation of the bounded interval, not a claim that
-the frozen package implements it.
+endpoint lattices and recover intermediate lattices. The concrete
+\texttt{KS/\allowbreak{}Realizat\allowbreak{}ions} implementation uses
+this finite-quotient route.
 
-An indexing caution must accompany a faithful transcription: the
-extracted v1 statement/final proof inequality reads
+An indexing caution accompanies direct transcription: the extracted v1
+statement/final proof inequality reads
 \texttt{0<=\allowbreak{}T\_\allowbreak{}\{ji\}<T\_\allowbreak{}\{ii\}},
 while the worked discussion specifies
 \texttt{0<=\allowbreak{}T\_\allowbreak{}\{12\}<T\_\allowbreak{}\{11\}}.
-A future algorithm port must settle a consistent row/column
-Hermite-style normalization and check the PDF/source convention. The
-finite-factorization principle and integral reconstruction are clear,
-but this note does not silently resolve the residue-bound indexing or
-assert a canonical implementation from the extraction.
+The finite-factorization principle does not resolve those row/column
+conventions. The Lean reference implementation uses finite-quotient
+subgroup enumeration rather than treating the extracted inequalities as
+a canonical matrix algorithm.
 
 The next paragraph, page 15, says to construct all subpolytopes with
 integral VPM of the CWS containers and apply Lemma 7. It supplies no
@@ -2887,8 +2764,8 @@ identifies a three-dimensional reflexive polytope requiring a
 finest-lattice subpolytope list. This is historical evidence for the
 missing lattice stage, not a new census result or a benchmark.
 
-\section{Reachability and finite assembly in the frozen
-source}\label{cws-and-lattice-realizations--reachability-and-finite-assembly-in-the-frozen-source}
+\section{Abstract reachability and finite
+assembly}\label{cws-and-lattice-realizations--abstract-reachability-and-finite-assembly}
 
 \begin{longtable}[]{@{}
   >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.1766}}
@@ -2952,117 +2829,76 @@ integrality, all image sublattices, all lattice realizations,
 maximality, subpolytope enumeration, or terminating end-to-end code. \\
 \end{longtable}
 
-The existence of finite row catalogues is valuable: it avoids an
-empirical numerical degree bound in the abstract coverage statement. It
-still must be connected to effective weight generation and the actual
-native input pools. The current approved delivery covers its implemented
-descriptor/input-pool universe on the PALP reference lattice, not the
-union of every possible lattice realization.
+The abstract finite row catalogues avoid an empirical numerical degree
+bound. \texttt{KS/\allowbreak{}WeightSe\allowbreak{}arch} and
+\texttt{KS/\allowbreak{}Assembly} supply effective generation
+separately. Native input-pool and descriptor coverage on the PALP
+reference lattice is not implied by these generic results.
 
-\section{Remaining obligations and target
-boundary}\label{cws-and-lattice-realizations--remaining-obligations-and-target-boundary}
+\section{Concrete reconstruction and target
+boundary}\label{cws-and-lattice-realizations--concrete-reconstruction-and-target-boundary}
 
 \begin{longtable}[]{@{}
-  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.1833}}
-  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.2351}}
-  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.5817}}@{}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 2\tabcolsep) * \real{0.2108}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 2\tabcolsep) * \real{0.7892}}@{}}
 \toprule\noalign{}
 \begin{minipage}[b]{\linewidth}\raggedright
-Obligation
+Connection
 \end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
-Supported evidence
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
-Missing refinement / limitation
+Formal guarantee or boundary
 \end{minipage} \\
 \midrule\noalign{}
 \endhead
 \bottomrule\noalign{}
 \endlastfoot
-Complete equations and expected real dimension & Circuit basis,
-pairing-range equality, coordinate count & Bare nonnegative covering
-matrices require stronger hypotheses; concrete row ranks need exact
-checks. \\
-IP component projection & Explicit \texttt{hlift}, or geometric simplex
-pairing surjectivity & Coordinate containment alone fails; real
-surjectivity must be established in the intended support semantics. \\
-Finest lattice identification & Primary Lemma 4(c), rational geometric
-CWS & Formal endpoint lattice and integer preimage characterization are
-absent from the inspected container theorem signatures. \\
-Original image lattice & Forward integrality in frozen coverage & Record
-an integral
-basis/\allowbreak{}index/\allowbreak{}saturati\allowbreak{}on witness;
-inverse integrality is neither proved nor generally true. \\
-Compatible finite lattice realizations & Primary Lemma 7, fixed integral
-VPM & Formal finite quotient, constructive integer normal forms,
-consistent normalization, reconstruction correctness, and exhaustive
-finite traversal. \\
-Finite subpolytope recovery & Primary container strategy &
-Implemen\allowbreak{}t/\allowbreak{}prove lattice-point bounds, hull
-search, target tests, and recovery on every relevant lattice. \\
-Maximal starting objects & Separate minimality refinements in KS §2.3 &
-IP containers need not be reflexive or maximal; Lemma 8's automatic
-reflexivity is explicitly limited to \texttt{n<=\allowbreak{}4}. \\
-Native WS/\allowbreak{}CWS enumeration & Abstract reachability and
-finite catalogue & Executable
-branchin\allowbreak{}g/\allowbreak{}stopping\allowbreak{}/\allowbreak{}pruning,
-representation, input-pool and descriptor refinement, and termination
-proof. \\
-One representative per class & Lattice reconstruction and eventual
-equivalence relation & Correct lattice normal forms and exact
-equivale\allowbreak{}nce/\allowbreak{}deduplic\allowbreak{}ation require
-their own theorem; equal hashes are insufficient. \\
-General nonreflexive one-point IP route & Real circuit geometry survives
-& Reflexive dual-lattice containment and integral-VPM recovery are not
-automatically available; rational polar extension or another route is
-needed. \\
+Complete equations and dimension & \texttt{KS/\allowbreak{}Circuits}
+retains full relation-kernel span; \texttt{KS/\allowbreak{}Assembly}
+checks exact independence, dimension and coverage. \\
+IP component projection & The geometric simplex theorem supplies real
+surjectivity; bare covering rows still do not discharge
+\texttt{hlift}. \\
+Saturated kernel coordinates &
+\texttt{KS/\allowbreak{}IntegerK\allowbreak{}ernel} proves integer
+preimages of every integer kernel point, not just real spanning. \\
+Original image lattice & \texttt{KS/\allowbreak{}Recovery} places the
+target image lattice between the actual-vertex coarse and polar-defined
+fine endpoints. \\
+All compatible realizations & \texttt{KS/\allowbreak{}Lattices} proves
+interval finiteness; \texttt{KS/\allowbreak{}Realizat\allowbreak{}ions}
+exhausts the finite quotient and proves exact
+hull/\allowbreak{}image-\allowbreak{}lattice reconstruction. \\
+Finite subpolytope recovery &
+\texttt{KS/\allowbreak{}IntegerP\allowbreak{}oints} enumerates all
+container lattice points; \texttt{KS/\allowbreak{}Recovery} proves an
+enumerated sublist recovers the target image. \\
+Maximality & IP containers need not be reflexive or maximal; Lemma 8's
+automatic reflexivity remains limited to \texttt{n<=\allowbreak{}4}. \\
+Native enumeration and distinct classes & PALP refinement, optimized
+pruning, native descriptors and exact normal-form deduplication are
+separate guarantees; equal hashes are insufficient. \\
 \end{longtable}
 
-For reflexive targets, a minimal seed in the integral polar yields a
-container; Lemma 7 describes finite lattice choices after a candidate
-integral VPM is fixed. For general one-point lattice polytopes, the
-polar can be nonintegral, so the same dual-lattice circuit and pairing
-argument cannot simply be reused. The long-term theorem should state a
-concrete terminating procedure covering the declared target up to the
-declared lattice equivalence, including both subpolytope and lattice
-stages. The present source supplies substantial abstract coverage
-ingredients and exposes the remaining lattice information; it does not
-establish that complete executable theorem.
-
-\section{Evidence
-checklist}\label{cws-and-lattice-realizations--evidence-checklist}
-
-\begin{itemize}
-\tightlist
-\item
-  Verified exact primary preprint version, journal DOI/metadata, cache
-  hash, and printed theorem locations.
-\item
-  Read KS §2.2--§2.3, including component projection, Lemmas 4 and 7--9,
-  and the sublattice example in Proposition 2.
-\item
-  Inspected actual CWS, projection-lifting, circuit-basis, geometric
-  container, reachability, and noncomputable catalogue declarations.
-\item
-  Labeled the projection and parity examples as independent deductions;
-  no theorem number or computational result was invented for them.
-\item
-  No fresh build, global completeness, inverse-integrality theorem,
-  native refinement, or new scientific count is claimed.
-\end{itemize}
+For reflexive targets, the integral polar supplies a minimal seed and
+the compatible-lattice stage recovers the target's original lattice.
+These stages compose in
+\texttt{Refpoly.\allowbreak{}KS.\allowbreak{}classifi\allowbreak{}es\_\allowbreak{}reflexiv\allowbreak{}e}.
+For general nonreflexive one-point polytopes, polar integrality is
+unavailable, so the same argument does not extend automatically. The
+projection and parity examples above are independent deductions, not
+additional cited or formal theorems.
 
 \chapter{Finiteness, volume bounds, and reduction to a finite lattice
 box}\label{finiteness-and-box-reduction--finiteness-volume-bounds-and-reduction-to-a-finite-lattice-box}
 
 \noindent\textit{Markdown source: }\texttt{docs/\allowbreak{}learning\allowbreak{}/\allowbreak{}finitene\allowbreak{}ss-\allowbreak{}and-\allowbreak{}box-\allowbreak{}reductio\allowbreak{}n.\allowbreak{}md}
 
-This note supplies the finiteness part of the approved T-L1--T-L3
-literature review. It concerns full-dimensional lattice polytopes in a
-fixed lattice, first with a fixed positive number of interior lattice
-points, then with the additional reflexivity hypothesis. Its endpoint is
-a foundation for the proposed complete KS enumeration in every fixed
-dimension. The frozen Lean declarations provide intermediate abstract
-results; they do not certify that endpoint or the native descriptor
-census.
+This note concerns full-dimensional lattice polytopes in a fixed
+lattice, first with a fixed positive number of interior lattice points,
+then with the additional reflexivity hypothesis. The supporting Lean
+declarations provide abstract volume and box results. The
+\href{../../proofs/STATEMENTS.md}{concrete KS endpoint} uses a
+separately proved executable construction; neither generic theorem is a
+native descriptor census.
 
 \section{Definitions and equivalence
 conventions}\label{finiteness-and-box-reduction--definitions-and-equivalence-conventions}
@@ -3329,15 +3165,14 @@ a subpolytope with vertices at other lattice points. Container existence
 does not identify the KS WS/CWS construction or supply an executable
 list of containers.
 
-\section{What the frozen Lean statements actually
-support}\label{finiteness-and-box-reduction--what-the-frozen-lean-statements-actually-support}
+\section{Supporting formal volume and box
+statements}\label{finiteness-and-box-reduction--supporting-formal-volume-and-box-statements}
 
-Only the reviewed read-only snapshot was inspected:
-\texttt{/\allowbreak{}home/\allowbreak{}ahat01/\allowbreak{}.\allowbreak{}copilot/\allowbreak{}session-\allowbreak{}state/\allowbreak{}83ef73b2\allowbreak{}-\allowbreak{}4517-\allowbreak{}446c-\allowbreak{}9ac2-\allowbreak{}9437ff01\allowbreak{}4965/\allowbreak{}files/\allowbreak{}refpoly-\allowbreak{}proof-\allowbreak{}snapshot\allowbreak{}/\allowbreak{}proofs}.
-The following are declaration/type observations, not a new clean build
-or axiom audit. All names below are in namespace \texttt{Refpoly},
-except the explicitly qualified subnamespace names. Line locations refer
-to this snapshot.
+Paths are relative to \texttt{proofs/\allowbreak{}Refpoly/};
+\href{../../proofs/SOURCES.md}{SOURCES.md} identifies the original
+editions and hashes. Names below are in namespace \texttt{Refpoly},
+except explicitly qualified subnamespaces. Line locations identify the
+original source edition, not the current checkout.
 
 \begin{longtable}[]{@{}
   >{\raggedright\arraybackslash}p{(\linewidth - 2\tabcolsep) * \real{0.2679}}
@@ -3476,59 +3311,56 @@ The inspected dependency route avoids using reflexive-polytope
 finiteness to prove the finite weights from which its volume bound is
 derived. One must preserve that direction: replacing weight finiteness
 by an argument that assumes the same polytope finiteness would create a
-circular justification. This observation is a source dependency check,
-not the scheduled independent statement audit or build/axiom guard.
+circular justification. The compiler-derived dependency and axiom checks
+preserve that direction.
 
-\section{Gaps toward complete KS
-enumeration}\label{finiteness-and-box-reduction--gaps-toward-complete-ks-enumeration}
+\section{Role in the concrete
+classification}\label{finiteness-and-box-reduction--role-in-the-concrete-classification}
 
 \begin{longtable}[]{@{}
-  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.1418}}
-  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3097}}
-  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.5485}}@{}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 2\tabcolsep) * \real{0.1696}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 2\tabcolsep) * \real{0.8304}}@{}}
 \toprule\noalign{}
 \begin{minipage}[b]{\linewidth}\raggedright
-Obligation
+Result
 \end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
-Literature / frozen-source position
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
-Remaining work
+Scope and connection
 \end{minipage} \\
 \midrule\noalign{}
 \endhead
 \bottomrule\noalign{}
 \endlastfoot
 Fixed \texttt{(\allowbreak{}n,\allowbreak{}k≥1)}
-volume/\allowbreak{}count bound & Verified in Hensley and LZ; frozen
-volume theorem only reflexive & Define exact interior count and
-formalize the general theorem if that broader endpoint is retained. \\
-Equivalence and marking & LZ uses affine lattice maps; frozen GL is
-origin-fixed & Formal affine/\allowbreak{}marked bridge, especially for
-\texttt{k>1}; state output equivalence convention. \\
-Effective box / finite candidate list & Explicit LZ bound verified;
-frozen box radius and catalogue existential & Formal explicit bound and
-executable exact bounded enumeration, with soundness and coverage. \\
-Maximal container existence & General deduction from bounded point
-count; frozen result reflexive & Construct a finite
-maximal/\allowbreak{}containe\allowbreak{}r family and prove
-\texttt{g(\allowbreak{}P)\allowbreak{} ⊆ M\_\allowbreak{}i}. Existence
-alone does not construct KS containers. \\
-Subpolytope recovery & Finite all-lattice-point subsets suffice
-abstractly & Implemen\allowbreak{}t/\allowbreak{}prove complete
-subpolytope search and exact target predicates, including all required
-lattice realizations. \\
-Polarity for broader one-point targets & Reflexive closure supported; a
-general one-point polytope may have a rational polar & Separate
-rational-dual argument or restrict this step to reflexive targets. \\
-WS/\allowbreak{}CWS identification & Frozen finite-weight route supports
-its reflexive volume argument & Seed structures, containers,
-finite-index lattice choices, actual pruning/\allowbreak{}search
-refinement and end-to-end KS coverage remain separate obligations. \\
-Unique output representatives & Neither finite existential cover nor
-point-count bounds imply deduplication & Exact lattice
-equivale\allowbreak{}nce/\allowbreak{}normal-\allowbreak{}form
-specification and executable correctness; equal hashes alone cannot
-merge classes. \\
+volume/\allowbreak{}count bounds & Hensley and LZ treat the general
+positive-interior-count problem. The supporting Lean volume theorem is
+reflexive-specific; the broader theorem is not needed for the
+classifier's target. \\
+Equivalence and marking & LZ uses affine lattice maps. The formal
+classifier fixes the origin and proves two-sided integral
+\texttt{GLEquiv}; these conventions must not be conflated for general
+\texttt{k>1}. \\
+Effective boxes & The supporting box radii are existential. Executable
+\texttt{KS/\allowbreak{}IntegerP\allowbreak{}oints} derives its own
+bounds from CWS weights and a certified kernel basis, not an unevaluated
+LZ radius. \\
+Maximal containers & Abstract maximality existence does not construct a
+KS container. \texttt{KS/\allowbreak{}Containe\allowbreak{}rs} supplies
+explicit seed-pairing witnesses; its containers need not be maximal. \\
+Subpolytope and lattice recovery & \texttt{KS/\allowbreak{}Recovery}
+proves exact hull recovery from enumerated container points;
+\texttt{KS/\allowbreak{}Realizat\allowbreak{}ions} exhausts compatible
+lattices. \\
+Polarity for broader one-point targets & A nonreflexive one-point
+polytope may have a rational polar. Such final targets are outside the
+theorem. \\
+WS/\allowbreak{}CWS coverage &
+\texttt{KS/\allowbreak{}WeightSe\allowbreak{}arch},
+\texttt{KS/\allowbreak{}Assembly} and the composition theorem supply the
+concrete terminating reflexive enumeration. Native pruning and
+descriptor refinement are separate guarantees. \\
+Unique representatives & Output duplicates are permitted. Exact normal
+forms and collision-safe class merging are not implied by volume or
+point-count bounds. \\
 \end{longtable}
 
 \section{Source evidence and reusable
@@ -3574,8 +3406,7 @@ The LZ PDF download URL is the publisher's
 \href{https://www.cambridge.org/core/services/aop-cambridge-core/content/view/0D4E5B45AB64DC6069A9BD7DD45B450C/S0008414X00007483a.pdf/bounds-for-lattice-polytopes-containing-a-fixed-number-of-interior-points-in-a-sublattice.pdf}{journal
 PDF}. The cached Hensley publisher HTML record additionally verifies the
 DOI; its original-byte hash is recorded in the local provenance file.
-Cached literature is not an input for the blind formal statement
-checker.
+Cached literature is not an input to the Lean build.
 
 The main inspected Lean file hashes identify the source evidence
 independently of declaration names:
@@ -3605,10 +3436,6 @@ SHA-256
 \texttt{cf4bf17f\allowbreak{}61a68356\allowbreak{}43710932\allowbreak{}26ea904d\allowbreak{}a42a5be6\allowbreak{}f9d0cf07\allowbreak{}183e0e82\allowbreak{}6a74b6ef} \\
 \end{longtable}
 
-The assignment changed only this note and its two owned cache
-directories. No frozen proof, sibling proof checkout, shared plan,
-native code, dataset, baseline, commit or publication was changed.
-
 \chapter{Normal forms, exact equality, and classification
 output}\label{normal-forms-and-classification--normal-forms-exact-equality-and-classification-output}
 
@@ -3616,14 +3443,12 @@ output}\label{normal-forms-and-classification--normal-forms-exact-equality-and-c
 
 A normal form can decide lattice equivalence only after the target
 lattice and equivalence relation are fixed. Its canonical integer
-matrix, its serialized bytes, and a hash of those bytes are three
-different objects. This note reviews the primary normal-form algorithm
-and the pinned/archived computational contracts. It does not certify a
-new implementation, run a dataset census, or change scientific counts.
-The approved current universe remains the implemented
-descriptor/input-pool universe on the PALP reference lattice;
-\hyperref[cws-and-lattice-realizations--cws-equations-containers-and-lattice-realizations]{lattice-realization
-coverage} is a separate completeness obligation.
+matrix, serialized bytes and a hash of those bytes are three different
+objects. This note reviews the primary normal-form algorithm and
+pinned/archived computational contracts. The
+\href{../../proofs/STATEMENTS.md}{Lean classifier} proves coverage with
+possible duplicates; native normal forms, exact deduplication and census
+counts are separate guarantees.
 
 \section{Primary references and reusable
 evidence}\label{normal-forms-and-classification--primary-references-and-reusable-evidence}
@@ -3657,10 +3482,9 @@ pages 1--2, states full-dimension and fixed-precision limitations; §2's
 describes the isomorphism test and stages. The preprint year differs
 from the journal year.
 
-Both owned source caches were created during this approved assignment.
-Original downloaded bytes were retained, SHA-256 recorded, and TeX/text
-extracted only as reading aids. Retrieval date is 2026-10-14 UTC. Paths
-below are relative to
+The consulted editions have the following original-file hashes;
+extracted TeX/text are reading aids. Retrieval date is 2026-10-14 UTC.
+Paths are relative to
 \texttt{docs/\allowbreak{}learning\allowbreak{}/\allowbreak{}sources/}:
 
 \begin{longtable}[]{@{}
@@ -3705,14 +3529,14 @@ root archived \texttt{main} commit
 \texttt{7c4dc2e6\allowbreak{}2da1ff8d\allowbreak{}539684d4\allowbreak{}977d4de9\allowbreak{}656d7a4f},
 and \texttt{gpu-\allowbreak{}run-\allowbreak{}43types} commit
 \texttt{452fbe8e\allowbreak{}1b296bf7\allowbreak{}5fa9e8be\allowbreak{}cf6c34d8\allowbreak{}d48bf00a}.
-Archived files were read with \texttt{git show}; no donor checkout or
-ref was changed. Current regression evidence is
+Current regression contracts are documented in
 \texttt{tests/\allowbreak{}README.\allowbreak{}md},
 \texttt{tests/\allowbreak{}cws\_\allowbreak{}support.\allowbreak{}py},
 and \texttt{tests/\allowbreak{}test\_\allowbreak{}cws.\allowbreak{}py}.
-Frozen formal definitions were inspected read-only at
-
-\texttt{/\allowbreak{}home/\allowbreak{}ahat01/\allowbreak{}.\allowbreak{}copilot/\allowbreak{}session-\allowbreak{}state/\allowbreak{}83ef73b2\allowbreak{}-\allowbreak{}4517-\allowbreak{}446c-\allowbreak{}9ac2-\allowbreak{}9437ff01\allowbreak{}4965/\allowbreak{}files/\allowbreak{}refpoly-\allowbreak{}proof-\allowbreak{}snapshot\allowbreak{}/\allowbreak{}proofs/\allowbreak{}Refpoly/\allowbreak{}Basic.\allowbreak{}lean}.
+Formal equivalence is defined in
+\texttt{proofs/\allowbreak{}Refpoly/\allowbreak{}Basic.\allowbreak{}lean};
+\href{../../proofs/SOURCES.md}{SOURCES.md} identifies its original
+edition.
 
 \section{Linear and affine equivalence are different
 contracts}\label{normal-forms-and-classification--linear-and-affine-equivalence-are-different-contracts}
@@ -3859,8 +3683,7 @@ They do not independently prove mathematical canonicity, all-dimensional
 completeness, equivalence with the abstract catalogue, or the
 correctness of another lattice realization. A changed golden requires
 the repository's explicit baseline-review procedure; regenerating it
-merely to pass a test would erase evidence. This assignment did not
-regenerate or run a new baseline.
+merely to pass a test would erase evidence.
 
 \section{What the archived classifiers actually
 compare}\label{normal-forms-and-classification--what-the-archived-classifiers-actually-compare}
@@ -3948,14 +3771,13 @@ descriptor/support ordering, PALP commit/build capacities/arithmetic
 choices, and the lattice realization. The same real polytope on a
 different lattice can represent a different equivalence class, so a
 normal form only classifies the lattice coordinates it is actually
-given. Recording weights alone may be insufficient once the long-term
-programme includes finite-index realizations beyond the reference
-lattice.
+given. Recording weights alone may be insufficient for finite-index
+realizations beyond the reference lattice.
 
 \section{Formal support and remaining
 gaps}\label{normal-forms-and-classification--formal-support-and-remaining-gaps}
 
-Frozen \texttt{Basic.\allowbreak{}lean} defines
+\texttt{Basic.\allowbreak{}lean} defines
 \texttt{IsUnimod\allowbreak{}ular g} by \textbf{both} forward and
 inverse preservation of integer lattice points. \texttt{GLEquiv P Q} is
 the existence of a real linear equivalence with that unimodularity
@@ -3966,9 +3788,9 @@ equivalence relation; they do not define NF, its serializer, a hash, or
 a native reduction theorem.
 
 \begin{longtable}[]{@{}
-  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.1857}}
-  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.2905}}
-  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.5238}}@{}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.1831}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3005}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.5164}}@{}}
 \toprule\noalign{}
 \begin{minipage}[b]{\linewidth}\raggedright
 Contract
@@ -3982,8 +3804,8 @@ Missing or bounded scope
 \bottomrule\noalign{}
 \endlastfoot
 Mathematical linear lattice equivalence &
-\texttt{Basic.\allowbreak{}IsUnimod\allowbreak{}ular}, \texttt{GLEquiv};
-primary NF contract & No frozen theorem
+\texttt{IsUnimod\allowbreak{}ular}, \texttt{GLEquiv}; primary NF
+contract & No formal theorem
 \texttt{NF(\allowbreak{}P)\allowbreak{}=\allowbreak{}NF(\allowbreak{}Q)\allowbreak{} iff GLEquiv P Q}. \\
 Affine equivalence & GK §3.3 algorithm; unique-interior centering
 deduction & No inspected formal
@@ -4013,10 +3835,10 @@ immutable. \\
 Scientific output counts & Regression distinguishes accepted rows and
 distinct exact NFs & Hash-count equality is insufficient to certify an
 exact geometric census. \\
-End-to-end completeness & Separate abstract container coverage & Native
+End-to-end completeness & Concrete Lean KS coverage with lattices and
+subpolytope recovery & Native
 NF/\allowbreak{}refineme\allowbreak{}nt/\allowbreak{}dedup correctness
-and global lattice/\allowbreak{}subpolyt\allowbreak{}ope coverage remain
-separate. \\
+is not supplied by that theorem. \\
 \end{longtable}
 
 A complete enumeration theorem can permit duplicates: every output must
@@ -4024,35 +3846,9 @@ be valid and every target class represented, with termination.
 Duplicate-free output is an additional theorem only if one
 representative per equivalence class is promised. Normal forms are
 useful for that stronger promise and for exact distinct-class counts;
-they do not repair missing seed, lattice-realization, or subpolytope
-coverage. The planned native refinement and census must therefore keep
-coverage, correctness, and exact equivalence reduction as separate
-obligations.
-
-\section{Evidence
-checklist}\label{normal-forms-and-classification--evidence-checklist}
-
-\begin{itemize}
-\tightlist
-\item
-  Primary PDF/author-source versions read and cached with original-byte
-  hashes and provenance.
-\item
-  Verified algorithm assumptions, Definitions 3.1--3.2, affine
-  extension, PALP permutation/HNF steps, and unnumbered Appendix A
-  canonicity statement.
-\item
-  Inspected pinned PALP P/affine entry points and current exact
-  tuple-based golden tests retaining multiplicities.
-\item
-  Inspected fixed archived classifiers, replay serialization, hash/count
-  comparison, and determinism argument without mutation or large dataset
-  scans.
-\item
-  Inspected actual frozen
-  \texttt{IsUnimod\allowbreak{}ular}/\texttt{GLEquiv} definitions; no
-  formal NF, hash-injectivity, or native-dedup theorem is claimed.
-\end{itemize}
+they do not replace seed, lattice-realization or subpolytope coverage.
+Native refinement and census guarantees therefore keep coverage,
+correctness and exact equivalence reduction separate.
 
 \appendix
 \chapter{Markdown source snapshot}
@@ -4063,19 +3859,19 @@ the exact source bytes used for this compilation. Source bibliographies
 and primary-document provenance remain in their respective chapters.
 \begin{description}
 \item[\texttt{ip-\allowbreak{}reflexiv\allowbreak{}ity-\allowbreak{}and-\allowbreak{}pyramids\allowbreak{}.\allowbreak{}md}]
-\texttt{37ac39a1\allowbreak{}83adfc46\allowbreak{}237ecc6e\allowbreak{}6c423221\allowbreak{}3976df53\allowbreak{}7689fab5\allowbreak{}7baced00\allowbreak{}11c34313}
+\texttt{42ac78da\allowbreak{}8865d9eb\allowbreak{}f1de4ae9\allowbreak{}3cdd444e\allowbreak{}ca9fa549\allowbreak{}4285b07d\allowbreak{}e0e71ca6\allowbreak{}b1bbb8a0}
 \item[\texttt{weight-\allowbreak{}systems-\allowbreak{}and-\allowbreak{}wps.\allowbreak{}md}]
-\texttt{17bbfa9f\allowbreak{}b8506246\allowbreak{}f4f7a468\allowbreak{}be526ca9\allowbreak{}6a581552\allowbreak{}203cfc55\allowbreak{}b14f2cf0\allowbreak{}84283313}
+\texttt{f1fe431c\allowbreak{}1444b19d\allowbreak{}c79fc5d9\allowbreak{}63f9388a\allowbreak{}334ac7a2\allowbreak{}5028078e\allowbreak{}7be5775e\allowbreak{}1aec72a9}
 \item[\texttt{minimal-\allowbreak{}ip-\allowbreak{}circuits\allowbreak{}-\allowbreak{}and-\allowbreak{}types.\allowbreak{}md}]
-\texttt{a675089f\allowbreak{}f04fcd6a\allowbreak{}48d7340d\allowbreak{}9b4971fa\allowbreak{}96ed58d8\allowbreak{}b98a8c20\allowbreak{}12ecbba6\allowbreak{}1ab742e8}
+\texttt{9c1a076d\allowbreak{}ff8cdd0f\allowbreak{}906ba8a4\allowbreak{}94440f87\allowbreak{}bfe7a255\allowbreak{}11246db4\allowbreak{}f0b6590d\allowbreak{}8b723638}
 \item[\texttt{weight-\allowbreak{}enumerat\allowbreak{}ion-\allowbreak{}and-\allowbreak{}degree-\allowbreak{}bounds.\allowbreak{}md}]
-\texttt{75205393\allowbreak{}3fd1fa37\allowbreak{}497c81e7\allowbreak{}a0669cfc\allowbreak{}4ff3e44d\allowbreak{}f8148250\allowbreak{}2b993871\allowbreak{}a34ba675}
+\texttt{2645d215\allowbreak{}ed905af8\allowbreak{}179b486b\allowbreak{}d543aeb8\allowbreak{}96400429\allowbreak{}a17b5f49\allowbreak{}cad6779a\allowbreak{}ff879f17}
 \item[\texttt{cws-\allowbreak{}and-\allowbreak{}lattice-\allowbreak{}realizat\allowbreak{}ions.\allowbreak{}md}]
-\texttt{feeb6953\allowbreak{}3450ffc0\allowbreak{}5bab5178\allowbreak{}03e70ddd\allowbreak{}3d67faae\allowbreak{}03e200d1\allowbreak{}8a442650\allowbreak{}0ce27317}
+\texttt{9ee15150\allowbreak{}f165f6f4\allowbreak{}3a187b99\allowbreak{}be76cd50\allowbreak{}3eaaebd1\allowbreak{}616c4fd1\allowbreak{}9285a627\allowbreak{}3eb31bc6}
 \item[\texttt{finitene\allowbreak{}ss-\allowbreak{}and-\allowbreak{}box-\allowbreak{}reductio\allowbreak{}n.\allowbreak{}md}]
-\texttt{39a46ff1\allowbreak{}8467089a\allowbreak{}7dd6cc67\allowbreak{}32ecb1c2\allowbreak{}509064a8\allowbreak{}9b3fcb59\allowbreak{}aa4db27e\allowbreak{}5f954499}
+\texttt{332ab831\allowbreak{}137db6d7\allowbreak{}52c508bb\allowbreak{}b6649f2a\allowbreak{}80f8e134\allowbreak{}f37b4840\allowbreak{}41ba477b\allowbreak{}5070b12d}
 \item[\texttt{normal-\allowbreak{}forms-\allowbreak{}and-\allowbreak{}classifi\allowbreak{}cation.\allowbreak{}md}]
-\texttt{a825f712\allowbreak{}e49567a2\allowbreak{}2f8b887d\allowbreak{}93d7e8d3\allowbreak{}f9c507f4\allowbreak{}a712f9ea\allowbreak{}30364720\allowbreak{}a4cdbbc4}
+\texttt{8c41f928\allowbreak{}5e206f1a\allowbreak{}bcf0a984\allowbreak{}b3e6fdaf\allowbreak{}5ff6d90d\allowbreak{}ef629e5c\allowbreak{}f441b9b3\allowbreak{}9cc6460a}
 \end{description}
 % END GENERATED LITERATURE REVIEW
 

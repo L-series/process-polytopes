@@ -1,129 +1,94 @@
-# Reflexive KS statement contracts
+# Classification statements and algorithms
 
-The final target is coverage of **all reflexive lattice polytopes in every fixed
-dimension**, up to origin-fixed `GL(d,Z)` equivalence. Output duplicates are
-permitted. This does not certify exact normal forms, the operational 46-type
-catalogue, PALP/CUDA code, a production census, or nonreflexive IP targets.
+The endpoint is
+`Refpoly.KS.classifies_reflexive : Classifies procedures`.
+For every natural dimension, every output is reflexive and every reflexive
+lattice polytope is equivalent to an output. Equivalence is origin-fixed
+$\mathrm{GL}(d,\mathbb Z)$; duplicates are allowed. This does not certify
+normal forms, PALP/CUDA refinement, the native descriptor catalogue, a
+production census, or nonreflexive IP final targets.
 
-`Classifies p` states that for every natural dimension, every integer-coordinate
-code in `enumerate p d` decodes to a reflexive polytope, and every reflexive
-polytope is lattice-equivalent to one of those outputs. The composition handles
-dimension zero directly. In positive dimensions it uses these major contracts:
+## Conventions
 
-| Obligation                | Required connection                                                                                                                 |
-| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `seed_bound`              | Reflexive target to a minimal IP dual-lattice seed with `d+1 <= N <= 2d`.                                                           |
-| `circuit_basis`           | Complete relation-kernel basis, independent rows, exact circuit supports, positive normalized zero relations and primitive IP rows. |
-| `weights_sound`           | Every generated ordered primitive weight code has the integer Newton-hull IP property in its specified kernel.                      |
-| `weights_complete`        | Every required primitive IP weight code is generated; no empirical degree cutoff.                                                   |
-| `assembly_sound`          | Generated CWS have exact rank/dimension, coordinate coverage and generated padded rows.                                             |
-| `assembly_complete`       | Every valid bounded CWS whose rows are generated appears in exhaustive assembly.                                                    |
-| `kernel_bases`            | A computed integer basis covers the whole finest kernel lattice, not just its real span.                                            |
-| `geometric_containers`    | Seed/basis witnesses give a forward-integral real bijection placing the target inside its CWS container.                            |
-| `container_points`        | Computed points equal all lattice points of the container.                                                                          |
-| `subpolytope_recovery`    | Subsets of those points recover every relevant target image exactly.                                                                |
-| `image_eligible`          | The target image is origin-IP and has an integral vertex-pairing matrix.                                                            |
-| `eligibility_check`       | Exact candidate check, without demanding reflexivity in the finest ambient lattice.                                                 |
-| `target_lattice`          | The target image lattice lies between the vertex-generated coarse and polar-defined fine endpoints.                                 |
-| `finite_lattice_interval` | Only finitely many compatible intermediate additive subgroups exist for an eligible candidate.                                      |
-| `realizations_sound`      | Reconstructed eligible realizations are reflexive and retain their exact hull/image-lattice witnesses.                              |
-| `realizations_complete`   | Every compatible lattice is reconstructed with a basis and exact image-lattice equality.                                            |
-| `realization_equivalence` | Equal geometric images and equal image lattices imply two-sided lattice equivalence.                                                |
-| `reflexivity_check`       | The final Boolean acceptance is equivalent to mathematical reflexivity.                                                             |
+The ambient space is $V_d=\mathbb R^d$ with coordinate lattice $\mathbb Z^d$.
+`PolyCode d` is a finite list of integer generators, interpreted by its convex
+hull. Polarity uses
+$P^\circ=\{u:\langle u,x\rangle\ge-1\text{ for every }x\in P\}$.
+`IsIP` means ambient origin interior; weight-system IP uses interior in the
+entire specified weight hyperplane. Neither predicate alone implies reflexivity.
+`GLEquiv` requires lattice preservation in both directions.
 
-`GeometricBasis` retains both the zero-padded row equality and its barycentric
-relation to the selected vertices. `KernelBasisCorrect` describes a basis of the
-**finest** lattice. The target's own forward-integral map is deliberately not
-asserted to map onto that entire lattice.
+A seed is deletion-minimal origin-IP data in the target's polar, not an
+inclusion-minimal reflexive polytope. Its primitive circuit rows retain their
+actual supports, zero padding and normalized weighted-zero relations.
+The circuit rows span the whole seed-relation kernel; the computed integer
+kernel basis describes the whole saturated lattice of the CWS equations.
 
-The lower endpoint uses the candidate's **actual vertices**, not all redundant
-points in its code. The upper endpoint consists of real points pairing
-integrally with vertices of its polar; it need not equal the standard lattice.
-`AddSubgroup.closure` here is algebraic subgroup generation, not topological
-closure. Finite lattice intervals are asserted only for eligible full-dimensional
-origin-IP lattice hulls with integral vertex-pairing matrix.
+For an eligible candidate, compatible lattices lie between the subgroup
+generated by its **actual vertices** and the subgroup pairing integrally with
+all actual polar vertices. Subgroup generation is algebraic, not topological.
+Redundant code generators do not replace actual vertices in these endpoints.
+Containers need not be maximal or reflexive, and forward integrality does not
+imply inverse integrality.
 
-## Concrete pipeline and compiler closure
+## Eighteen supporting theorems
 
-The list-valued orchestration is defined, not postulated:
+The interfaces are in `Refpoly/KS/Contracts.lean`; the concrete proofs are
+assembled in `Refpoly/KS/Obligations.lean`.
 
-```text
-weights -> bounded CWS assembly -> all container lattice points
-  -> hulls of every point subset -> eligible candidates
-  -> all compatible lattice realizations -> exact reflexivity filter
-```
+| Theorem                   | Guarantee                                                                                                                                           |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `seed_bound`              | Every positive-dimensional reflexive target has a minimal dual-lattice seed with $d+1\le N\le2d$.                                                   |
+| `circuit_basis`           | Independent positive circuit rows span the entire relation kernel, with primitive IP weights, exact supports and geometric zero-relation witnesses. |
+| `weights_sound`           | Every generated ordered weight code is primitive and has the required integer Newton-hull IP property.                                              |
+| `weights_complete`        | Every ordered primitive IP weight code occurs, without an empirical degree cutoff.                                                                  |
+| `assembly_sound`          | Generated CWS have exact rank/dimension, cover every coordinate and use generated padded rows.                                                      |
+| `assembly_complete`       | Every valid bounded CWS whose rows are generated occurs as its exact code.                                                                          |
+| `kernel_bases`            | The computed basis spans the real kernel and gives integer preimages of all integer kernel points.                                                  |
+| `geometric_containers`    | Seed and circuit witnesses give a forward-integral real bijection placing the target in its CWS container.                                          |
+| `container_points`        | The computed point set equals all lattice points of the container.                                                                                  |
+| `subpolytope_recovery`    | A sublist of the available points has hull exactly equal to the target image.                                                                       |
+| `image_eligible`          | The target image is origin-IP with integral primal/polar vertex pairings.                                                                           |
+| `eligibility_check`       | Boolean eligibility is equivalent to that geometric condition, not to ambient-lattice reflexivity.                                                  |
+| `target_lattice`          | The target image lattice lies between the coarse and fine compatibility endpoints.                                                                  |
+| `finite_lattice_interval` | An eligible candidate has only finitely many compatible intermediate additive subgroups.                                                            |
+| `realizations_sound`      | Returned realizations are reflexive and have exact hull and compatible image-lattice witnesses.                                                     |
+| `realizations_complete`   | Every compatible lattice is reconstructed with exact image-lattice and hull equalities.                                                             |
+| `realization_equivalence` | Equal geometric images and equal image lattices imply two-sided integral lattice equivalence.                                                       |
+| `reflexivity_check`       | Final Boolean acceptance is equivalent to mathematical reflexivity.                                                                                 |
 
-All seven routines in `Implementation.lean` have total computable implementations:
-complete ordered primitive-IP weight search, CWS assembly, saturated integer
-kernel bases, all container lattice points, eligibility checks,
-compatible-lattice realizations, and reflexivity checks. All eighteen supporting
-contracts are proved.
-An input rejected by a total routine has an explicit invalid-input theorem;
-no dummy output substitutes for valid-input coverage.
+## Seven computational routines
 
-Exact hull/polar decisions distinguish actual vertices from redundant code
-generators. Realizations enumerate subgroups of a finite determinant quotient,
-test both compatibility endpoints, and reconstruct every accepted lattice with
-exact hull and image-lattice equalities. All nine registered native suites and
-the strict compiler closure gate pass; finite native fixtures supplement rather
-than replace the dimension-generic proof.
+All routines in `Refpoly/KS/Implementation.lean` are total computable definitions.
+Their valid-input guarantees are the contracts above; invalid-input branches
+have explicit rejection theorems.
 
-`classifies_of_contracts` is a genuinely proved implication from `Contracts p`.
-The instantiated `classifies_reflexive` invokes that proof and the actual
-routine/obligation constants, with no `sorry` in its body or transitive
-dependencies. The concrete theorem is **compiler-closed**, as are all 36
-designated targets. The complete 1,308-constant project inventory has no
-`sorryAx` or unexpected mathematical axioms.
+| Routine                  | Construction and implementation                                                                                                                                                                                                                                                            |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `searchWeights`          | Rational basic-feasible support solutions are averaged to obtain positive selections. Exact coordinate bounds give finite branches; strict affine-rank growth gives a structural depth bound. Primitive candidates pass an exact Newton-hull IP test. `RationalSelection`, `WeightSearch`. |
+| `assembleCWS`            | Enumerate bounded coordinate/row counts, every support embedding and ordered padded-row tuple; check dimension, coverage and integer Gram determinant. `Assembly`.                                                                                                                         |
+| `integerKernelBasis`     | Search increasing integer boxes for a unimodular completion whose first columns lie in the kernel. A proved existence theorem ensures termination and saturation. `IntegerKernel`.                                                                                                         |
+| `containerLatticePoints` | Derive an effective coordinate bound from the weights and basis adjugate, scan the finite integer box and check the defining inequalities. `IntegerPoints`.                                                                                                                                |
+| `eligibleCheck`          | Decide ambient origin-IP and integral pairings of exact primal/polar vertices, using rational simplex/hull/active-constraint calculations. `RationalSimplex`, `RationalHull`, `PolytopeChecks`.                                                                                            |
+| `latticeRealizations`    | Enumerate subgroups of a finite determinant quotient, check both lattice endpoints, compute certified integral bases and reconstruct coordinates. `CongruenceLattice`, `LatticeCoordinates`, `Realizations`.                                                                               |
+| `reflexiveCheck`         | Decide ambient origin-IP and integrality of every exact polar vertex. `PolytopeChecks`.                                                                                                                                                                                                    |
 
-## Interface review and change policy
+These are exact reference algorithms, not optimized PALP implementations.
+Termination and completeness do not imply practical high-dimensional runtime.
 
-The scoped review accepted the conditional interfaces, without establishing
-their admitted inputs. The informed checker covered eight critical endpoint
-connections; the isolated blind checker reconstructed all 36 designated
-declaration types. Both successful initial reports were frozen before comparison.
-Their seed/row witnesses, interior, rank, image-lattice and final-equivalence
-readings agree on those connections. Standard casts/topological/vector-space
-instances are the pinned Mathlib ones; constructor meanings are also confirmed
-by the concrete source records. This is not an independent audit of Mathlib.
+## Composition
 
-The first tool-launched blind checker refused automatic exposure to project
-intent/prior-audit metadata without opening the packet. The larger initial
-informed task was cancelled and supplied no report; neither is counted as
-successful evidence. The accepted blind check used a new tools-disabled CLI
-outside the repository with no custom instructions, memory, resume or fork.
-The informed endpoint check ran separately in a fresh context.
+`Pipeline.lean` enumerates CWS, all container points, hulls of all point
+sublists, eligible candidates and all their compatible lattice realizations,
+then applies the reflexivity filter. Dimension zero returns the origin.
 
-| Frozen review artifact           | SHA-256                                                            |
-| -------------------------------- | ------------------------------------------------------------------ |
-| Neutral compiler-derived packet  | `c821686fe18a07d64f36436d5c32ace0fe1638147df812b936a447c911330874` |
-| Isolated blind initial report    | `44cc77756816952925c6e453e49715e2849d9ddbbb4291abca93e85b8b425ae1` |
-| Informed endpoint initial report | `a1cc1f3d9e522862dadc697b6b0cd124bc0d460b0b9850a1f8fa44f05268af53` |
+`Composition.lean` proves `classifies_of_contracts`. Its completeness direction
+uses a bounded dual seed to locate a generated CWS for an arbitrary target,
+then retains the same geometric image and image lattice through reconstruction.
+`Obligations.lean` instantiates this implication with the actual routines and
+proved contracts. No admitted dependency is used.
 
-The initial informed findings were a **HIGH completion gate** (eighteen admitted
-supporting results) and a **MEDIUM implementation/termination limitation**
-(seven unfinished routines). These described the acknowledged scaffold WIP, not interface
-mismatches. All those supporting results and routines are now implemented, with
-strict and conditional gates passing. Reports and source ledgers stay outside Git.
-This scoped review is separate from the
-[tracked T-A0 synthesis](../docs/proof-audit.md), which now records the complete
-source-to-contract map and findings. The older round-2 donor report remains qualified because its context received
-excluded metadata. A new isolated, tools-disabled formal reading covers all 71
-unchanged donor statements, including the formerly missing explicit S/T indices.
-Its initial report and the unchanged informed report were frozen before
-comparison. All literal statement readings were reconciled; two low-severity
-wording qualifications are recorded without editing either initial report.
-See the audit ledger for hashes and the scope of this closure.
-
-The lock records compiler-printed target signatures, predicate/data definitions,
-their explicit constant dependencies (including elided instances), and the
-designated target inventory. It detects accidental statement weakening,
-lost witnesses, changed predicate meanings, and dropped targets. Editing a lock
-is not semantic approval: changes to mathematical interfaces require an explicit
-approved chunk and affected fresh two-way checks. Routine proof-body ports with
-unchanged audited interfaces do not require a duplicate whole-chain audit.
-
-CI inspects all imported project constants' transitive axiom closures. Standard
-foundations are `propext`, `Classical.choice`, and `Quot.sound`; `sorryAx` is
-permitted only at assigned open/derived targets in conditional mode, nowhere in
-strict mode. Unexpected axioms fail both modes. Already-closed declarations
-must not regress, and execution/proof escape hatches are rejected.
+The [compiler audit](../docs/proof-audit.md) protects theorem signatures,
+predicate definitions, explicit dependencies, target inventory and axiom closures.
+Mathematical interface changes require semantic review; updating a lock is not
+itself evidence that a changed statement is correct.

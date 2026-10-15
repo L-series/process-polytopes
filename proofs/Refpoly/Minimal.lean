@@ -1,8 +1,8 @@
 /-
 Minimal faithfully ported from the reviewed refpoly-5d snapshot.
 See SOURCES.md for attribution and exact source identities.
-The structure theorem is one decomposition step; it does not yet establish
-the iterated decomposition or the new dimension-generic 2d seed bound.
+The structure theorem is one decomposition step.
+The dimension-generic 2d seed bound is proved in KS/SeedBound.lean.
 -/
 import Refpoly.MaxMin
 import Refpoly.CircuitInterior

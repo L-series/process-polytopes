@@ -1,6 +1,6 @@
 # Normal forms, exact equality, and classification output
 
-A normal form can decide lattice equivalence only after the target lattice and equivalence relation are fixed. Its canonical integer matrix, its serialized bytes, and a hash of those bytes are three different objects. This note reviews the primary normal-form algorithm and the pinned/archived computational contracts. It does not certify a new implementation, run a dataset census, or change scientific counts. The approved current universe remains the implemented descriptor/input-pool universe on the PALP reference lattice; [lattice-realization coverage](cws-and-lattice-realizations.md) is a separate completeness obligation.
+A normal form can decide lattice equivalence only after the target lattice and equivalence relation are fixed. Its canonical integer matrix, serialized bytes and a hash of those bytes are three different objects. This note reviews the primary normal-form algorithm and pinned/archived computational contracts. The [Lean classifier](../../proofs/STATEMENTS.md) proves coverage with possible duplicates; native normal forms, exact deduplication and census counts are separate guarantees.
 
 ## Primary references and reusable evidence
 
@@ -8,7 +8,7 @@ A normal form can decide lattice equivalence only after the target lattice and e
 
 **[PALP04]** Maximilian Kreuzer and Harald Skarke, _PALP: A Package for Analyzing Lattice Polytopes with Applications to Toric Geometry_, Computer Physics Communications **157** (2004), 87–106, [DOI 10.1016/S0010-4655(03)00491-0](https://doi.org/10.1016/S0010-4655%2803%2900491-0). Title/authors/publication metadata and DOI were verified against [arXiv:math/0204356v1](https://arxiv.org/abs/math/0204356v1), submitted 30 April 2002. The actual paper read is the primary [22-page v1 PDF](https://arxiv.org/pdf/math/0204356v1) and [author source](https://arxiv.org/src/math/0204356v1). Section 1, pages 1–2, states full-dimension and fixed-precision limitations; §2's `-N`/`-t` documentation, page 6, describes the isomorphism test and stages. The preprint year differs from the journal year.
 
-Both owned source caches were created during this approved assignment. Original downloaded bytes were retained, SHA-256 recorded, and TeX/text extracted only as reading aids. Retrieval date is 2026-10-14 UTC. Paths below are relative to `docs/learning/sources/`:
+The consulted editions have the following original-file hashes; extracted TeX/text are reading aids. Retrieval date is 2026-10-14 UTC. Paths are relative to `docs/learning/sources/`:
 
 | Source/version                  | Original PDF SHA-256                                               | Original source SHA-256                                            |
 | ------------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------ |
@@ -17,9 +17,7 @@ Both owned source caches were created during this approved assignment. Original 
 
 Each directory contains `paper.pdf`, `source.tar.gz`, `provenance.json`, `paper.txt`, and supplementary `tex/` files. The PALP source download is a gzip-compressed **single TeX file**, despite the local archive filename; provenance records that format. Source-license status is unverified; these are local reading caches. Printed page numbers, rather than guessed journal pages, are used above.
 
-Implementation evidence is fixed to PALP commit `968bb4b3c6c42a0893c95340e81718548e13f12a`, root archived `main` commit `7c4dc2e62da1ff8d539684d4977d4de9656d7a4f`, and `gpu-run-43types` commit `452fbe8e1b296bf75fa9e8becf6c34d8d48bf00a`. Archived files were read with `git show`; no donor checkout or ref was changed. Current regression evidence is `tests/README.md`, `tests/cws_support.py`, and `tests/test_cws.py`. Frozen formal definitions were inspected read-only at
-
-`/home/ahat01/.copilot/session-state/83ef73b2-4517-446c-9ac2-9437ff014965/files/refpoly-proof-snapshot/proofs/Refpoly/Basic.lean`.
+Implementation evidence is fixed to PALP commit `968bb4b3c6c42a0893c95340e81718548e13f12a`, root archived `main` commit `7c4dc2e62da1ff8d539684d4977d4de9656d7a4f`, and `gpu-run-43types` commit `452fbe8e1b296bf75fa9e8becf6c34d8d48bf00a`. Current regression contracts are documented in `tests/README.md`, `tests/cws_support.py`, and `tests/test_cws.py`. Formal equivalence is defined in `proofs/Refpoly/Basic.lean`; [SOURCES.md](../../proofs/SOURCES.md) identifies its original edition.
 
 ## Linear and affine equivalence are different contracts
 
@@ -53,7 +51,7 @@ At the pinned PALP commit, `Polynf.c` implements the expected stages: `Init_rVM_
 
 `tests/cws_support.py` parses each normal form as `(dimension, vertex_count, tuple(matrix_rows))`. It requires the expected P header, exactly `dimension` rows, and exactly `vertex_count` integers per row. `serialize_forms` writes the shape and integer rows as normalized text. Only whitespace and the informational `perm=` annotation are removed. `tests/test_cws.py` compares every resulting matrix to its corresponding golden in sequence, requires one matrix per accepted CWS row, and separately checks `len(set(forms))` for the distinct count. Repeated NFs remain in the accepted-row list: their multiplicities are part of the regression contract.
 
-These are exact PALP consistency regressions for the checked-in pools. They do not independently prove mathematical canonicity, all-dimensional completeness, equivalence with the abstract catalogue, or the correctness of another lattice realization. A changed golden requires the repository's explicit baseline-review procedure; regenerating it merely to pass a test would erase evidence. This assignment did not regenerate or run a new baseline.
+These are exact PALP consistency regressions for the checked-in pools. They do not independently prove mathematical canonicity, all-dimensional completeness, equivalence with the abstract catalogue, or the correctness of another lattice realization. A changed golden requires the repository's explicit baseline-review procedure; regenerating it merely to pass a test would erase evidence.
 
 ## What the archived classifiers actually compare
 
@@ -73,31 +71,23 @@ For a mathematically exact class merge, the decisive object should include the d
 
 A persistent binary encoding needs a defined signed-integer width, byte order, matrix layout, shape, and algorithm/schema version. The native `Long` hash buffer and native `int32` output are different encodings; equality of hashes computed from one does not prove lossless serialization into the other. Fixed platform/build assumptions may support replay within a pinned run, but should be recorded instead of being mistaken for a portable mathematical normal form. Shape and integer comparisons in the current text goldens avoid relying on native byte width or hash collision assumptions.
 
-Exact replay also needs immutable CWS input, the relevant descriptor/support ordering, PALP commit/build capacities/arithmetic choices, and the lattice realization. The same real polytope on a different lattice can represent a different equivalence class, so a normal form only classifies the lattice coordinates it is actually given. Recording weights alone may be insufficient once the long-term programme includes finite-index realizations beyond the reference lattice.
+Exact replay also needs immutable CWS input, the relevant descriptor/support ordering, PALP commit/build capacities/arithmetic choices, and the lattice realization. The same real polytope on a different lattice can represent a different equivalence class, so a normal form only classifies the lattice coordinates it is actually given. Recording weights alone may be insufficient for finite-index realizations beyond the reference lattice.
 
 ## Formal support and remaining gaps
 
-Frozen `Basic.lean` defines `IsUnimodular g` by **both** forward and inverse preservation of integer lattice points. `GLEquiv P Q` is the existence of a real linear equivalence with that unimodularity property carrying P onto Q. Its declarations prove reflexivity, symmetry, transitivity, lattice-image/cardinality preservation, and preservation of lattice-polytope structure. They give an abstract equivalence relation; they do not define NF, its serializer, a hash, or a native reduction theorem.
+`Basic.lean` defines `IsUnimodular g` by **both** forward and inverse preservation of integer lattice points. `GLEquiv P Q` is the existence of a real linear equivalence with that unimodularity property carrying P onto Q. Its declarations prove reflexivity, symmetry, transitivity, lattice-image/cardinality preservation, and preservation of lattice-polytope structure. They give an abstract equivalence relation; they do not define NF, its serializer, a hash, or a native reduction theorem.
 
-| Contract                                | Evidence available                                            | Missing or bounded scope                                                                                       |
-| --------------------------------------- | ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| Mathematical linear lattice equivalence | `Basic.IsUnimodular`, `GLEquiv`; primary NF contract          | No frozen theorem `NF(P)=NF(Q) iff GLEquiv P Q`.                                                               |
-| Affine equivalence                      | GK §3.3 algorithm; unique-interior centering deduction        | No inspected formal affine-equivalence/NF bridge; multiple origins need a declared convention.                 |
-| P versus polar target                   | Pinned PALP call/output and exact root parser                 | Switching targets requires an explicit contract and fixture change.                                            |
-| General nonreflexive NF                 | GK full-dimensional lattice scope; PALP height matrix         | Rational/lower-dimensional reductions and native capacity bounds need separate verification.                   |
-| Same-input determinism                  | Archived argument and finite algorithm structure              | Does not prove equivalent-input canonicity or separation.                                                      |
-| Collision-safe class merging            | Required exact-NF equality policy                             | Inspected archived maps compare digest keys only; no full payload collision resolution.                        |
-| Lossless serialization                  | Exact integer text goldens; archived row-major binary path    | Portable binary convention and complete width/range guarantee are not established by those wrappers.           |
-| Replay                                  | First-CWS schema/degree/weight/source metadata                | Representative replay alone cannot recover collided classes; lattice/build/input provenance must be immutable. |
-| Scientific output counts                | Regression distinguishes accepted rows and distinct exact NFs | Hash-count equality is insufficient to certify an exact geometric census.                                      |
-| End-to-end completeness                 | Separate abstract container coverage                          | Native NF/refinement/dedup correctness and global lattice/subpolytope coverage remain separate.                |
+| Contract                                | Evidence available                                               | Missing or bounded scope                                                                                       |
+| --------------------------------------- | ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Mathematical linear lattice equivalence | `IsUnimodular`, `GLEquiv`; primary NF contract                   | No formal theorem `NF(P)=NF(Q) iff GLEquiv P Q`.                                                               |
+| Affine equivalence                      | GK §3.3 algorithm; unique-interior centering deduction           | No inspected formal affine-equivalence/NF bridge; multiple origins need a declared convention.                 |
+| P versus polar target                   | Pinned PALP call/output and exact root parser                    | Switching targets requires an explicit contract and fixture change.                                            |
+| General nonreflexive NF                 | GK full-dimensional lattice scope; PALP height matrix            | Rational/lower-dimensional reductions and native capacity bounds need separate verification.                   |
+| Same-input determinism                  | Archived argument and finite algorithm structure                 | Does not prove equivalent-input canonicity or separation.                                                      |
+| Collision-safe class merging            | Required exact-NF equality policy                                | Inspected archived maps compare digest keys only; no full payload collision resolution.                        |
+| Lossless serialization                  | Exact integer text goldens; archived row-major binary path       | Portable binary convention and complete width/range guarantee are not established by those wrappers.           |
+| Replay                                  | First-CWS schema/degree/weight/source metadata                   | Representative replay alone cannot recover collided classes; lattice/build/input provenance must be immutable. |
+| Scientific output counts                | Regression distinguishes accepted rows and distinct exact NFs    | Hash-count equality is insufficient to certify an exact geometric census.                                      |
+| End-to-end completeness                 | Concrete Lean KS coverage with lattices and subpolytope recovery | Native NF/refinement/dedup correctness is not supplied by that theorem.                                        |
 
-A complete enumeration theorem can permit duplicates: every output must be valid and every target class represented, with termination. Duplicate-free output is an additional theorem only if one representative per equivalence class is promised. Normal forms are useful for that stronger promise and for exact distinct-class counts; they do not repair missing seed, lattice-realization, or subpolytope coverage. The planned native refinement and census must therefore keep coverage, correctness, and exact equivalence reduction as separate obligations.
-
-## Evidence checklist
-
-- Primary PDF/author-source versions read and cached with original-byte hashes and provenance.
-- Verified algorithm assumptions, Definitions 3.1–3.2, affine extension, PALP permutation/HNF steps, and unnumbered Appendix A canonicity statement.
-- Inspected pinned PALP P/affine entry points and current exact tuple-based golden tests retaining multiplicities.
-- Inspected fixed archived classifiers, replay serialization, hash/count comparison, and determinism argument without mutation or large dataset scans.
-- Inspected actual frozen `IsUnimodular`/`GLEquiv` definitions; no formal NF, hash-injectivity, or native-dedup theorem is claimed.
+A complete enumeration theorem can permit duplicates: every output must be valid and every target class represented, with termination. Duplicate-free output is an additional theorem only if one representative per equivalence class is promised. Normal forms are useful for that stronger promise and for exact distinct-class counts; they do not replace seed, lattice-realization or subpolytope coverage. Native refinement and census guarantees therefore keep coverage, correctness and exact equivalence reduction separate.

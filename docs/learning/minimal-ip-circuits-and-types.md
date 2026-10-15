@@ -1,6 +1,6 @@
 # Minimal IP seeds, positive circuits, and finite structure data
 
-This note belongs to the consolidated T-L1–T-L3 literature review. It studies the minimal-seed step of the proposed all-dimension Kreuzer–Skarke (KS) enumeration, compares precise geometric statements with the reviewed frozen Lean source, and separates that source from the archived five-dimensional list. It does not certify a new Lean build, a native descriptor census, or global completeness. The current delivery remains the implemented descriptor/input-pool universe on the PALP reference lattice; the long-term endpoint additionally requires lattice realizations and subpolytope recovery.
+This note explains the minimal-seed and circuit geometry behind the dimension-generic Kreuzer–Skarke construction, and distinguishes it from archived five-dimensional structure lists. The [formal endpoint](../../proofs/STATEMENTS.md) proves reflexive coverage with lattice realizations and subpolytope recovery; equality with a native descriptor catalogue is a separate claim.
 
 ## Primary references and evidence scope
 
@@ -8,20 +8,16 @@ This note belongs to the consolidated T-L1–T-L3 literature review. It studies 
 
 **[KS00]** Maximilian Kreuzer and Harald Skarke, _Reflexive polyhedra, weights and toric Calabi-Yau fibrations_, Reviews in Mathematical Physics **14** (2002), 343–374. The inspected primary version is [math/0001106v1](https://arxiv.org/abs/math/0001106v1), submitted 19 January 2000, [36-page PDF](https://arxiv.org/pdf/math/0001106v1). Section 2.1, pages 7–9, reformulates the structural argument using IP simplex structures; §2.2, page 10, states the CWS pairing-space and lattice result as Lemma 4. Publication metadata was checked against the arXiv records. The publication year and preprint year intentionally differ.
 
-The integrator downloaded both shared primary PDFs; this researcher reused their extracted text and independently checked PDF SHA-256 values against `provenance.json`. Retrieval date is 2026-10-14 UTC. Cache paths below are relative to `docs/learning/sources/`:
+The consulted primary PDF editions have the following original-file hashes. Retrieval date is 2026-10-14 UTC; cache paths are relative to `docs/learning/sources/`:
 
 | Source/version         | Original cached PDF                          | SHA-256                                                            |
 | ---------------------- | -------------------------------------------- | ------------------------------------------------------------------ |
 | KS97, hep-th/9512204v2 | `kreuzer-skarke-hep-th-9512204/v2/paper.pdf` | `c703beefd69d2f203c32cfafcf46dc971b7721b8ee23b831738123cdcf896075` |
 | KS00, math/0001106v1   | `kreuzer-skarke-math-0001106/v1/paper.pdf`   | `7d400220d9bb4f0e0e2a121d46d75a7aad0b0a98ebbc1d6ad45e33407d0b01c1` |
 
-Each directory has the primary URL and retrieval timestamp in `provenance.json`; `paper.txt` is a derived reading aid. Source licenses are unverified, so this is a local reading cache rather than a redistribution claim. No private or duplicate source download was made for this note. `SINGLE_WS_5d.tex` was used only as an auxiliary source of reference leads and cross-checks; it is a separate single-weight paper, not this review's specification or proof-status authority.
+Each directory has the primary URL and retrieval timestamp in `provenance.json`; `paper.txt` is a derived reading aid. Source licenses are unverified, so this is a local reading cache rather than a redistribution claim. `SINGLE_WS_5d.tex` is a separate single-weight paper, not the specification or proof-status authority for this construction.
 
-Frozen Lean root, inspected read-only:
-
-`/home/ahat01/.copilot/session-state/83ef73b2-4517-446c-9ac2-9437ff014965/files/refpoly-proof-snapshot/proofs`.
-
-All declaration paths below are relative to that root. Archived catalogue evidence was read using `git show`, from root-repository ref `gpu-run-43types`, commit `452fbe8e1b296bf75fa9e8becf6c34d8d48bf00a`. Its actual paths are `lean/MinimalPolytopes5D/Profiles.lean`, `lean/MinimalPolytopes5D/Structures.lean`, `paper/minimal_polytopes_5d.tex`, and `paper/minimal_polytopes_5d_table.tex`. None of those donor files or refs was changed.
+Formal declaration paths below are relative to `proofs/Refpoly/`; [SOURCES.md](../../proofs/SOURCES.md) identifies the original editions. Archived catalogue evidence is fixed to root-repository ref `gpu-run-43types`, commit `452fbe8e1b296bf75fa9e8becf6c34d8d48bf00a`, at `lean/MinimalPolytopes5D/Profiles.lean`, `lean/MinimalPolytopes5D/Structures.lean`, `paper/minimal_polytopes_5d.tex`, and `paper/minimal_polytopes_5d_table.tex`.
 
 ## Definitions that control the interpretation
 
@@ -73,9 +69,9 @@ The upper vertex bound gives a finite abstract structural search space in every 
 
 This is a necessary geometric restriction, not an if-and-only-if characterization of arbitrary support hypergraphs. Passing the no-lonely filter does not prove affine independence, positive realizability, full span, partial minimality, independence of equations, or equivalence-class correctness. A simplex entirely covered by the **union** of other blocks is possible. A good-simplex support properly contained in **one** other good-simplex support is impossible: the smaller support gives barycentric coordinates with zeros on the extra vertices, whereas intrinsic interior in the larger affinely independent simplex requires every coordinate strictly positive. Uniqueness of barycentric coordinates gives a contradiction.
 
-## What the frozen Lean declarations actually support
+## Supporting seed and circuit declarations
 
-These are source-level findings from inspected definitions, signatures, and proof bodies. They are not a fresh compilation or axiom audit. The namespace is `Refpoly`, and `V n` is the real coordinate space used by the package.
+The namespace is `Refpoly`, and `V n` is the real coordinate space used by the package. The table describes supporting-library statements; the concrete `KS` modules supply primitive encodings, bounded seeds and executable enumeration.
 
 | Source/declaration                                                                                             | Actual hypotheses and conclusion                                                                                                                                                                                                                                     | Scope consequence                                                                                                                             |
 | -------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -92,7 +88,7 @@ These are source-level findings from inspected definitions, signatures, and proo
 | `Minimal.lean`: `simplex_weights`                                                                              | Affine independence and ambient IP give an enumeration by `Fin(n+1)` and positive normalized real zero relation.                                                                                                                                                     | The existential signature does not itself assert rationality, primitive integral normalization, or Newton-hull IP.                            |
 | `Minimal.lean`: `minimal_structure`                                                                            | Minimal ambient-IP set that is not affinely independent yields `S'` proper, `T` contained, union equal to `S`, `IsMinimalIPRel S'`, `IsGoodSimplex T`, `S.card = S'.card + (n - finrank(vectorSpan S')) + 1`, and `finrank(vectorSpan T) <= finrank(vectorSpan S')`. | A proof body for the one-step KS statement is present. Relative rank equals the relevant dimension because origin lies in the component hull. |
 
-`Minimal.lean` also contains maximal-dimension proper relative-IP selection and lifting lemmas used in the final proof. Its old section heading says “statement only,” while the final declaration has a substantial proof body; comments in the auxiliary single-weight paper also describe an earlier deferred state. Those comments must not override the actual signature/body. Conversely, the presence of a body must not be reported as a new successful build.
+`Minimal.lean` also contains maximal-dimension proper relative-IP selection and lifting lemmas used in its decomposition proof. The general upper cardinality bound is proved in `KS/SeedBound.lean`.
 
 ### A complete relation basis is stronger than circuit coverage
 
@@ -125,31 +121,17 @@ Two concrete distinctions are essential:
 
 These are direct deductions from inspected table entries and definitions, not results attributed to KS. The archived paper's assertion that passing Lemma 2 is sufficient for a valid structure, and its claim that this canonicalization quotients exactly by vertex relabeling, need separate justification and are contradicted by the examples above under the stated good-simplex/unlabeled interpretations. This review does not alter the archival source or propose a replacement count.
 
-The 47-entry list includes the single-weight simplex. The project's 46 genuine CWS descriptors omit that single-weight case; subtraction alone does not prove correspondence. Descriptor labels, overlaps, redundant rows, orderings, row independence, component input pools, and accepted lattice realizations still need the planned T-C0 cross-check after the CPU descriptor port. Neither source arithmetic nor a container theorem proves that concrete census complete beyond its declared input universe.
+The 47-entry list includes the single-weight simplex. The project's 46 genuine CWS descriptors omit that single-weight case; subtraction alone does not prove correspondence. Descriptor labels, overlaps, redundant rows, orderings, row independence, component input pools and accepted lattice realizations require a separate native-refinement argument. Neither source arithmetic nor a container theorem proves that concrete census complete beyond its declared input universe.
 
-## Gaps and the route to the all-dimension goal
+## Connection to the concrete classification
 
-| Obligation                                 | Inspected support                                     | Missing step / uncertainty                                                                                                                                           |
-| ------------------------------------------ | ----------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Finite descent to a vertex-minimal seed    | `exists_minimalIPGen_subset`                          | Connect lattice subsets and the declared target/equivalence consistently downstream.                                                                                 |
-| Positive simplex through a generator       | Circuit geometry/interior declarations                | Supply rational/integral bridges when lattice weights are needed.                                                                                                    |
-| One-step KS decomposition                  | `minimal_structure` proof body                        | Fresh clean build and axiom audit are separate T-A0/port work.                                                                                                       |
-| Iterated ordered decomposition             | Primary Corollary 1 / IP simplex-structure corollary  | A formal recursive structure, decreasing rank, relative-coordinate transport, and induction to an ordered output family are absent from inspected structural source. |
-| `k <= 2n`, stage/support bounds            | Primary Corollary 2 and elementary deductions         | Upper-bound theorem and its connection to structural search are absent here; existing catalogue uses a different bound.                                              |
-| No-lonely necessity                        | Primary Lemma 2                                       | A formal geometric theorem and certified pruning rule are absent; archive Boolean filter proves only its own evaluations.                                            |
-| Finite exhaustive geometric structure list | Finite labeled support universe follows from bounds   | Need realizability/minimality semantics, sound/complete generation, and correct relabeling quotient. Archive count is insufficient.                                  |
-| Complete independent relation basis        | `simplex_circuits_span_kernel`, `exists_circuitBasis` | Abstract choice must be refined to an executable extraction/enumeration algorithm.                                                                                   |
-| Weight search and row assembly             | Abstract reachability/finite catalogue declarations   | Tie actual branching, stopping, pool restrictions, pruning, and row permutations to the mathematical specification.                                                  |
-| All lattice realizations                   | KS finest/coarsest lattice framework                  | Enumerate and verify finite-index choices; forward lattice preservation is insufficient.                                                                             |
-| All target polytopes                       | Abstract reflexive container inclusion                | Finite lattice-subpolytope search, target tests, completeness, termination, and exact lattice-equivalence/deduplication are additional obligations.                  |
-| General one-point IP target                | Minimal-seed geometry applies                         | Reflexive polarity/container results do not automatically cover nonreflexive one-point lattice polytopes.                                                            |
+| Connection                           | Formal guarantee                                                                                                                                            |
+| ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Bounded minimal seed                 | `KS/SeedBound` combines minimal decomposition and relative-coordinate transport to prove $n+1\le N\le2n$.                                                   |
+| Complete primitive circuit rows      | `KS/Circuits` preserves supports, weighted-zero relations, independence and full relation-kernel span.                                                      |
+| Weight search and row assembly       | `KS/WeightSearch` and `KS/Assembly` enumerate every required ordered primitive IP row and bounded independent covering CWS.                                 |
+| Compatible lattices and subpolytopes | `KS/Recovery`, `KS/Lattices` and `KS/Realizations` prove exact hull recovery, finite lattice choices and reconstruction.                                    |
+| All reflexive targets                | `Refpoly.KS.classifies_reflexive` in `KS/Obligations` composes the executable routines into terminating coverage up to two-sided lattice equivalence.       |
+| Additional promises                  | Ordered simplex-decomposition catalogues, no-lonely pruning, native descriptor refinement and exact deduplication are not supplied by the headline theorem. |
 
-An eventual fixed-dimension KS algorithm theorem must combine structural seed generation, IP weight search, independent complete equations, lattice realization, finite subpolytope recovery, and exact target predicates. It should explicitly promise termination and coverage up to the chosen lattice equivalence. The all-dimension structural facts make this route plausible and constrain each step; neither a noncomputable finite container family nor the archived computed list is that end-to-end theorem.
-
-## Source-evidence checklist
-
-- Primary bibliographic records and exact arXiv versions checked; paper text read at the cited geometric statements.
-- KS97 Lemma 1, Corollaries 1–2, Lemma 2 and five-dimensional example inspected; KS00 simplex-structure definition/corollary, Lemmas 1–4 and CWS interpretation inspected.
-- Frozen definitions/signatures and substantive bodies of `Minimal`, `CircuitGeometry`, `CircuitInterior`, `CircuitSpan`, and `CWSBasis` inspected; source claims separated from fresh build status.
-- Archived catalogue and numbered table read without donor mutation; arithmetic output counts separated from geometric and unlabeled completeness.
-- No proof, shared documentation, native code, sibling checkout, commit, or archival ref was changed by this assignment.
+The concrete enumeration conservatively assembles bounded relation rows; it need not identify every output row family with a unique minimal-IP simplex decomposition. The archived 47-entry computation is not used as its completeness certificate. Nonreflexive one-point targets remain outside the theorem.

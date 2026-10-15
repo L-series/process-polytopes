@@ -1,12 +1,11 @@
 # Finiteness, volume bounds, and reduction to a finite lattice box
 
-This note supplies the finiteness part of the approved T-L1–T-L3 literature
-review. It concerns full-dimensional lattice polytopes in a fixed lattice,
+This note concerns full-dimensional lattice polytopes in a fixed lattice,
 first with a fixed positive number of interior lattice points, then with the
-additional reflexivity hypothesis. Its endpoint is a foundation for the proposed
-complete KS enumeration in every fixed dimension. The frozen Lean declarations
-provide intermediate abstract results; they do not certify that endpoint or the
-native descriptor census.
+additional reflexivity hypothesis. The supporting Lean declarations provide
+abstract volume and box results. The [concrete KS endpoint](../../proofs/STATEMENTS.md)
+uses a separately proved executable construction; neither generic theorem is
+a native descriptor census.
 
 ## Definitions and equivalence conventions
 
@@ -224,13 +223,12 @@ subpolytope with vertices at other lattice points. Container existence does
 not identify the KS WS/CWS construction or supply an executable list of
 containers.
 
-## What the frozen Lean statements actually support
+## Supporting formal volume and box statements
 
-Only the reviewed read-only snapshot was inspected:
-`/home/ahat01/.copilot/session-state/83ef73b2-4517-446c-9ac2-9437ff014965/files/refpoly-proof-snapshot/proofs`.
-The following are declaration/type observations, not a new clean build or
-axiom audit. All names below are in namespace `Refpoly`, except the explicitly
-qualified subnamespace names. Line locations refer to this snapshot.
+Paths are relative to `proofs/Refpoly/`; [SOURCES.md](../../proofs/SOURCES.md)
+identifies the original editions and hashes. Names below are in namespace
+`Refpoly`, except explicitly qualified subnamespaces. Line locations identify
+the original source edition, not the current checkout.
 
 | File/declaration                                                                                      | Actual supported statement and limit                                                                                                                                                                                                                                                 |
 | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -284,21 +282,20 @@ The inspected dependency route avoids using reflexive-polytope finiteness to
 prove the finite weights from which its volume bound is derived. One must
 preserve that direction: replacing weight finiteness by an argument that
 assumes the same polytope finiteness would create a circular justification.
-This observation is a source dependency check, not the scheduled independent
-statement audit or build/axiom guard.
+The compiler-derived dependency and axiom checks preserve that direction.
 
-## Gaps toward complete KS enumeration
+## Role in the concrete classification
 
-| Obligation                             | Literature / frozen-source position                                                 | Remaining work                                                                                                                                      |
-| -------------------------------------- | ----------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Fixed `(n,k≥1)` volume/count bound     | Verified in Hensley and LZ; frozen volume theorem only reflexive                    | Define exact interior count and formalize the general theorem if that broader endpoint is retained.                                                 |
-| Equivalence and marking                | LZ uses affine lattice maps; frozen GL is origin-fixed                              | Formal affine/marked bridge, especially for `k>1`; state output equivalence convention.                                                             |
-| Effective box / finite candidate list  | Explicit LZ bound verified; frozen box radius and catalogue existential             | Formal explicit bound and executable exact bounded enumeration, with soundness and coverage.                                                        |
-| Maximal container existence            | General deduction from bounded point count; frozen result reflexive                 | Construct a finite maximal/container family and prove `g(P) ⊆ M_i`. Existence alone does not construct KS containers.                               |
-| Subpolytope recovery                   | Finite all-lattice-point subsets suffice abstractly                                 | Implement/prove complete subpolytope search and exact target predicates, including all required lattice realizations.                               |
-| Polarity for broader one-point targets | Reflexive closure supported; a general one-point polytope may have a rational polar | Separate rational-dual argument or restrict this step to reflexive targets.                                                                         |
-| WS/CWS identification                  | Frozen finite-weight route supports its reflexive volume argument                   | Seed structures, containers, finite-index lattice choices, actual pruning/search refinement and end-to-end KS coverage remain separate obligations. |
-| Unique output representatives          | Neither finite existential cover nor point-count bounds imply deduplication         | Exact lattice equivalence/normal-form specification and executable correctness; equal hashes alone cannot merge classes.                            |
+| Result                                 | Scope and connection                                                                                                                                                                       |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Fixed `(n,k≥1)` volume/count bounds    | Hensley and LZ treat the general positive-interior-count problem. The supporting Lean volume theorem is reflexive-specific; the broader theorem is not needed for the classifier's target. |
+| Equivalence and marking                | LZ uses affine lattice maps. The formal classifier fixes the origin and proves two-sided integral `GLEquiv`; these conventions must not be conflated for general `k>1`.                    |
+| Effective boxes                        | The supporting box radii are existential. Executable `KS/IntegerPoints` derives its own bounds from CWS weights and a certified kernel basis, not an unevaluated LZ radius.                |
+| Maximal containers                     | Abstract maximality existence does not construct a KS container. `KS/Containers` supplies explicit seed-pairing witnesses; its containers need not be maximal.                             |
+| Subpolytope and lattice recovery       | `KS/Recovery` proves exact hull recovery from enumerated container points; `KS/Realizations` exhausts compatible lattices.                                                                 |
+| Polarity for broader one-point targets | A nonreflexive one-point polytope may have a rational polar. Such final targets are outside the theorem.                                                                                   |
+| WS/CWS coverage                        | `KS/WeightSearch`, `KS/Assembly` and the composition theorem supply the concrete terminating reflexive enumeration. Native pruning and descriptor refinement are separate guarantees.      |
+| Unique representatives                 | Output duplicates are permitted. Exact normal forms and collision-safe class merging are not implied by volume or point-count bounds.                                                      |
 
 ## Source evidence and reusable provenance
 
@@ -320,7 +317,7 @@ The LZ PDF download URL is the publisher's
 [journal PDF](https://www.cambridge.org/core/services/aop-cambridge-core/content/view/0D4E5B45AB64DC6069A9BD7DD45B450C/S0008414X00007483a.pdf/bounds-for-lattice-polytopes-containing-a-fixed-number-of-interior-points-in-a-sublattice.pdf).
 The cached Hensley publisher HTML record additionally verifies the DOI;
 its original-byte hash is recorded in the local provenance file. Cached
-literature is not an input for the blind formal statement checker.
+literature is not an input to the Lean build.
 
 The main inspected Lean file hashes identify the source evidence independently
 of declaration names:
@@ -332,7 +329,3 @@ of declaration names:
 | `ReflexiveVolume.lean`      | `23d54cf6206a41b10bfaf206fde3e67bf532fb2c06207f785e3da3124781c589` |
 | `Finiteness.lean`           | `0152ac3597310ff9783b30665faf7fc49c4ddf3e3ad8af5bc83b9f6c02a222af` |
 | `MaxMin.lean`               | `cf4bf17f61a683564371093226ea904da42a5be6f9d0cf07183e0e826a74b6ef` |
-
-The assignment changed only this note and its two owned cache directories.
-No frozen proof, sibling proof checkout, shared plan, native code, dataset,
-baseline, commit or publication was changed.

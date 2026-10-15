@@ -52,8 +52,8 @@ def polarDual (P : Set (V n)) : Set (V n) := {y | ∀ x ∈ P, -1 ≤ y ⬝ᵥ x
 
 /-- A polytope is *reflexive* (D0.5) if it is an IP lattice polytope and its
 polar dual is again a lattice polytope.  [SS18] §2.1: "An IP polytope Δ is
-called reflexive if both Δ and Δ* are lattice polytopes."  (The facet-distance
-formulation of [KS95] is equivalent; see PROOF_PLAN.md L0.8/L0.9.) -/
+called reflexive if both Δ and Δ* are lattice polytopes."
+The equivalent facet-distance convention is discussed in [KS95]. -/
 structure IsReflexive (P : Set (V n)) : Prop where
   latticePolytope : IsLatticePolytope P
   ip : IsIP P
