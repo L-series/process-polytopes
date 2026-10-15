@@ -99,9 +99,9 @@ statement reports are archived outside Git; round 1 is superseded because blind
 provenance was unconfirmed. The [tracked audit synthesis](proof-audit.md) is
 complete, with all source/contract mappings and issue dispositions. Round 2's
 attempted blind context received excluded repository metadata, so its report
-is qualified historical evidence and clean donor blind-review closure remains
-outstanding. Repeat the context-affected donor readings in verified isolation
-before claiming that closure; retain the frozen informed report and literature.
+is qualified historical evidence. The final new neutral CLI reading covers all
+71 unchanged statements and closes the historical isolation debt. The accepted
+reports were frozen before comparison; the earlier reports remain unchanged.
 The foundation port now includes the complete faithful `Basic` and
 `ReflexiveDuality` modules, with 26 additional donor theorem bodies imported
 and covered by compiler-derived axiom auditing. The weight/box port adds complete
@@ -121,14 +121,15 @@ The complete faithful `CircuitGeometry`, `CircuitInterior` and `CircuitSpan`
 ports add 24 theorem/lemma bodies, including the private boundary helper.
 Positive simplex circuits span the entire real relation kernel under the
 specified intrinsic-interior hypothesis. All three modules are imported and
-compiler-audited. Primitive integer normalization and the KS circuit contract
-remain open; this port closes no KS obligation or scientific routine.
+compiler-audited. The subsequently implemented KS bridges prove primitive
+integer normalization and the new circuit contract separately.
 
 The faithful volume/finiteness and minimal-seed ports add `ReflexiveVolume`,
 `Finiteness`, `MaxMin`, `Minimal` and `Classification`, with 35 source results.
 The weight-finiteness → volume → box/finiteness dependency remains noncircular.
 Bounds are existential and reflexive-only. Minimal structure gives one
-step, without the new $2d$ seed bound. Legacy simplex signatures still omit
+step; the generic indexed $2d$ bound is now proved separately in `KS/SeedBound`.
+Legacy simplex signatures still omit
 seed-to-weight witness connections; stronger geometric witnesses are required
 for the new contracts. All modules are imported and compiler-audited; no KS
 obligation or routine is closed.
@@ -138,25 +139,25 @@ The complete faithful `CWSBasis`, `CWSContainer` and `CWSAssembly` ports add
 coverage, explicit reached/padded blocks and forward-integral containers from a
 finite abstract catalogue. Container maps do not prove inverse integrality;
 noncomputable catalogues do not implement primitive integer search or lattice
-realizations. All units 3 and 4 are now ported and compiler-audited. The eighteen
-KS proof obligations and seven routines remain open. Clean donor blind-review closure remains outstanding.
-The requester subsequently authorized units 5–7 as one batch.
+realizations. All units 3 and 4 are ported and compiler-audited; the new KS
+implementation supplies the executable and lattice bridges.
 
 Unit 5 now ports the remaining five donor modules: `DegreeBound`, `Sylvester`,
 `PyramidLemma`, `BoxReductionAudit` and `CoverageAudit`. Their 24 source results
 and 50 axiom guards are imported and built. Degree bounds remain existential;
 no sharp numerical certificate or general pyramid normalization is claimed.
-The applicable donor library is now ported. Units 6–7 are authorized in the
-same batch and remain in progress; this prerequisite port closes no KS hole.
+The applicable donor library is fully ported. The requester authorized completing
+the remaining proof units as one batch, with bounded independent implementation
+ownership and the integrator retaining shared files and publication.
 
-The subsequent bridge work,
-eighteen KS obligations and seven routines are unfinished; final optimization
-remains deferred. The separately
-approved first proof-CI chunk introduces a
-dimension-generic reflexive-only contract scaffold, conditional composition and
-strict/conditional gates. Its new interfaces receive fresh scoped checks.
-That scoped review does not close the donor isolation debt or authorize the next
-proof-filling chunk; final optimization remains deferred. Use one reusable
-dependency-aware porter for coupled work after approval, and delegate only
+All eighteen KS contracts, seven routines and the concrete endpoint are now
+compiler-closed. Strict and conditional gates, native execution suites and exact
+CPU regressions pass locally. The historical donor blind-reading debt was
+resolved by a new tools-disabled neutral CLI context and explicit index
+exports, reusing the unchanged frozen informed report. The new initial report was
+frozen before comparison; two low-severity wording qualifications are recorded
+in the audit ledger. Do not treat the older contaminated attempt as clean evidence.
+Final proof optimization remains deferred to its approved prerequisites.
+Use one dependency-aware integrator for coupled work, and delegate only
 bounded independent mapping or review with disjoint ownership. The integrator
 owns shared documentation, audit integration and publication.

@@ -9,22 +9,23 @@ approval-gated chunks and fresh `integration/cws-5d` branches in both repositori
 The [long-term mathematical roadmap](learning/THEORY_ROADMAP.md) targets complete
 KS WS/CWS-based enumeration in every fixed dimension, with explicit lattice
 realizations and subpolytope recovery, with **reflexive-only final targets**.
-The newly approved first proof-CI chunk specifies that endpoint, proves its
-conditional composition, and separates conditional success from strict
-incompleteness. Supporting proofs and scientific routines remain future
-obligations; nonreflexive IP classification is excluded from this theory scope.
+The approved proof programme now implements all eighteen supporting contracts
+and all seven routines, with a kernel-closed concrete endpoint and locally
+passing strict and conditional gates after a clean build. Final isolated donor
+reading and frozen-report reconciliation are complete. Nonreflexive IP
+classification is excluded from this theory scope.
 `SINGLE_WS_5d.tex` is the author's separate single-weight paper and a source of
 reference leads/cross-checks, not the official manuscript or specification here.
 
-The goal is a reproducible census of generated CWS Newton polytopes on the
+The separate native consolidation goal is a reproducible census of generated CWS Newton polytopes on the
 implemented/PALP reference lattice, retaining IP-but-nonreflexive and reflexive
 classes. New quotient/sublattice enumeration, reflexive-subpolytope expansion, and
 r-maximal search are excluded.
 
 The proof programme now includes the dimension-generic executable KS endpoint
-specified in [proofs/STATEMENTS.md](../proofs/STATEMENTS.md). The scaffold is not
-that completed endpoint, and no new verification of the native descriptor census
-is claimed. Conditional coverage must not be advertised as verification of CUDA,
+specified in [proofs/STATEMENTS.md](../proofs/STATEMENTS.md). The concrete Lean
+endpoint is now compiler-closed, but no verification of the native descriptor census
+is claimed. Formal coverage must not be advertised as verification of CUDA,
 PALP normal forms, or census counts.
 
 ## Integration and reviewed source
@@ -72,10 +73,13 @@ Round 1 is superseded because its blind provenance was unconfirmed. The
 declarations, issue dispositions and all eighteen contracts/seven routines with
 prerequisites, ownership and acceptance criteria. Round 2 disclosed repository
 metadata in its attempted blind context; it is retained as qualified historical
-comparison, not an accepted clean blind audit. Clean donor blind-review closure
-remains outstanding. No proof or executable routine is closed by the synthesis.
-The `proofs/` scaffold specifies eighteen major generic contracts and seven
-unfinished routines, and contains a genuine conditional composition proof.
+comparison, not an accepted clean blind audit. The new isolated final reading
+covers all 71 unchanged donor statements and closes that context-wide debt.
+The synthesis alone closed no proof or routine; the implementation batch does.
+The `proofs/` package specifies and proves all eighteen major generic contracts,
+implements all seven routines, and instantiates the genuine composition proof
+with the concrete procedures. The following port history records the donor
+support and restrictions, not current implementation holes.
 The complete `Basic` and `ReflexiveDuality` donor modules are now faithfully
 ported and imported, adding 26 theorem bodies beyond the initial extraction.
 All their declarations are included in the existing compiler-derived axiom
@@ -100,14 +104,15 @@ The complete faithful `CircuitGeometry`, `CircuitInterior` and `CircuitSpan`
 ports add 24 theorem/lemma bodies, including the private boundary helper.
 Positive simplex circuits span the entire real relation kernel under the
 specified intrinsic-interior hypothesis. All three modules are imported and
-compiler-audited. Primitive integer normalization and the KS circuit contract
-remain open; this port closes no KS obligation or scientific routine.
+compiler-audited. Primitive integer normalization and the new circuit contract
+are proved separately by the subsequently implemented KS bridges.
 
 The faithful volume/finiteness and minimal-seed ports add `ReflexiveVolume`,
 `Finiteness`, `MaxMin`, `Minimal` and `Classification`, with 35 source results.
 The weight-finiteness → volume → box/finiteness dependency remains noncircular.
 Bounds are existential and reflexive-only. Minimal structure gives one
-step, without the new $2d$ seed bound. Legacy simplex signatures still omit
+step; the new indexed $2d$ bound is proved separately in `KS/SeedBound`.
+Legacy simplex signatures still omit
 seed-to-weight witness connections; stronger geometric witnesses are required
 for the new contracts. All modules are imported and compiler-audited; no KS
 obligation or routine is closed.
@@ -117,36 +122,36 @@ The complete faithful `CWSBasis`, `CWSContainer` and `CWSAssembly` ports add
 coverage, explicit reached/padded blocks and forward-integral containers from a
 finite abstract catalogue. Container maps do not prove inverse integrality;
 noncomputable catalogues do not implement primitive integer search or lattice
-realizations. All units 3 and 4 are now ported and compiler-audited. The eighteen
-KS proof obligations and seven routines remain open. Clean donor blind-review closure remains outstanding.
-The requester subsequently authorized units 5–7 as one batch.
+realizations. All units 3 and 4 are ported and compiler-audited. Their executable
+and exact lattice connections are supplied by the new KS implementation.
 
 Unit 5 now ports the remaining five donor modules: `DegreeBound`, `Sylvester`,
 `PyramidLemma`, `BoxReductionAudit` and `CoverageAudit`. Their 24 source results
 and 50 axiom guards are imported and built. Degree bounds remain existential;
 no sharp numerical certificate or general pyramid normalization is claimed.
-The applicable donor library is now ported. Units 6–7 are authorized in the
-same batch and remain in progress; this prerequisite port closes no KS hole.
+The applicable donor library is fully ported. The requester authorized completion
+of the remaining proof units as one batch. All major contracts, routines and the
+concrete theorem now have approved, admission-free compiler closures.
 
 The scoped interface review is separate from the donor audit and does not
 discharge its isolation debt.
 
-| Group                                               | Work and current status                                                            | Acceptance boundary                                                                                   |
-| --------------------------------------------------- | ---------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| T-L1, T-L2, T-L3                                    | Seven primary-source research notes and consolidated LaTeX review complete         | Verified references, hypotheses, and exact proof-step support                                         |
-| T-A0                                                | Tracked synthesis complete; clean donor blind-review closure outstanding           | Source/contract map and dispositions recorded; isolated affected readings still required              |
-| Initial proof-CI scaffold                           | Pinned generic contracts, conditional composition, explicit supporting/data holes  | Conditional proof and CPU gates pass; strict completeness intentionally remains red                   |
-| T-P1: foundations and reflexive duality             | Complete faithful `Basic` and `ReflexiveDuality` ports imported                    | 26 additional donor theorems; compiler export/axiom audit includes all imported declarations          |
-| T-P2: weight geometry and box tools                 | Complete faithful `WeightSystem` and `BoxReduction` ports imported                 | 30 additional donor results; preserve component lifting and existential/noncomputable box scope       |
-| T-P3: search and simplex support                    | Complete faithful `Algorithm`, `WeightSystemFinite`, `GeometricCWS` ports imported | 21 results; guarded finite nodes, abstract reachability and explicit geometric witnesses              |
-| T-P4–T-P7: circuits, finite geometry and containers | Complete faithful unit 3b and unit 4 modules imported                              | 79 additional source results; preserve real/forward-integral scope and noncomputable catalogue limits |
-| Subsequent proof chunks                             | Applicable source ports and missing executable/lattice/recovery proofs             | Preserve reviewed interfaces; discharge one approved unit at a time                                   |
-| C01 through C13, including split chunks             | CPU references, generation, classification, replay, and tools                      | Exact CWS/point/NF parity, safe arithmetic, lossless records                                          |
-| T-C0                                                | Archived Lean catalogue versus integrated PALP descriptors                         | Deferred until C02; computational correspondence is not geometric completeness                        |
-| T-O0                                                | Final proof clarity/concision and pinned Mathlib reuse after T-P9 and T-C0         | Unchanged audited statement scope and trust; clean full build and axiom guards                        |
-| G00 through G09                                     | Approved GPU setup, reference scanner, completion, and optional optimizations      | Real-device tests, exact CPU recovery, conservative bounds, sanitizers                                |
-| B00 through B04                                     | Experiment inventory, reproducible measurements, and source maps                   | Sourced numbers and matching complete-work boundaries                                                 |
-| R00 through R05                                     | Approved production runs, reconciliation, catalogues, and release                  | Complete descriptor coverage and exact NF reduction                                                   |
+| Group                                               | Work and current status                                                              | Acceptance boundary                                                                                   |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------- |
+| T-L1, T-L2, T-L3                                    | Seven primary-source research notes and consolidated LaTeX review complete           | Verified references, hypotheses, and exact proof-step support                                         |
+| T-A0                                                | Synthesis and clean isolated donor reading/reconciliation complete                   | All 71 unchanged statements covered; frozen hashes and explicit reading qualifications retained       |
+| Generic proof-CI endpoint                           | All contracts and routines implemented; concrete classification theorem closed       | Clean local strict/conditional/CPU gates pass; published-SHA CI reported at delivery                  |
+| T-P1: foundations and reflexive duality             | Complete faithful `Basic` and `ReflexiveDuality` ports imported                      | 26 additional donor theorems; compiler export/axiom audit includes all imported declarations          |
+| T-P2: weight geometry and box tools                 | Complete faithful `WeightSystem` and `BoxReduction` ports imported                   | 30 additional donor results; preserve component lifting and existential/noncomputable box scope       |
+| T-P3: search and simplex support                    | Complete faithful `Algorithm`, `WeightSystemFinite`, `GeometricCWS` ports imported   | 21 results; guarded finite nodes, abstract reachability and explicit geometric witnesses              |
+| T-P4–T-P7: circuits, finite geometry and containers | Complete faithful unit 3b and unit 4 modules imported                                | 79 additional source results; preserve real/forward-integral scope and noncomputable catalogue limits |
+| Proof-completion batch                              | Bounded seeds, complete search, exact geometry and compatible lattice reconstruction | All 36 major targets closed; nine native suites and 19 policy regressions pass                        |
+| C01 through C13, including split chunks             | CPU references, generation, classification, replay, and tools                        | Exact CWS/point/NF parity, safe arithmetic, lossless records                                          |
+| T-C0                                                | Archived Lean catalogue versus integrated PALP descriptors                           | Deferred until C02; computational correspondence is not geometric completeness                        |
+| T-O0                                                | Final proof clarity/concision and pinned Mathlib reuse after T-P9 and T-C0           | Unchanged audited statement scope and trust; clean full build and axiom guards                        |
+| G00 through G09                                     | Approved GPU setup, reference scanner, completion, and optional optimizations        | Real-device tests, exact CPU recovery, conservative bounds, sanitizers                                |
+| B00 through B04                                     | Experiment inventory, reproducible measurements, and source maps                     | Sourced numbers and matching complete-work boundaries                                                 |
+| R00 through R05                                     | Approved production runs, reconciliation, catalogues, and release                    | Complete descriptor coverage and exact NF reduction                                                   |
 
 The table groups related chunks, not a strict checklist. Actual prerequisites
 govern execution: C01/B00 establish reference and benchmark contracts before
@@ -159,15 +164,16 @@ The [permanent theory agents](THEORY_AGENTS.md) define one reusable literature
 researcher, two independent statement checkers and a final proof optimizer.
 Both checker reports are frozen before comparison; the blind checker sees only
 formal types and necessary definitions. Important discrepancies need explicit
-dispositions. The first proof-contract scaffold has its own approval. Completing it does not
-authorize the next proof port, routine implementation or optimization chunk.
+dispositions. The requester explicitly authorized the proof-completion batch;
+this does not authorize native census work, catalogue integration, final proof
+optimization or branch promotion.
 
 The revised [dependency ledger](proof-audit.md#revised-dependency-ledger-and-acceptance-boundaries)
 preserves the donor import order and adds the effective search, integer-kernel,
 exact geometry and lattice-reconstruction prerequisites. Units 3 and 4 are
-now ported. Unit 5 has also landed; units 6–7 are authorized within the same
-batch. Effective weight search still depends on exact arithmetic and IP checking;
-seed/circuit bridges must preserve all existing contracts.
+ported. Unit 5 completes the donor library, and the remaining generic
+seed/search/geometry/lattice contracts are now implemented with the reviewed
+interfaces preserved.
 Shared docs and Git
 remain integrator-owned, with one reusable porter for coupled implementation.
 
@@ -177,12 +183,12 @@ remain integrator-owned, with one reusable porter for coupled implementation.
 - Follow the existing Conventional Commit hook; separate refactors and behavior.
 - Introduce tests and relevant README/manual updates with each change.
 - Report root/PALP commits, exact validation and CI, deviations, and the next chunk.
-- Stop after each chunk until the requester approves continuing.
+- Stop after each chunk unless the requester explicitly authorizes a batch.
 - Publish every new PALP SHA before publishing a root commit that pins it.
 - Preserve all original main, production, and experiment refs without rewriting.
-- The user-approved strict proof-completeness check may remain red while the
-  scaffold is unfinished; conditional proof and CPU checks must pass. Never
-  hide that failure with a soft-failure setting or claim the headline proved.
+- Strict, conditional and CPU checks must remain green for the completed
+  programme. The scaffold's historical intentional strict failure is no longer
+  the current state; never hide a regression with a soft-failure setting.
 
 ## Correctness and completion gates
 

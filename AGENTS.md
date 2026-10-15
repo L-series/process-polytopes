@@ -4,15 +4,16 @@
 
 The project computes dimension-five weight systems and their IP/reflexive
 polytopes. The single-weight scientific sector is complete; CWS consolidation
-and its verified census are in progress. The current delivery covers the
+and its verified census are in progress. The native CWS delivery covers the
 implemented descriptor/input-pool universe on the PALP reference lattice, not
 all lattice realizations or all five-dimensional reflexive polytopes.
 
 The separately approved theory programme targets all reflexive polytopes in
 every fixed dimension. Nonreflexive IP targets are excluded, but IP weights and
-possibly nonreflexive containers remain necessary intermediates. Its initial
-proof-contract scaffold is incomplete; conditional CI is not a proof of the
-headline classification result.
+possibly nonreflexive containers remain necessary intermediates. The concrete
+Lean endpoint is now kernel-closed, with all supporting contracts and executable
+routines implemented. Preserve that closure; conditional CI alone is not a
+proof-completeness certificate.
 
 - `PALP/`: pinned PALP submodule and current CPU executables.
 - `scripts/`: lint, commit-message checks, build detection, and CWS tests.
@@ -22,16 +23,20 @@ headline classification result.
 - `docs/experiments/`: experiment index; benchmark records are planned.
 - `docs/PORTING_PLAN.md`: scope, source provenance, and execution status.
 - `.codex/agents/`: permanent theory-agent definitions; see `docs/THEORY_AGENTS.md`.
-- `proofs/`: pinned Lean/Mathlib contract scaffold, obligations and CI audit tools.
+- `proofs/`: pinned Lean/Mathlib proofs, executable KS routines and CI audit tools.
   Complete donor `Basic`, `ReflexiveDuality`, `WeightSystem`, `BoxReduction`,
   `Algorithm`, `WeightSystemFinite`, `GeometricCWS`, `CircuitGeometry`,
   `CircuitInterior`, `CircuitSpan`, `ReflexiveVolume`, `Finiteness`, `MaxMin`,
   `Minimal`, `Classification`, `CWSBasis`, `CWSContainer` and `CWSAssembly`
   ports are imported, together with `DegreeBound`, `Sylvester`, `PyramidLemma`
-  and both donor axiom-audit modules. All applicable donor modules are ported; the
-  eighteen KS proof obligations and seven scientific routines remain open.
+  and both donor axiom-audit modules. All applicable donor modules are ported.
+  New KS modules implement bounded seeds, primitive circuits, exact kernels,
+  geometry, complete weight search and compatible-lattice reconstruction.
+  All seven routines, eighteen contracts and the concrete headline are
+  compiler-closed. Clean build and both proof gates pass; fresh isolated donor
+  readings and frozen-report reconciliation close the historical semantic debt.
 - `docs/proof-audit.md`: source-to-contract map, audit dispositions, dependency
-  ledger and outstanding donor blind-review isolation debt.
+  ledger and isolated statement-review provenance.
 
 ## Existing build and test commands
 
@@ -72,9 +77,10 @@ With elan installed, the proof package pins Lean 4.30.0 and the full Mathlib loc
 ./scripts/test-proofs.sh strict
 ```
 
-See [proofs/README.md](proofs/README.md). Strict completeness intentionally fails
-while registered proof/data holes remain; conditional proof CI and CPU CI must
-pass. Do not hide the strict failure or treat a conditional build as proof.
+See [proofs/README.md](proofs/README.md). Strict, conditional and CPU gates now
+pass locally and must remain green. Never reintroduce admissions, weaken the
+reviewed statement lock, hide a strict failure or treat a conditional build alone
+as proof completeness.
 CUDA builds, the native consolidated classifier and benchmark runners remain
 planned. GPU acceptance requires an approved real device, not silent CPU fallback.
 

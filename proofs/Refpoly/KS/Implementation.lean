@@ -1,27 +1,31 @@
-import Refpoly.KS.Model
+import Refpoly.KS.Assembly
+import Refpoly.KS.IntegerKernel
+import Refpoly.KS.IntegerPoints
+import Refpoly.KS.PolytopeChecks
+import Refpoly.KS.Realizations
+import Refpoly.KS.WeightSearch
 
 namespace Refpoly.KS
 
--- These are explicit data holes, not executable empty-list fallbacks.
-noncomputable def searchWeights (m : ℕ) : List (WeightCode m) := by sorry
+def searchWeights (m : ℕ) : List (WeightCode m) := searchWeightsExact m
 
-noncomputable def assembleCWS (d : ℕ) (ws : (m : ℕ) → List (WeightCode m)) :
-    List (CWSCode d) := by sorry
+def assembleCWS (d : ℕ) (ws : (m : ℕ) → List (WeightCode m)) :
+    List (CWSCode d) := assemble d ws
 
-noncomputable def integerKernelBasis {d : ℕ} (C : CWSCode d) :
-    Fin C.N → Fin d → ℤ := by sorry
+def integerKernelBasis {d : ℕ} (C : CWSCode d) :
+    Fin C.N → Fin d → ℤ := integerKernelBasisExact C
 
-noncomputable def containerLatticePoints {d : ℕ} (C : CWSCode d) :
-    List (IntPoint d) := by sorry
+def containerLatticePoints {d : ℕ} (C : CWSCode d) :
+    List (IntPoint d) := pointsForBasis C (integerKernelBasis C)
 
-noncomputable def eligibleCheck {d : ℕ} (Q : PolyCode d) : Bool := by sorry
+def eligibleCheck {d : ℕ} (Q : PolyCode d) : Bool := eligibleCheckExact Q
 
-noncomputable def latticeRealizations {d : ℕ} (Q : PolyCode d) :
-    List (PolyCode d) := by sorry
+def latticeRealizations {d : ℕ} (Q : PolyCode d) :
+    List (PolyCode d) := latticeRealizationsExact Q
 
-noncomputable def reflexiveCheck {d : ℕ} (R : PolyCode d) : Bool := by sorry
+def reflexiveCheck {d : ℕ} (R : PolyCode d) : Bool := reflexiveCheckExact R
 
-noncomputable def procedures : Procedures :=
+def procedures : Procedures :=
   ⟨searchWeights, assembleCWS, integerKernelBasis, containerLatticePoints,
     eligibleCheck, latticeRealizations, reflexiveCheck⟩
 

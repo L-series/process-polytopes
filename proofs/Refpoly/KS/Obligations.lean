@@ -1,26 +1,52 @@
 import Refpoly.KS.Composition
 import Refpoly.KS.Implementation
+import Refpoly.KS.SeedBound
+import Refpoly.KS.Circuits
+import Refpoly.KS.Containers
+import Refpoly.KS.Recovery
+import Refpoly.KS.Lattices
 
 namespace Refpoly.KS
 
-theorem seed_bound : SeedBound := by sorry
-theorem circuit_basis : CircuitBasis := by sorry
-theorem weights_sound : WeightsSound procedures := by sorry
-theorem weights_complete : WeightsComplete procedures := by sorry
-theorem assembly_sound : AssemblySound procedures := by sorry
-theorem assembly_complete : AssemblyComplete procedures := by sorry
-theorem kernel_bases : KernelBases procedures := by sorry
-theorem geometric_containers : GeometricContainers procedures := by sorry
-theorem container_points : ContainerPoints procedures := by sorry
-theorem subpolytope_recovery : SubpolytopeRecovery := by sorry
-theorem image_eligible : ImageEligible := by sorry
-theorem eligibility_check : EligibilityCheck procedures := by sorry
-theorem target_lattice : TargetLattice := by sorry
-theorem finite_lattice_interval : FiniteLatticeInterval := by sorry
-theorem realizations_sound : RealizationsSound procedures := by sorry
-theorem realizations_complete : RealizationsComplete procedures := by sorry
-theorem realization_equivalence : RealizationEquivalence := by sorry
-theorem reflexivity_check : ReflexivityCheck procedures := by sorry
+theorem seed_bound : SeedBound := seed_bound_proved
+theorem circuit_basis : CircuitBasis := circuitBasis_of_validSeed
+theorem weights_sound : WeightsSound procedures := by
+  intro m w hw
+  exact searchWeightsExact_sound m w hw
+theorem weights_complete : WeightsComplete procedures := by
+  intro m w hw
+  exact searchWeightsExact_complete m w hw
+theorem assembly_sound : AssemblySound procedures := by
+  intro _ d C hC
+  exact (mem_assemble C).mp hC
+theorem assembly_complete : AssemblyComplete procedures := by
+  intro d C hvalid hrows
+  exact (mem_assemble C).mpr ⟨hvalid, hrows⟩
+theorem kernel_bases : KernelBases procedures := by
+  intro d C hC
+  exact integerKernelBasisExact_correct C hC
+theorem geometric_containers : GeometricContainers procedures :=
+  geometricContainers_proof procedures
+theorem container_points : ContainerPoints procedures := by
+  intro d C hC
+  exact pointsForBasis_exact C hC (integerKernelBasis C) (kernel_bases d C hC)
+theorem subpolytope_recovery : SubpolytopeRecovery := subpolytopeRecovery_proof
+theorem image_eligible : ImageEligible := imageEligible_proof
+theorem eligibility_check : EligibilityCheck procedures := by
+  intro d Q
+  exact eligibleCheckExact_correct Q
+theorem target_lattice : TargetLattice := targetLattice_proof
+theorem finite_lattice_interval : FiniteLatticeInterval := finiteLatticeInterval_proof
+theorem realizations_sound : RealizationsSound procedures := by
+  intro d Q hQ R hR
+  exact latticeRealizationsExact_sound Q hQ R hR
+theorem realizations_complete : RealizationsComplete procedures := by
+  intro d Q hQ _ L hL
+  exact latticeRealizationsExact_complete Q hQ L hL
+theorem realization_equivalence : RealizationEquivalence := realizationEquivalence_proof
+theorem reflexivity_check : ReflexivityCheck procedures := by
+  intro d R
+  exact reflexiveCheckExact_correct R
 
 theorem contracts : Contracts procedures :=
   ⟨seed_bound, circuit_basis, weights_sound, weights_complete, assembly_sound,

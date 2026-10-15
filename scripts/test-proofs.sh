@@ -21,6 +21,15 @@ fi
 lake build
 PROOF_CI_OUTPUT=ci-output/inventory.json lake env lean ci/Export.lean
 lake env lean ci/PipelineTests.lean
+lake exe weightSearchTests
+lake exe assemblyTests
+lake exe kernelTests
+lake exe congruenceTests
+lake exe pointTests
+lake exe simplexTests
+lake exe polytopeCheckTests
+lake exe realizationTests
+lake exe endpointTests
 python3 ../tests/test_proof_ci.py
 python3 ci/proof_audit.py "$mode" --inventory ci-output/inventory.json
 if [[ "$mode" == strict ]]; then

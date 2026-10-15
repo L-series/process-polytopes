@@ -1,23 +1,40 @@
-# Dimension-generic reflexive proof scaffold
+# Dimension-generic reflexive KS proofs
 
-This is a **work-in-progress proof-contract package**, not a completed
-classification theorem or executable scientific classifier. It targets a
-terminating KS WS/CWS construction recovering all reflexive lattice polytopes
+This package kernel-proves the concrete terminating KS WS/CWS construction
+recovering all reflexive lattice polytopes
 in every fixed dimension, with lattice realizations and subpolytope search.
 Nonreflexive IP classification is excluded; IP weights and possibly nonreflexive
 containers remain intermediate objects.
 
-The package now contains complete faithful `Basic`, `ReflexiveDuality`,
-`WeightSystem`, `BoxReduction`, `Algorithm`, `WeightSystemFinite` and
-`GeometricCWS` ports, eighteen major statement contracts,
-list-pipeline orchestration, genuine
-conditional composition and dimension-zero proofs, seven data holes, and
-eighteen supporting proof holes. See [STATEMENTS.md](STATEMENTS.md) for the exact
-chain and [SOURCES.md](SOURCES.md) for attribution and dependency provenance.
-The [proof audit ledger](../docs/proof-audit.md) maps every obligation and routine
-to donor support, missing bridges, prerequisites and acceptance criteria. Its
-tracked synthesis is complete; the donor's clean blind-review closure and full
-port remain open. No supporting hole is closed by that documentation work.
+The package contains all applicable faithful donor modules, eighteen unchanged
+major contracts, finite-list orchestration, and the closed conditional composition
+and dimension-zero results. All seven scientific routines, eighteen supporting
+contracts, and `classifies_reflexive : Classifies procedures` are implemented and
+compiler-closed. The inventory contains 1,308 project constants and all 36
+designated targets are closed, using only `propext`, `Classical.choice` and
+`Quot.sound`. Local strict and conditional gates pass without changing the
+reviewed statement lock, major target inventory, toolchain or dependency pins.
+See [STATEMENTS.md](STATEMENTS.md) for the exact chain,
+[SOURCES.md](SOURCES.md) for attribution and pins, and the
+[audit ledger](../docs/proof-audit.md) for evidence and remaining semantic debt.
+
+The new KS modules prove the general indexed $2d$ minimal-seed bound and exact
+primitive circuit transport. They implement exhaustive assembly, saturated
+integer kernels, all-container-point enumeration, exact rational simplex/hull/
+polar operations, and eligibility/reflexivity decisions. Compatible-lattice
+finiteness, exhaustive finite quotient subgroups, verified integer bases, exact
+hull/image-lattice reconstruction and two-sided equivalence are proved.
+Complete ordered primitive-IP search uses rational feasible selection, finite
+exact branches and a proved rank-based stopping depth. No empirical weight-degree
+cutoff or classical output selection is used. Nine native execution suites cover
+the scientific routines, arity 0--3 weight outputs, compatible lattices and the
+concrete pipeline in dimensions zero and one. These regressions are not the
+dimension-generic completeness proof. A clean project rebuild passes both proof
+gates. The final tools-disabled neutral donor reading covers all 71 source
+statements and closes the historical isolation debt, with frozen hashes and two
+explicit low-severity prose qualifications in the audit ledger.
+
+## Faithful donor ports
 
 The foundation port adds 26 donor theorem bodies beyond the initial extraction,
 including compactness, bounded lattice-point finiteness, bipolarity, uniqueness
@@ -48,14 +65,14 @@ The complete faithful `CircuitGeometry`, `CircuitInterior` and `CircuitSpan`
 ports add 24 theorem/lemma bodies, including the private boundary helper.
 Positive simplex circuits span the entire real relation kernel under the
 specified intrinsic-interior hypothesis. All three modules are imported and
-compiler-audited. Primitive integer normalization and the KS circuit contract
-remain open; this port closes no KS obligation or scientific routine.
+compiler-audited. The port itself did not supply primitive integer normalization;
+the new KS circuit modules now provide that separate bridge.
 
 The faithful volume/finiteness and minimal-seed ports add `ReflexiveVolume`,
 `Finiteness`, `MaxMin`, `Minimal` and `Classification`, with 35 source results.
 The weight-finiteness → volume → box/finiteness dependency remains noncircular.
 Bounds are existential and reflexive-only. Minimal structure gives one
-step, without the new $2d$ seed bound. Legacy simplex signatures still omit
+step; the new $2d$ seed bound is proved separately in `KS/SeedBound`. Legacy simplex signatures still omit
 seed-to-weight witness connections; stronger geometric witnesses are required
 for the new contracts. All modules are imported and compiler-audited; no KS
 obligation or routine is closed.
@@ -65,16 +82,17 @@ The complete faithful `CWSBasis`, `CWSContainer` and `CWSAssembly` ports add
 coverage, explicit reached/padded blocks and forward-integral containers from a
 finite abstract catalogue. Container maps do not prove inverse integrality;
 noncomputable catalogues do not implement primitive integer search or lattice
-realizations. All units 3 and 4 are now ported and compiler-audited. The eighteen
-KS proof obligations and seven routines remain open. Clean donor blind-review closure remains outstanding.
-The requester subsequently authorized units 5–7 as one batch.
+realizations. All units 3 and 4 are ported and compiler-audited; the executable
+KS modules supply these additional connections. The final isolated donor
+reading and frozen-report comparison are recorded in the audit ledger.
 
 Unit 5 now ports the remaining five donor modules: `DegreeBound`, `Sylvester`,
 `PyramidLemma`, `BoxReductionAudit` and `CoverageAudit`. Their 24 source results
 and 50 axiom guards are imported and built. Degree bounds remain existential;
 no sharp numerical certificate or general pyramid normalization is claimed.
-The applicable donor library is now ported. Units 6–7 are authorized in the
-same batch and remain in progress; this prerequisite port closes no KS hole.
+The applicable donor library is now ported. The requester authorized finishing
+the remaining proof units as one batch. The historical port counts above describe
+donor support, not the current count of unfinished KS contracts.
 
 ## Pinned setup and commands
 
@@ -101,15 +119,16 @@ From the repository root:
 
 **Conditional** builds current sources, exports actual types/definitions/axiom
 closures, checks pipeline orchestration and audit-policy regressions, and
-compares the reviewed interface lock. It allows registered unfinished targets,
+executes the registered assembly, kernel, point, simplex, geometry and lattice
+regressions. It compares the reviewed interface lock and allows registered unfinished targets,
 but rejects unregistered holes, unexpected axioms and regressions in closed
 results. Passing means the stated obligations compose—not that they are true.
 
 **Strict** additionally rejects every direct or transitive `sorryAx` dependency
-and requires `ci/Executable.lean` to compile the concrete pipeline. It is
-**intentionally failing** until the missing proofs and scientific routines are
-implemented. Do not add `continue-on-error` or describe its failure as a green
-proof result. This is the approved exception to the earlier all-green policy.
+and requires `ci/Executable.lean` to compile the concrete pipeline. It now passes.
+The scaffold's historical intentional failure is no longer the current status:
+both proof gates must remain green. Do not add `continue-on-error`, reintroduce
+admissions or describe a failed completeness check as success.
 
 Proof CI runs both gates on every push and pull request, separately from the
 existing CPU job. It caches only locked dependency repositories/artifacts, not

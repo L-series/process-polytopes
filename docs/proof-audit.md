@@ -5,10 +5,21 @@ dependency plan for the dimension-generic reflexive KS programme. It records
 support and dispositions; the initial synthesis chunk changed documentation
 only. The subsequently approved foundation chunk faithfully ports the complete
 `Basic` and `ReflexiveDuality` modules. Further ports, statement repairs,
-implementations and independent checks require their own approved chunks.
+implementations and independent checks require approved execution.
 The subsequently approved weight/box chunk also ports the complete `WeightSystem`
 and `BoxReduction` modules, preserving their original mathematical scopes.
 Unit 3a now ports `Algorithm`, `WeightSystemFinite` and `GeometricCWS` faithfully.
+All applicable donor ports are now complete. The requester subsequently
+authorized completion of the remaining generic proof units as one batch.
+
+**Current integration status:** all seven scientific routines, eighteen contracts
+and the concrete headline are implemented and compiler-closed. The inventory has
+1,308 project constants, all 36 designated targets closed, no `sorryAx` and only
+approved foundational axioms. Strict and conditional gates, nine native execution
+suites, all 19 policy/compiler tests and all 20 exact CPU regressions pass locally.
+A project-clean rebuild and isolated donor reading/reconciliation also pass.
+Published-SHA CI is reported at delivery, separately from these local results.
+Historical port/audit records below are not the current hole count.
 
 The target remains `Refpoly.KS.classifies_reflexive : Classifies procedures`:
 for each natural dimension, an executable finite list of reflexive polytopes
@@ -40,6 +51,9 @@ repository dependencies. Frozen sources and private reports remain out of Git.
 | Round-2 informed initial report        | `5bc30d9e826ef62e6620c2730a743815c44d7bf479cbf99922da4520bfb1367b`                                 |
 | Round-2 attempted blind initial report | `39ce2602658c7b3a31b827649cf46cd59a87795a7176c56f3e422cdd99e71f7f`                                 |
 | Round-2 attempted blind addendum       | `fec94308a39a31d04ecc5f10088ecf56faaa190d180ef9ba922117ea4aef514b`                                 |
+| Final neutral packet                   | `dfe20f45ebff7d20fb46a84462f482c1fecddc325f11890f8f19fc23d7f18726`                                 |
+| Final isolated initial donor reading   | `a6151942b7eebd839727e650e8432a8f774e87991ff8a23949e8d35557098d9e`                                 |
+| Final isolation receipt                | `cc464a27437b0ac49e6284a7a1dc2ea8c28f70d32ae5e01892c5feb75e3bc5fb`                                 |
 
 The 2026-10-15 inventory verified the donor ledger, patch, dependency manifest
 and every file in the T-A0 archive manifest. The separate scaffold packet and
@@ -67,15 +81,16 @@ reconciliation is not a third independent review. No disagreement was recorded
 among flagged items; the 55 severity-none rows were not all compared
 line by line.
 
-The scaffold's later isolated, tools-disabled blind check is separate evidence
-for its designated interfaces, not a replacement blind check of S01–S71.
-Before claiming full T-A0 semantic closure, repeat the affected donor readings
-in a verified neutral context using only sanitized types, definitions, binders
-and instances. Since the exposure was context-wide, all 71 donor readings need
-clean coverage; reuse the existing informed report while its inputs remain
-unchanged. Resolve the outstanding explicit-index exports listed below in that
-packet. Do not repeat the literature programme or a completed faithful port
-audit merely to obtain this missing isolation evidence.
+The scaffold's isolated check remains separate evidence for its 36 protected
+interfaces. The new final donor reading uses a fresh neutral CLI directory,
+custom instructions and builtin MCPs disabled, no tools, no resume/fork, and
+prompt-mode memory disabled. The sanitized packet contains all 71 source types,
+constructor/definition context, and full explicit index dumps. Its report
+discloses no excluded exposure. All 71 current compiler types match the frozen
+informed inputs; both initial reports were frozen before comparison. Every
+literal reading was reconciled, with the two low-severity wording qualifications
+below. This closes the context-wide donor isolation debt without rerunning the
+literature programme or altering the frozen reports.
 
 ## Statement findings and dispositions
 
@@ -96,16 +111,27 @@ following dispositions govern reuse; no statement or docstring is edited here.
 | S15, S35, S36, S45, S62, S71: lattice direction      | Complete real pairing range and/or forward-integral containment; no inverse-integrality guarantee                                                         | Accept these scopes. Prove full integer-kernel and image-lattice bridges separately; do not upgrade containment to lattice equivalence                                                                                                                    |
 | S45, S71: unused selection binder                    | Finite catalogue membership does not depend on `sel`                                                                                                      | Preserve signatures in faithful ports. Use S36/S62 for reachability, not the unused binder                                                                                                                                                                |
 | S62, S71: seed provenance                            | Their conclusions omit lattice membership and dual containment of the seed                                                                                | Obtain those witnesses upstream from S36/S47 and carry them into the new `ValidSeed`; do not infer them from the weaker conclusions                                                                                                                       |
-| S65: structural step                                 | One-step decomposition; strict relative rank decrease is implicit via S49                                                                                 | Accept that step. An iteration and the $2d$ upper bound remain new work                                                                                                                                                                                   |
+| S65: structural step                                 | One-step decomposition; strict relative rank decrease is implicit via S49                                                                                 | Accept that donor scope. The generic indexed $2d$ bound is now proved separately in `KS/SeedBound`; do not infer it from S65 alone                                                                                                                        |
 | S70: certificate wrapper                             | `degree_dim5_le_of_certificate` unfolds `DegreeBoundDim5`                                                                                                 | Accept as an API wrapper only. No numerical certificate is supplied                                                                                                                                                                                       |
 | S42: redundant conjunct                              | Final containment follows from maximality                                                                                                                 | Accept unchanged                                                                                                                                                                                                                                          |
 | Other severity-none/helper readings                  | Scoped support is indexed below; frozen compiler closures are standard                                                                                    | Reusable within their actual hypotheses, subject to the isolation qualification above and fresh build/audit when imported                                                                                                                                 |
 
 The blind addendum resolved constructor meanings and the important `S` versus
 `T` indices in `ReachedCircuit` and `simplexCircuitWeights`. Its section D
-still lacks explicit-index exports for S04, S16, S33(v), S44, S48, S56, S62(c),
-S65, S71(d), and `IsGoodSimplex`. These are open packet-completeness items, even
-where only one finset is in scope. The next isolated packet must include them.
+originally lacked explicit-index exports for S04, S16, S33(v), S44, S48, S56,
+S62(c), S65, S71(d), and `IsGoodSimplex`. The final packet supplies all of them;
+the new reader explicitly resolves the whole-set and simplex-subset indices.
+
+Two **LOW reading qualifications**, not formal defects, are retained in the
+integrator reconciliation. S33's type is `forall R, exists S`; the reader's
+extra "S does not depend on R" sentence is not accepted as an explicit
+uniform-witness claim. S13's reached constraint set is linked by `sel S = q`
+to the supplied geometric weights; it is intentionally not the original
+geometric seed. Its "unlinked" ambiguity label is not accepted as a missing
+required witness. The literal reconstructions and source scopes agree; neither
+initial report nor any mathematical statement was edited. Constructor facts,
+standard instances and elided proof fields are verified by the compiler context
+and clean pinned build. This reconciliation is not a third independent review.
 
 The current predicates preserve ambient origin interior, the $-1$ polar
 convention, primitive normalized positive rows, whole-kernel spanning, and
@@ -117,18 +143,18 @@ be maximal or reflexive.
 
 ## Contract map: eighteen proof obligations
 
-All eighteen contract rows are **open** in the active package, including those
-with some library prerequisites now ported. `O` below means
+This map records the original eighteen bridge requirements, not eighteen current
+holes. All eighteen contracts are now proved. `O` below means
 `proofs/Refpoly/KS/Obligations.lean`; `I` means
 `proofs/Refpoly/KS/Implementation.lean`. Donor paths are relative to its
 `proofs/Refpoly/`. A numbered work unit refers to the dependency ledger below.
-Ownership is proposed for a single reusable porter after approval; the
-integrator owns shared docs, audit integration and Git. Proposed helper paths
-are not existing implementations or permission to create them.
+The approved implementation batch has supplied the helper modules below;
+the integrator owns shared docs, audit integration and Git. Acceptance
+requirements remain unchanged.
 `KS/` file paths in the maps are relative to `proofs/Refpoly/`; module labels
 identify donor files, not additional Lean namespaces.
 
-| Obligation                | Existing declarations and exact support                                                                                                                                             | Required bridge / genuinely missing result                                                                                                            | Prerequisites; proposed owned files; acceptance                                                                                                                                    |
+| Obligation                | Existing declarations and exact support                                                                                                                                             | Bridge requirement, now implemented                                                                                                                   | Prerequisites; implementation files; acceptance                                                                                                                                    |
 | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `seed_bound`              | `ReflexiveDuality`: `IsReflexive.polarDual_reflexive` (S24), `MaxMin`: `exists_minimalIPGen_subset` (S55), `Minimal`: `minimalIPGen_card_lower` (S50), `minimal_structure` (S65)    | Extract a lattice seed from a finite dual generating set; prove $N\le2d$, enumerate distinct points and translate deletion-minimality                 | Units 1–4 then 6; `KS/Seeds.lean`, O; exact `ValidSeed` for every positive-dimensional reflexive target, with both bounds and no target input to the algorithm                     |
 | `circuit_basis`           | `CircuitSpan`: `simplex_circuits_span_kernel` (S67), `CWSBasis`: `exists_circuitBasis` (S12), `cover`, `coordinate_count` (S51), `GeometricCWS`: `reflexive_simplex_block_ip` (S09) | Rationality and primitive integer normalization of each geometric circuit; preserve full span/independence under scaling and exact padding/reindexing | Units 2–4, 6; `KS/Circuits.lean`, O; `ValidCWS` and every `GeometricBasis` witness, not arbitrary unrelated IP rows                                                                |
@@ -151,8 +177,9 @@ identify donor files, not additional Lean namespaces.
 
 ## Implementation map: seven scientific routines
 
-All seven bodies are **open** and currently `noncomputable`. Their replacements
-must be total executable functions on their full input types. Correctness
+The original scaffold had seven `noncomputable` data holes. All seven now have
+genuine computable implementations satisfying the construction requirements
+below on their full input types. Correctness
 contracts restrict some inputs; an implementation must still terminate on
 invalid CWS/candidates. A terminating invalid-input branch is allowed only with
 a proof that no valid input or required output is discarded.
@@ -161,8 +188,8 @@ a proof that no valid input or required output is discarded.
 | ------------------------ | -------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `searchWeights`          | `Algorithm`, `WeightSystemFinite`, `DegreeBound`; abstract reachability and finiteness | Exact rational feasible-point selection, finite integer branches, bounded depth, primitive conversion and exact IP check; or a separately justified effective complete search with no guessed degree cutoff | Weight-search owner: `KS/WeightSearch.lean`, I, O; compile and discharge both weight contracts; keep all ordered codes required by the signature    |
 | `assembleCWS`            | `CWSAssembly`; noncomputable finite catalogue                                          | Loop over dimension-bounded indices and finite supplied pools, enumerate embeddings/tuples, decide rank and coverage; every loop has an explicit finite bound                                               | Assembly owner: `KS/Assembly.lean`, I, O; both assembly contracts, no geometric-realizability filter that could lose valid codes                    |
-| `integerKernelBasis`     | `BoxReduction` integral matrices; real kernel identities in `CWSBasis`                 | Integer row/column reduction with verified termination and inverse transformations; entire integer kernel rather than merely independent vectors                                                            | Integer-kernel owner: `KS/IntegerKernel.lean`, I, O; `KernelBasisCorrect` and executable compilation                                                |
-| `containerLatticePoints` | Bounded lattice-point finiteness in `Basic`                                            | Compute bounds for valid CWS and basis, enumerate a finite box, test exact inequalities; connect integer feasible points to the container hull                                                              | Container owner: `KS/Containers.lean`, I, O; `ContainerPoints`, and explicit handling of invalid inputs                                             |
+| `integerKernelBasis`     | `BoxReduction` integral matrices; real kernel identities in `CWSBasis`                 | Terminating bounded integer/unimodular certificate search; Smith-normal-form existence is proof support, not an executable reduction claim; cover the entire saturated integer kernel                       | Integer-kernel owner: `KS/IntegerKernel.lean`, I, O; `KernelBasisCorrect` and executable compilation                                                |
+| `containerLatticePoints` | Bounded lattice-point finiteness in `Basic`                                            | Compute bounds for valid CWS and basis, enumerate a finite box, test exact inequalities; connect integer feasible points to the container hull                                                              | Container owner: `KS/IntegerPoints.lean`, I, O; `ContainerPoints`, and explicit handling of invalid inputs                                          |
 | `eligibleCheck`          | No donor executable check; existing `Eligible` specification                           | Finite rational hull/polar calculations and exact origin-interior/VPM tests                                                                                                                                 | Exact-check owner: `KS/PolytopeChecks.lean`, I, O; `EligibilityCheck`, with redundant code points excluded from actual-vertex endpoint calculations |
 | `latticeRealizations`    | No donor implementation; finite quotient and KS00 Lemma 7 route                        | Finite subgroup or bounded integer-factorization enumeration, computed bases and reconstructed vertex codes; settle row/column residue conventions before implementation                                    | Realization owner: `KS/Realizations.lean`, I, O; soundness/completeness and exact hull/image-lattice equalities, executable on every input          |
 | `reflexiveCheck`         | No donor executable check; `IsReflexive` specification                                 | Exact polar and interior computation, proving integral polar vertices characterize the specified predicate                                                                                                  | Exact-check owner: `KS/PolytopeChecks.lean`, I, O; `ReflexivityCheck`, including dimension zero                                                     |
@@ -630,3 +657,76 @@ See [proof commands](../proofs/README.md),
 [source attribution](../proofs/SOURCES.md),
 [theory roadmap](learning/THEORY_ROADMAP.md), and
 [agent isolation protocol](THEORY_AGENTS.md).
+
+### Historical pause during units 6–7
+
+Work paused at the requester's usage-limit instruction. Unit 5 is committed
+locally as `95d412f`; this batch has not been pushed or remotely validated.
+The following work remains uncommitted and must be reviewed before publication:
+
+- `Seeds` proves exact finite-set/indexed transport and the simplex seed case;
+  the general upper bound remains open.
+- `WeightEncoding`, `RationalWeights` and `CircuitWeights` prove normalization,
+  denominator/gcd reduction, padding and recovery of the same geometric weights.
+  Each module passed its targeted compiler check/build.
+- `Circuits` now passes a direct compiler check and proves the generic circuit
+  basis bridge, but is not yet imported or wired into `circuit_basis`. It is
+  not counted as an audited closed contract.
+- `Assembly` implements total exhaustive assembly. The `assembleCWS` body and
+  both assembly proof bodies are filled. Compiled native execution tests and
+  a conditional gate passed for that implementation. Concrete assembly theorem
+  axiom closures still inherit holes through the full `procedures` record.
+- The umbrella currently imports `Seeds` and `WeightEncoding`; full final
+  integration of the later bridge modules, compiler export, documentation and
+  batch-wide strict/CPU/lint checks are pending. No statement lock or target
+  inventory was changed, and no remote success is claimed.
+
+The general seed bound and effective weight search remain unfinished. Resume
+from these files; do not repeat the donor port or discard the uncommitted work.
+
+### Completed generic proof and executable endpoint: units 6–10
+
+The requester authorized completing the remaining proof work as one batch.
+The inherited seed/encoding/assembly work was preserved and extended, not
+restarted. All eighteen supporting contracts and all seven scientific routines
+now have complete bodies; `procedures` is computable and the concrete
+`classifies_reflexive` theorem has no admitted dependencies.
+
+| Connection                        | Implementation and proof evidence                                                                                                                                                                                                                                                |
+| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Bounded seeds and circuits        | `Seeds`, `SeedBound`, `WeightEncoding`, `RationalWeights`, `CircuitWeights`, `Circuits`: exact indexed transport, $d+1\le N\le2d$, primitive integer rows, complete relation-kernel span and original zero/padding witnesses                                                     |
+| Complete weight/CWS generation    | `RationalSelection`, `WeightSearch`, `Assembly`: finite rational support solutions and averages, exact positive branch bounds, strict affine-rank descent, every ordered primitive-IP code, exhaustive bounded row assembly; no empirical degree cutoff                          |
+| Exact computational foundations   | `IntegerLinear`, `IntegerKernel`, `IntegerPoints`, `RationalSimplex`, `RationalHull`, `PolytopeChecks`: saturated kernel preimages, effective all-point bounds, rational hull/polar vertices, ambient IP and actual-vertex eligibility/reflexivity                               |
+| Recovery and lattice realizations | `Recovery`, `Containers`, `Lattices`, `CongruenceLattice`, `LatticeCoordinates`, `Realizations`: exact subpolytope hulls, image eligibility, finite compatible subgroup interval, complete quotient enumeration, whole integer bases and exact hull/image-lattice reconstruction |
+| Final composition                 | `Implementation`, `Obligations`: all original fields/contracts wired to actual routines and proved bodies; final two-sided `GLEquiv` retained; protected statement/definition lock and pins unchanged                                                                            |
+
+`lake clean Refpoly` removed only current-project build products, not dependency
+caches. The clean pinned build passed without admissions or warnings. Both full
+proof gates then exported 1,308 constants with all 36 designated targets closed;
+all axiom closures are subsets of `propext`, `Classical.choice`, `Quot.sound`.
+Strict compilation of `ci/Executable.lean` passes. All 19 audit-policy/compiler
+regressions and all 20 exact CPU CWS/NF tests pass; no goldens changed.
+
+Nine native suites run through the gate: weights, assembly, kernels, congruence
+lattices, container points, simplexes, polytope checks, realizations, and the
+concrete endpoint. Weight tests check exact ordered outputs at arities 0–3,
+including all ten arity-three codes and an independent bounded reference.
+Realization tests cover both coarse/fine square and diamond lattices, eligible
+nonreflexive inputs, redundant generators and degeneracies. Actual pipeline
+execution passes dimensions zero and one. These finite regressions are not the
+dimension-generic completeness proof.
+
+Initial reconstruction probes exposed repeated evaluation of curried
+certificate/frame functions. The exact period matrix is now derived from the
+adjugate rather than enumerated independently; equality to any valid
+certificate is proved. Selected bases and frame coordinates are materialized
+before repeated geometric checks, with exact data-preservation proofs. The
+native cases pass after this correction. No benchmark speedup or high-dimensional
+practical runtime is claimed.
+
+The final isolated donor reading and frozen comparison close all 71 designated
+source readings, including the explicit-index omissions. Original reports,
+input ledgers, isolation receipt and reconciliation remain outside Git; hashes
+and the two low-severity prose qualifications are recorded above. This does not
+upgrade retired legacy headlines or prove a sharp degree, arbitrary-pyramid,
+normal-form, native descriptor/PALP/CUDA, or production-census claim.

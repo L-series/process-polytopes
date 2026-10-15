@@ -9,11 +9,13 @@ recovery. Classification of nonreflexive IP targets is excluded. IP weight
 systems and possibly nonreflexive IP containers remain necessary intermediates;
 they cannot be discarded merely because they are not final reflexive outputs.
 
-The [proof-contract scaffold](../../proofs/README.md) formalizes the major
-interfaces and proves their conditional composition. Supporting proofs and
-scientific routine bodies remain holes; the closed instantiated headline is
-not yet established. The strict completeness job is intentionally red until
-those dependencies and executable compilation are closed.
+The [Lean proof package](../../proofs/README.md) now implements all eighteen
+supporting contracts and all seven scientific routines. Its concrete
+`classifies_reflexive` theorem is compiler-closed, covering all reflexive
+polytopes in each fixed dimension up to two-sided integral equivalence.
+Strict and conditional gates pass after a clean build, and the isolated donor
+reading/reconciliation is complete. The formal theorem is not a verified PALP/CUDA census
+or a normal-form deduplication certificate.
 
 [SINGLE_WS_5d.tex](SINGLE_WS_5d.tex) is the author's separate paper on the
 single-weight-system part of the five-dimensional classification programme.
@@ -88,13 +90,15 @@ generic bounded enumeration alone would not establish that identification.
 T-L1 through T-L3 supplied the literature. The frozen source's
 [T-A0 tracked synthesis](../proof-audit.md) is complete, with source/contract
 mappings, audit dispositions and a revised dependency ledger. Clean donor
-blind-review closure remains outstanding because the historical round-2
-context received excluded repository metadata. The synthesis closes no Lean
+blind-review closure is now supplied by a fresh neutral reading of all 71
+unchanged statements; the older context-contaminated round-2 evidence remains
+qualified. The synthesis alone closed no Lean
 proofs or routines. The separately approved first proof-CI chunk adds
 generic contracts, conditional composition and strict/conditional gates, with
 fresh scoped statement checks; it does not discharge that donor isolation debt.
 
-The complete `Basic` and `ReflexiveDuality` modules are now faithfully ported
+The following donor-port history explains supporting scope, not current holes.
+The complete `Basic` and `ReflexiveDuality` modules are faithfully ported
 and imported, with 26 additional donor theorem bodies covered by the existing
 compiler-derived axiom audit. This supplies foundations and reflexive dual
 closure; it closes none of the eighteen KS contracts or seven routines.
@@ -116,14 +120,15 @@ The complete faithful `CircuitGeometry`, `CircuitInterior` and `CircuitSpan`
 ports add 24 theorem/lemma bodies, including the private boundary helper.
 Positive simplex circuits span the entire real relation kernel under the
 specified intrinsic-interior hypothesis. All three modules are imported and
-compiler-audited. Primitive integer normalization and the KS circuit contract
-remain open; this port closes no KS obligation or scientific routine.
+compiler-audited. Primitive integer normalization and the new KS circuit
+contract are proved separately by the subsequently implemented KS bridges.
 
 The faithful volume/finiteness and minimal-seed ports add `ReflexiveVolume`,
 `Finiteness`, `MaxMin`, `Minimal` and `Classification`, with 35 source results.
 The weight-finiteness → volume → box/finiteness dependency remains noncircular.
 Bounds are existential and reflexive-only. Minimal structure gives one
-step, without the new $2d$ seed bound. Legacy simplex signatures still omit
+step; the new indexed $2d$ bound is proved separately in `KS/SeedBound`.
+Legacy simplex signatures still omit
 seed-to-weight witness connections; stronger geometric witnesses are required
 for the new contracts. All modules are imported and compiler-audited; no KS
 obligation or routine is closed.
@@ -133,30 +138,30 @@ The complete faithful `CWSBasis`, `CWSContainer` and `CWSAssembly` ports add
 coverage, explicit reached/padded blocks and forward-integral containers from a
 finite abstract catalogue. Container maps do not prove inverse integrality;
 noncomputable catalogues do not implement primitive integer search or lattice
-realizations. All units 3 and 4 are now ported and compiler-audited. The eighteen
-KS proof obligations and seven routines remain open. Clean donor blind-review closure remains outstanding.
-The requester subsequently authorized units 5–7 as one batch.
+realizations. All units 3 and 4 are ported and compiler-audited. Their stronger
+executable and lattice connections are now supplied by the KS implementation.
 
 Unit 5 now ports the remaining five donor modules: `DegreeBound`, `Sylvester`,
 `PyramidLemma`, `BoxReductionAudit` and `CoverageAudit`. Their 24 source results
 and 50 axiom guards are imported and built. Degree bounds remain existential;
 no sharp numerical certificate or general pyramid normalization is claimed.
-The applicable donor library is now ported. Units 6–7 are authorized in the
-same batch and remain in progress; this prerequisite port closes no KS hole.
+The applicable donor library is fully ported. The requester authorized completion
+of the remaining proof units as one batch.
 
-Subsequent approved chunks port the remaining applicable source proofs and implement
-the missing search/lattice/recovery obligations. Keep faithful extraction,
-statement repair and new behaviour separate. T-C0 still concerns the implemented
+That batch now closes bounded seeds, primitive circuit transport, exhaustive
+ordered weight/CWS search, saturated kernels, exact geometry/all-point recovery,
+finite compatible lattice enumeration and exact reconstruction. All eighteen
+contracts and the concrete endpoint have standard-only compiler axiom closures.
+T-C0 still concerns the implemented
 descriptor catalogue and does not prove global geometric completeness. Final
 optimization preserves the eventual audited statements and pins.
 
 The current consolidation delivery remains the implemented descriptor/input-pool
 universe on the PALP reference lattice plus the audited abstract proof port.
-The new proof scaffold specifies lattice-refinement and subpolytope recovery;
-their implementation/proofs, and native-algorithm refinements, remain future
-work requiring separately approved chunks.
-The audit must expose their distance from the long-term endpoint rather than
-present abstract container coverage as the completed programme.
+The Lean executable now implements lattice refinement and subpolytope recovery.
+Refinement of the separate native PALP/CUDA implementations remains future work
+requiring separately approved chunks. Keep that boundary and the missing
+production/census evidence explicit.
 
 ## Primary starting sources
 

@@ -16,9 +16,10 @@ dependency structure and the distinction from the current scoped proof port.
 The approved final theory target is now **reflexive polytopes only**.
 Nonreflexive IP examples in the notes remain useful for delimiting hypotheses
 and for understanding intermediate containers; they are not an additional
-classification promise. The [Lean scaffold](../../proofs/README.md) specifies
-the generic endpoint with conditional composition and an intentionally failing
-strict completeness gate.
+classification promise. The [Lean package](../../proofs/README.md) now implements
+the generic endpoint with a kernel-closed concrete classification theorem and
+passing strict and conditional gates. This is not a native PALP/CUDA or
+normal-form census certificate.
 
 ## Reusable primary documents
 
@@ -75,10 +76,11 @@ and optimization still require approval of their respective chunks.
 
 See [the consolidation status](../PORTING_PLAN.md) for the reviewed source and
 approval-gated sequence. The [tracked frozen-source audit synthesis](../proof-audit.md)
-is complete; clean donor blind-review closure and the full proof port remain
-pending. The initial contract scaffold is present but its supporting proofs and
-scientific routines are unfinished. The synthesis changes no literature-note
-claims or mathematical contracts.
+is complete, all applicable donor modules are ported, and a new isolated formal
+reading closes the historical donor blind-review debt for all 71 statements.
+All eighteen contracts and seven routines are now implemented and compiler-closed.
+The source/library history below does not change the literature chapters or
+their original donor-scope readings.
 The complete `Basic` and `ReflexiveDuality` foundation modules are now faithfully
 ported and imported into the audited package. This port changes no literature
 claims and closes no KS obligation.
@@ -99,14 +101,15 @@ The complete faithful `CircuitGeometry`, `CircuitInterior` and `CircuitSpan`
 ports add 24 theorem/lemma bodies, including the private boundary helper.
 Positive simplex circuits span the entire real relation kernel under the
 specified intrinsic-interior hypothesis. All three modules are imported and
-compiler-audited. Primitive integer normalization and the KS circuit contract
-remain open; this port closes no KS obligation or scientific routine.
+compiler-audited. The new KS bridges separately prove primitive integer
+normalization and the circuit contract.
 
 The faithful volume/finiteness and minimal-seed ports add `ReflexiveVolume`,
 `Finiteness`, `MaxMin`, `Minimal` and `Classification`, with 35 source results.
 The weight-finiteness → volume → box/finiteness dependency remains noncircular.
 Bounds are existential and reflexive-only. Minimal structure gives one
-step, without the new $2d$ seed bound. Legacy simplex signatures still omit
+step; the indexed $2d$ bound is now proved separately in `KS/SeedBound`.
+Legacy simplex signatures still omit
 seed-to-weight witness connections; stronger geometric witnesses are required
 for the new contracts. All modules are imported and compiler-audited; no KS
 obligation or routine is closed.
@@ -116,13 +119,14 @@ The complete faithful `CWSBasis`, `CWSContainer` and `CWSAssembly` ports add
 coverage, explicit reached/padded blocks and forward-integral containers from a
 finite abstract catalogue. Container maps do not prove inverse integrality;
 noncomputable catalogues do not implement primitive integer search or lattice
-realizations. All units 3 and 4 are now ported and compiler-audited. The eighteen
-KS proof obligations and seven routines remain open. Clean donor blind-review closure remains outstanding.
-The requester subsequently authorized units 5–7 as one batch.
+realizations. All units 3 and 4 are ported and compiler-audited; the new KS
+implementation supplies the executable and exact lattice bridges.
 
 Unit 5 now ports the remaining five donor modules: `DegreeBound`, `Sylvester`,
 `PyramidLemma`, `BoxReductionAudit` and `CoverageAudit`. Their 24 source results
 and 50 axiom guards are imported and built. Degree bounds remain existential;
 no sharp numerical certificate or general pyramid normalization is claimed.
-The applicable donor library is now ported. Units 6–7 are authorized in the
-same batch and remain in progress; this prerequisite port closes no KS hole.
+The applicable donor library is fully ported. The authorized completion batch
+now supplies the dimension-generic concrete endpoint with all 36 designated
+targets closed. Its clean build and strict/conditional gates pass; native
+regressions supplement, rather than establish, global completeness.

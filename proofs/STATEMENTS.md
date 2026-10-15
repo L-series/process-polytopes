@@ -43,7 +43,7 @@ integrally with vertices of its polar; it need not equal the standard lattice.
 closure. Finite lattice intervals are asserted only for eligible full-dimensional
 origin-IP lattice hulls with integral vertex-pairing matrix.
 
-## Pipeline and unfinished implementation
+## Concrete pipeline and compiler closure
 
 The list-valued orchestration is defined, not postulated:
 
@@ -53,17 +53,27 @@ weights -> bounded CWS assembly -> all container lattice points
   -> all compatible lattice realizations -> exact reflexivity filter
 ```
 
-The seven routines in `Implementation.lean` remain explicit data holes:
-weight search, CWS assembly, integer kernel basis, container lattice points,
-eligibility test, lattice realizations, and reflexivity test. They are not
-executable empty-list fallbacks. They must eventually be total computable
-implementations; executable compilation is a separate strict requirement.
+All seven routines in `Implementation.lean` have total computable implementations:
+complete ordered primitive-IP weight search, CWS assembly, saturated integer
+kernel bases, all container lattice points, eligibility checks,
+compatible-lattice realizations, and reflexivity checks. All eighteen supporting
+contracts are proved.
+An input rejected by a total routine has an explicit invalid-input theorem;
+no dummy output substitutes for valid-input coverage.
+
+Exact hull/polar decisions distinguish actual vertices from redundant code
+generators. Realizations enumerate subgroups of a finite determinant quotient,
+test both compatibility endpoints, and reconstruct every accepted lattice with
+exact hull and image-lattice equalities. All nine registered native suites and
+the strict compiler closure gate pass; finite native fixtures supplement rather
+than replace the dimension-generic proof.
 
 `classifies_of_contracts` is a genuinely proved implication from `Contracts p`.
 The instantiated `classifies_reflexive` invokes that proof and the actual
-routine/obligation constants, with no `sorry` in its own body. It still inherits
-`sorryAx` from those unfinished inputs and is **not a completed classification
-theorem**.
+routine/obligation constants, with no `sorry` in its body or transitive
+dependencies. The concrete theorem is **compiler-closed**, as are all 36
+designated targets. The complete 1,308-constant project inventory has no
+`sorryAx` or unexpected mathematical axioms.
 
 ## Interface review and change policy
 
@@ -89,15 +99,20 @@ The informed endpoint check ran separately in a fresh context.
 | Isolated blind initial report    | `44cc77756816952925c6e453e49715e2849d9ddbbb4291abca93e85b8b425ae1` |
 | Informed endpoint initial report | `a1cc1f3d9e522862dadc697b6b0cd124bc0d460b0b9850a1f8fa44f05268af53` |
 
-The informed findings are a **HIGH completion gate** (eighteen admitted
+The initial informed findings were a **HIGH completion gate** (eighteen admitted
 supporting results) and a **MEDIUM implementation/termination limitation**
-(seven unfinished routines). Both are acknowledged WIP, not interface
-mismatches: the strict gate remains red, and no completed or executable KS
-classification is claimed. Reports and source ledgers stay outside Git.
+(seven unfinished routines). These described the acknowledged scaffold WIP, not interface
+mismatches. All those supporting results and routines are now implemented, with
+strict and conditional gates passing. Reports and source ledgers stay outside Git.
 This scoped review is separate from the
 [tracked T-A0 synthesis](../docs/proof-audit.md), which now records the complete
-source-to-contract map and findings. The donor's clean blind-review closure
-remains open because its round-2 context received excluded repository metadata.
+source-to-contract map and findings. The older round-2 donor report remains qualified because its context received
+excluded metadata. A new isolated, tools-disabled formal reading covers all 71
+unchanged donor statements, including the formerly missing explicit S/T indices.
+Its initial report and the unchanged informed report were frozen before
+comparison. All literal statement readings were reconciled; two low-severity
+wording qualifications are recorded without editing either initial report.
+See the audit ledger for hashes and the scope of this closure.
 
 The lock records compiler-printed target signatures, predicate/data definitions,
 their explicit constant dependencies (including elided instances), and the

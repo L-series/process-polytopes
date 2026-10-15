@@ -12,36 +12,27 @@ reflexive polytopes arising from them.
   progress. This checkout has PALP CPU generation and exact reference regressions;
   the consolidated classifier and CUDA pipeline are planned.
 - **Theory:** seven literature notes and their LaTeX compilation are available.
-  The pinned [Lean proof-contract scaffold](proofs/README.md) has a genuine
-  conditional composition proof, but its supporting proofs and scientific
-  routines remain unfinished. The [frozen-source audit synthesis](docs/proof-audit.md)
-  maps all eighteen proof obligations and seven routines. The full port and
-  clean donor blind-review closure remain pending.
-  The complete `Basic` and `ReflexiveDuality` modules are now faithfully ported
-  and included in compiler-derived axiom auditing; no KS hole is closed yet.
-  `WeightSystem` and `BoxReduction` are also fully ported, with 30 additional
-  donor results; effective weight search and executable box bounds do not
-  follow from those abstract proofs.
-  `Algorithm`, `WeightSystemFinite` and `GeometricCWS` now add 21 faithful
-  results on abstract reachability, finite normalized weights and explicitly
-  witnessed geometric simplex blocks. Executable weight search remains open.
-  The three circuit modules now add 24 faithful results, including complete
-  real relation-kernel spanning; primitive integer encoding remains open.
-  Five volume/finiteness and minimal-seed modules add 35 faithful results.
-  Their existential bounds and legacy witness limitations remain explicit.
-  The three CWS modules add 20 faithful results on independent equations,
-  reached blocks and finite abstract container coverage. Units 3 and 4 are
-  ported; integer kernels, executable search and lattice reconstruction remain open.
-  Unit 5 completes the applicable donor library with 24 scoped side results and
-  50 axiom guards. New contract bridges and executable routines remain work in progress.
+  All applicable frozen donor modules and both axiom guards are faithfully
+  ported. The [dimension-generic Lean package](proofs/README.md) now implements
+  bounded minimal seeds, primitive circuit encoding, exhaustive CWS assembly,
+  saturated integer kernels, exact hull/polar checks, all-container-point
+  enumeration, and compatible-lattice reconstruction.
+  All seven scientific routines and eighteen contracts are implemented.
+  `Refpoly.KS.classifies_reflexive` is kernel-checked: for every fixed dimension,
+  the concrete finite list covers every reflexive lattice polytope up to
+  origin-fixed, two-sided integral equivalence. Duplicates are permitted.
+  Local strict and conditional gates pass, with all 36 designated targets closed
+  and no `sorryAx` or custom mathematical axioms. A fresh isolated reading closes
+  the donor blind-review debt for all 71 source statements; see the
+  [audit ledger](docs/proof-audit.md) for evidence and precise scope.
 
 The [long-term mathematical goal](docs/learning/THEORY_ROADMAP.md) is complete
 KS WS/CWS-based enumeration of **all reflexive polytopes** in every fixed
 dimension with lattice realizations and subpolytope recovery accounted for.
 Nonreflexive IP targets are excluded from that theory programme; IP weights and
 containers remain intermediates. The existing single-weight paper is a
-separate work, not the official manuscript for that development. The current
-integration scope below does not yet deliver the full mathematical endpoint.
+separate work, not the official manuscript for that development. The Lean theorem supplies the mathematical coverage endpoint, not a verified
+native PALP/CUDA implementation or completed census.
 
 The CWS delivery covers the implemented descriptor/input-pool universe on the
 PALP reference lattice, retaining both IP-but-nonreflexive and reflexive classes.
@@ -112,9 +103,9 @@ With [elan](https://github.com/leanprover/elan) installed:
 
 The **conditional** gate checks that the precise major statements compose and
 that reviewed interfaces/closed results do not regress. The **strict** gate
-rejects all unproved dependencies and requires executable compilation; it is
-intentionally red while the scaffold contains holes. A green conditional check
-does not establish the headline theorem. Both jobs run on each push/PR; the
+rejects all unproved dependencies and requires executable compilation. Both gates
+now pass locally and must remain green for the completed proof programme.
+A green conditional check alone is not proof completeness. Both jobs run on each push/PR; the
 existing CPU checks remain independent. See the [statement chain](proofs/STATEMENTS.md).
 
 ## Documentation
@@ -127,11 +118,12 @@ existing CPU checks remain independent. See the [statement chain](proofs/STATEME
 - [Reusable local literature sources](docs/learning/sources/README.md)
 - [Experiment index](docs/experiments/README.md)
 - [Benchmark contract](docs/BENCHMARKING.md)
-- [Lean proof scaffold and gate commands](proofs/README.md)
+- [Lean proof package and gate commands](proofs/README.md)
 - [Proof audit, contract map and dependency ledger](docs/proof-audit.md)
-- [Major formal contracts and unfinished obligations](proofs/STATEMENTS.md)
+- [Major formal contracts and classification theorem](proofs/STATEMENTS.md)
 - [Proof source provenance](proofs/SOURCES.md)
 
-The Lean package is in `proofs/`. Execution remains theory-first, with an
-approval check-in after every small chunk. Original experiment branches remain
+The Lean package is in `proofs/`. Execution remains theory-first. The requester
+authorized the remaining proof-completion units as one batch; other chunks retain
+their approval check-ins. Original experiment branches remain
 archival and must not be deleted or force-pushed.
