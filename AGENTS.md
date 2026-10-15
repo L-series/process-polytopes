@@ -26,7 +26,8 @@ headline classification result.
   Complete donor `Basic`, `ReflexiveDuality`, `WeightSystem`, `BoxReduction`,
   `Algorithm`, `WeightSystemFinite`, `GeometricCWS`, `CircuitGeometry`,
   `CircuitInterior`, `CircuitSpan`, `ReflexiveVolume`, `Finiteness`, `MaxMin`,
-  `Minimal` and `Classification` ports are imported; the
+  `Minimal`, `Classification`, `CWSBasis`, `CWSContainer` and `CWSAssembly`
+  ports are imported; the
   eighteen KS proof obligations and seven scientific routines remain open.
 - `docs/proof-audit.md`: source-to-contract map, audit dispositions, dependency
   ledger and outstanding donor blind-review isolation debt.

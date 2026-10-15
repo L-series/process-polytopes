@@ -29,6 +29,9 @@ reflexive polytopes arising from them.
   real relation-kernel spanning; primitive integer encoding remains open.
   Five volume/finiteness and minimal-seed modules add 35 faithful results.
   Their existential bounds and legacy witness limitations remain explicit.
+  The three CWS modules add 20 faithful results on independent equations,
+  reached blocks and finite abstract container coverage. Units 3 and 4 are
+  ported; integer kernels, executable search and lattice reconstruction remain open.
 
 The [long-term mathematical goal](docs/learning/THEORY_ROADMAP.md) is complete
 KS WS/CWS-based enumeration of **all reflexive polytopes** in every fixed

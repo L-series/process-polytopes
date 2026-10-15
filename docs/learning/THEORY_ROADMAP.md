@@ -128,6 +128,15 @@ seed-to-weight witness connections; stronger geometric witnesses are required
 for the new contracts. All modules are imported and compiler-audited; no KS
 obligation or routine is closed.
 
+The complete faithful `CWSBasis`, `CWSContainer` and `CWSAssembly` ports add
+20 source results. They provide independent complete real equations, coordinate
+coverage, explicit reached/padded blocks and forward-integral containers from a
+finite abstract catalogue. Container maps do not prove inverse integrality;
+noncomputable catalogues do not implement primitive integer search or lattice
+realizations. All units 3 and 4 are now ported and compiler-audited. The eighteen
+KS proof obligations and seven routines remain open. Unit 5 is next and needs
+separate approval; clean donor blind-review closure remains outstanding.
+
 Subsequent approved chunks port the remaining applicable source proofs and implement
 the missing search/lattice/recovery obligations. Keep faithful extraction,
 statement repair and new behaviour separate. T-C0 still concerns the implemented

@@ -27,6 +27,9 @@ The frozen identities recorded by the operating bootstrap are:
 | Original `Refpoly/MaxMin.lean`             | `cf4bf17f61a683564371093226ea904da42a5be6f9d0cf07183e0e826a74b6ef` |
 | Original `Refpoly/Minimal.lean`            | `6b933a310872bb3757d60d49fc804594918d2aa09079877751cfb8de1951390e` |
 | Original `Refpoly/Classification.lean`     | `7e7af6ebb7e278d80f8c20f0f8f78af880ac2a2ab3c4fab1345b576ebe908902` |
+| Original `Refpoly/CWSBasis.lean`           | `4ded32847f3aa5fd23052d21985a0b07d432ff27bfac9f63e26ff9f428413170` |
+| Original `Refpoly/CWSContainer.lean`       | `adc0f96f712f81cf184ffc3d6a9fce02aefa806685d22dfe3fbaf9eb818c1b85` |
+| Original `Refpoly/CWSAssembly.lean`        | `6d103cf8d2a507c1568629e3afc41bd8fe32d30f84476acaf13cab0858f30cbd` |
 | Full dependency manifest                   | `0d6def3ad257f03d2d0301868135497e764c1121813de38a7edbf81903510c1f` |
 
 `Refpoly/Basic.lean` now ports the complete donor module after its original
@@ -98,3 +101,16 @@ obligation or routine is closed.
 Every declaration and proof after the first import matches the frozen donor.
 Attribution headers qualify existential bounds, single-step structure and
 legacy classification prose without changing statements or proofs.
+
+The complete faithful `CWSBasis`, `CWSContainer` and `CWSAssembly` ports add
+20 source results. They provide independent complete real equations, coordinate
+coverage, explicit reached/padded blocks and forward-integral containers from a
+finite abstract catalogue. Container maps do not prove inverse integrality;
+noncomputable catalogues do not implement primitive integer search or lattice
+realizations. All units 3 and 4 are now ported and compiler-audited. The eighteen
+KS proof obligations and seven routines remain open. Unit 5 is next and needs
+separate approval; clean donor blind-review closure remains outstanding.
+
+Every declaration and proof after the first import matches the frozen donor.
+Only attribution headers differ; they state the real-space, forward-integral
+and noncomputable scope without changing the mathematical interfaces.
