@@ -1,0 +1,52 @@
+name: Proof CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  proofs:
+    name: ${{ matrix.label }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - mode: conditional
+            label: Proof statements (conditional)
+          - mode: strict
+            label: Proof completeness (strict)
+    steps:
+      - name: Check out project sources
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install pinned elan bootstrap
+        shell: bash
+        run: |
+          set -euo pipefail
+          install_dir="$RUNNER_TEMP/elan-v4.2.0"
+          mkdir -p "$install_dir"
+          curl --fail --location --silent --show-error --retry 3 \
+            https://github.com/leanprover/elan/releases/download/v4.2.0/elan-x86_64-unknown-linux-gnu.tar.gz \
+            --output "$install_dir/elan.tar.gz"
+          echo "620db834935d0da55ac9cda207b2e370e8034061cbb0228af5eb6c14b02f0c0c  $install_dir/elan.tar.gz" \
+            | sha256sum --check --strict
+          tar -xzf "$install_dir/elan.tar.gz" -C "$install_dir"
+          "$install_dir/elan-init" -y --no-modify-path --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Restore pinned dependency cache only
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: proofs/.lake/packages
+          key: proof-dependencies-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('proofs/lean-toolchain', 'proofs/lake-manifest.json') }}
+
+      - name: Restore Mathlib artifacts for the locked dependencies
+        working-directory: proofs
+        run: lake exe cache get
+
+      - name: Build current sources and run proof gate
+        run: ./scripts/test-proofs.sh "${{ matrix.mode }}"

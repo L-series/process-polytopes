@@ -1,0 +1,3019 @@
+{
+  "schema": 1,
+  "targets": {
+    "closed": [
+      "Refpoly.isLatticePoint_zero",
+      "Refpoly.GLEquiv.refl",
+      "Refpoly.GLEquiv.symm",
+      "Refpoly.GLEquiv.trans",
+      "Refpoly.KS.originCode_hull",
+      "Refpoly.KS.reflexive_zero",
+      "Refpoly.KS.reflexive_zero_unique",
+      "Refpoly.KS.classifies_of_contracts"
+    ],
+    "obligations": [
+      "Refpoly.KS.seed_bound",
+      "Refpoly.KS.circuit_basis",
+      "Refpoly.KS.weights_sound",
+      "Refpoly.KS.weights_complete",
+      "Refpoly.KS.assembly_sound",
+      "Refpoly.KS.assembly_complete",
+      "Refpoly.KS.kernel_bases",
+      "Refpoly.KS.geometric_containers",
+      "Refpoly.KS.container_points",
+      "Refpoly.KS.subpolytope_recovery",
+      "Refpoly.KS.image_eligible",
+      "Refpoly.KS.eligibility_check",
+      "Refpoly.KS.target_lattice",
+      "Refpoly.KS.finite_lattice_interval",
+      "Refpoly.KS.realizations_sound",
+      "Refpoly.KS.realizations_complete",
+      "Refpoly.KS.realization_equivalence",
+      "Refpoly.KS.reflexivity_check"
+    ],
+    "implementations": [
+      "Refpoly.KS.searchWeights",
+      "Refpoly.KS.assembleCWS",
+      "Refpoly.KS.integerKernelBasis",
+      "Refpoly.KS.containerLatticePoints",
+      "Refpoly.KS.eligibleCheck",
+      "Refpoly.KS.latticeRealizations",
+      "Refpoly.KS.reflexiveCheck"
+    ],
+    "derived": [
+      "Refpoly.KS.procedures",
+      "Refpoly.KS.contracts",
+      "Refpoly.KS.classifies_reflexive"
+    ]
+  },
+  "signatures": {
+    "Refpoly.isLatticePoint_zero": "\u2200 {n : Nat}, Refpoly.IsLatticePoint 0",
+    "Refpoly.GLEquiv.refl": "\u2200 {n : Nat} (P : Set.{0} (Refpoly.V n)), Refpoly.GLEquiv P P",
+    "Refpoly.GLEquiv.symm": "\u2200 {n : Nat} {P Q : Set.{0} (Refpoly.V n)}, Refpoly.GLEquiv P Q \u2192 Refpoly.GLEquiv Q P",
+    "Refpoly.GLEquiv.trans": "\u2200 {n : Nat} {P Q R : Set.{0} (Refpoly.V n)}, Refpoly.GLEquiv P Q \u2192 Refpoly.GLEquiv Q R \u2192 Refpoly.GLEquiv P R",
+    "Refpoly.KS.originCode_hull": "\u2200 (d : Nat), Eq.{1} (Refpoly.KS.PolyCode.hull (Refpoly.KS.originCode d)) (singleton.{0, 0} 0)",
+    "Refpoly.KS.reflexive_zero": "Refpoly.IsReflexive (Refpoly.KS.PolyCode.hull (Refpoly.KS.originCode 0))",
+    "Refpoly.KS.reflexive_zero_unique": "\u2200 {P : Set.{0} (Refpoly.V 0)}, Refpoly.IsReflexive P \u2192 Eq.{1} P (Refpoly.KS.PolyCode.hull (Refpoly.KS.originCode 0))",
+    "Refpoly.KS.classifies_of_contracts": "\u2200 (p : Refpoly.KS.Procedures), Refpoly.KS.Contracts p \u2192 Refpoly.KS.Classifies p",
+    "Refpoly.KS.seed_bound": "Refpoly.KS.SeedBound",
+    "Refpoly.KS.circuit_basis": "Refpoly.KS.CircuitBasis",
+    "Refpoly.KS.weights_sound": "Refpoly.KS.WeightsSound Refpoly.KS.procedures",
+    "Refpoly.KS.weights_complete": "Refpoly.KS.WeightsComplete Refpoly.KS.procedures",
+    "Refpoly.KS.assembly_sound": "Refpoly.KS.AssemblySound Refpoly.KS.procedures",
+    "Refpoly.KS.assembly_complete": "Refpoly.KS.AssemblyComplete Refpoly.KS.procedures",
+    "Refpoly.KS.kernel_bases": "Refpoly.KS.KernelBases Refpoly.KS.procedures",
+    "Refpoly.KS.geometric_containers": "Refpoly.KS.GeometricContainers Refpoly.KS.procedures",
+    "Refpoly.KS.container_points": "Refpoly.KS.ContainerPoints Refpoly.KS.procedures",
+    "Refpoly.KS.subpolytope_recovery": "Refpoly.KS.SubpolytopeRecovery",
+    "Refpoly.KS.image_eligible": "Refpoly.KS.ImageEligible",
+    "Refpoly.KS.eligibility_check": "Refpoly.KS.EligibilityCheck Refpoly.KS.procedures",
+    "Refpoly.KS.target_lattice": "Refpoly.KS.TargetLattice",
+    "Refpoly.KS.finite_lattice_interval": "Refpoly.KS.FiniteLatticeInterval",
+    "Refpoly.KS.realizations_sound": "Refpoly.KS.RealizationsSound Refpoly.KS.procedures",
+    "Refpoly.KS.realizations_complete": "Refpoly.KS.RealizationsComplete Refpoly.KS.procedures",
+    "Refpoly.KS.realization_equivalence": "Refpoly.KS.RealizationEquivalence",
+    "Refpoly.KS.reflexivity_check": "Refpoly.KS.ReflexivityCheck Refpoly.KS.procedures",
+    "Refpoly.KS.searchWeights": "(m : Nat) \u2192 List.{0} (Refpoly.KS.WeightCode m)",
+    "Refpoly.KS.assembleCWS": "(d : Nat) \u2192 ((m : Nat) \u2192 List.{0} (Refpoly.KS.WeightCode m)) \u2192 List.{0} (Refpoly.KS.CWSCode d)",
+    "Refpoly.KS.integerKernelBasis": "{d : Nat} \u2192 (C : Refpoly.KS.CWSCode d) \u2192 Fin (Refpoly.KS.CWSCode.N C) \u2192 Fin d \u2192 Int",
+    "Refpoly.KS.containerLatticePoints": "{d : Nat} \u2192 Refpoly.KS.CWSCode d \u2192 List.{0} (Refpoly.KS.IntPoint d)",
+    "Refpoly.KS.eligibleCheck": "{d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 Bool",
+    "Refpoly.KS.latticeRealizations": "{d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 List.{0} (Refpoly.KS.PolyCode d)",
+    "Refpoly.KS.reflexiveCheck": "{d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 Bool",
+    "Refpoly.KS.procedures": "Refpoly.KS.Procedures",
+    "Refpoly.KS.contracts": "Refpoly.KS.Contracts Refpoly.KS.procedures",
+    "Refpoly.KS.classifies_reflexive": "Refpoly.KS.Classifies Refpoly.KS.procedures"
+  },
+  "semantics": {
+    "Refpoly.GLEquiv": {
+      "type": "{n : Nat} \u2192 Set.{0} (Refpoly.V n) \u2192 Set.{0} (Refpoly.V n) \u2192 Prop",
+      "definition": "fun {n : Nat} (P Q : Set.{0} (Refpoly.V n)) =>\n  \u2203 (g : LinearEquiv.{0, 0, 0, 0} (RingHom.id.{0} Real) (Refpoly.V n) (Refpoly.V n)),\n    And (Refpoly.IsUnimodular g) (Eq.{1} (Set.image.{0, 0} (\u21d1g) P) Q)",
+      "dependencies": [
+        "And",
+        "DFinsupp.instEquivLikeLinearEquiv",
+        "DFunLike.coe",
+        "Eq",
+        "EquivLike.toFunLike",
+        "Exists",
+        "Fin",
+        "LinearEquiv",
+        "Nat",
+        "Pi.Function.module",
+        "Pi.addCommMonoid",
+        "Real",
+        "Real.instAddCommMonoid",
+        "Real.semiring",
+        "Refpoly.IsUnimodular",
+        "Refpoly.V",
+        "RingHom.id",
+        "RingHomInvPair.ids",
+        "Semiring.toModule",
+        "Semiring.toNonAssocSemiring",
+        "Set",
+        "Set.image"
+      ]
+    },
+    "Refpoly.IsIP": {
+      "type": "{n : Nat} \u2192 Set.{0} (Refpoly.V n) \u2192 Prop",
+      "definition": "fun {n : Nat} (P : Set.{0} (Refpoly.V n)) => Membership.mem.{0, 0} (interior.{0} P) 0",
+      "dependencies": [
+        "Fin",
+        "Membership.mem",
+        "Nat",
+        "OfNat.ofNat",
+        "Pi.instZero",
+        "Pi.topologicalSpace",
+        "PseudoMetricSpace.toUniformSpace",
+        "Real",
+        "Real.instZero",
+        "Real.pseudoMetricSpace",
+        "Refpoly.V",
+        "Set",
+        "Set.instMembership",
+        "UniformSpace.toTopologicalSpace",
+        "Zero.toOfNat0",
+        "interior"
+      ]
+    },
+    "Refpoly.IsIPWeightSystem": {
+      "type": "{n : Nat} \u2192 Refpoly.V n \u2192 Prop",
+      "definition": "fun {n : Nat} (q : Refpoly.V n) => Refpoly.IsIPWeightSystemAt q 1",
+      "dependencies": [
+        "Nat",
+        "OfNat.ofNat",
+        "One.toOfNat1",
+        "Real",
+        "Real.instOne",
+        "Refpoly.IsIPWeightSystemAt",
+        "Refpoly.V"
+      ]
+    },
+    "Refpoly.IsIPWeightSystemAt": {
+      "type": "{n : Nat} \u2192 Refpoly.V n \u2192 Real \u2192 Prop",
+      "definition": "fun {n : Nat} (q : Refpoly.V n) (c : Real) =>\n  And (\u2200 (i : Fin n), LT.lt.{0} 0 (q i)) (Membership.mem.{0, 0} (interior.{0} (Refpoly.wsPolytopeAt q c)) 0)",
+      "dependencies": [
+        "And",
+        "Fin",
+        "LT.lt",
+        "Membership.mem",
+        "Nat",
+        "OfNat.ofNat",
+        "Pi.Function.module",
+        "Pi.addCommMonoid",
+        "Pi.topologicalSpace",
+        "PseudoMetricSpace.toUniformSpace",
+        "Real",
+        "Real.instAddCommMonoid",
+        "Real.instLT",
+        "Real.instZero",
+        "Real.pseudoMetricSpace",
+        "Real.semiring",
+        "Refpoly.V",
+        "Refpoly.wsHyperplane",
+        "Refpoly.wsPolytopeAt",
+        "Semiring.toModule",
+        "Set",
+        "Set.instMembership",
+        "SetLike.instMembership",
+        "Submodule",
+        "Submodule.setLike",
+        "Submodule.zero",
+        "Subtype",
+        "UniformSpace.toTopologicalSpace",
+        "Zero.toOfNat0",
+        "instTopologicalSpaceSubtype",
+        "interior"
+      ]
+    },
+    "Refpoly.IsLatticePoint": {
+      "type": "{n : Nat} \u2192 Refpoly.V n \u2192 Prop",
+      "definition": "fun {n : Nat} (x : Refpoly.V n) => \u2200 (i : Fin n), \u2203 (m : Int), Eq.{1} (x i) \u2191m",
+      "dependencies": [
+        "Eq",
+        "Exists",
+        "Fin",
+        "Int",
+        "Int.cast",
+        "Nat",
+        "Real",
+        "Real.instIntCast",
+        "Refpoly.V"
+      ]
+    },
+    "Refpoly.IsLatticePolytope": {
+      "type": "{n : Nat} \u2192 Set.{0} (Refpoly.V n) \u2192 Prop",
+      "definition": "fun {n : Nat} (P : Set.{0} (Refpoly.V n)) =>\n  \u2203 (S : Finset.{0} (Refpoly.V n)),\n    And (\u2200 (x : Refpoly.V n), Membership.mem.{0, 0} S x \u2192 Refpoly.IsLatticePoint x)\n      (Eq.{1} P ((convexHull.{0, 0} Real) \u2191S))",
+      "dependencies": [
+        "And",
+        "ChainCompletePartialOrder.instOfCompleteLattice",
+        "ChainCompletePartialOrder.toPartialOrder",
+        "ClosureOperator",
+        "ClosureOperator.instFunLike",
+        "CompleteAtomicBooleanAlgebra.toCompleteBooleanAlgebra",
+        "CompleteBooleanAlgebra.toCompleteLattice",
+        "DFunLike.coe",
+        "Eq",
+        "Exists",
+        "Fin",
+        "Finset",
+        "Finset.instSetLike",
+        "Membership.mem",
+        "Nat",
+        "PartialOrder.toPreorder",
+        "Pi.Function.module",
+        "Pi.addCommMonoid",
+        "Real",
+        "Real.instAddCommMonoid",
+        "Real.partialOrder",
+        "Real.semiring",
+        "Refpoly.IsLatticePoint",
+        "Refpoly.V",
+        "Semiring.toModule",
+        "Set",
+        "Set.instCompleteAtomicBooleanAlgebra",
+        "SetLike.coe",
+        "SetLike.instMembership",
+        "convexHull"
+      ]
+    },
+    "Refpoly.IsReflexive": {
+      "type": "{n : Nat} \u2192 Set.{0} (Refpoly.V n) \u2192 Prop",
+      "definition": "",
+      "dependencies": [
+        "Nat",
+        "Refpoly.V",
+        "Set"
+      ]
+    },
+    "Refpoly.IsReflexive.casesOn": {
+      "type": "{n : Nat} \u2192\n  {P : Set.{0} (Refpoly.V n)} \u2192\n    {motive : Refpoly.IsReflexive P \u2192 Sort u} \u2192\n      (t : Refpoly.IsReflexive P) \u2192\n        ((latticePolytope : Refpoly.IsLatticePolytope P) \u2192\n            (ip : Refpoly.IsIP P) \u2192\n              (dual_latticePolytope : Refpoly.IsLatticePolytope (Refpoly.polarDual P)) \u2192 motive \u22ef) \u2192\n          motive t",
+      "definition": "fun {n : Nat} {P : Set.{0} (Refpoly.V n)} {motive : Refpoly.IsReflexive P \u2192 Sort u} (t : Refpoly.IsReflexive P)\n    (mk :\n      (latticePolytope : Refpoly.IsLatticePolytope P) \u2192\n        (ip : Refpoly.IsIP P) \u2192 (dual_latticePolytope : Refpoly.IsLatticePolytope (Refpoly.polarDual P)) \u2192 motive \u22ef) =>\n  Refpoly.IsReflexive.rec.{u}\n    (fun (latticePolytope : Refpoly.IsLatticePolytope P) (ip : Refpoly.IsIP P)\n        (dual_latticePolytope : Refpoly.IsLatticePolytope (Refpoly.polarDual P)) =>\n      mk latticePolytope ip dual_latticePolytope)\n    t",
+      "dependencies": [
+        "Nat",
+        "Refpoly.IsIP",
+        "Refpoly.IsLatticePolytope",
+        "Refpoly.IsReflexive",
+        "Refpoly.IsReflexive.mk",
+        "Refpoly.IsReflexive.rec",
+        "Refpoly.V",
+        "Refpoly.polarDual",
+        "Set"
+      ]
+    },
+    "Refpoly.IsReflexive.mk": {
+      "type": "\u2200 {n : Nat} {P : Set.{0} (Refpoly.V n)},\n  Refpoly.IsLatticePolytope P \u2192 Refpoly.IsIP P \u2192 Refpoly.IsLatticePolytope (Refpoly.polarDual P) \u2192 Refpoly.IsReflexive P",
+      "definition": "",
+      "dependencies": [
+        "Nat",
+        "Refpoly.IsIP",
+        "Refpoly.IsLatticePolytope",
+        "Refpoly.IsReflexive",
+        "Refpoly.V",
+        "Refpoly.polarDual",
+        "Set"
+      ]
+    },
+    "Refpoly.IsReflexive.mk._flat_ctor": {
+      "type": "\u2200 {n : Nat} {P : Set.{0} (Refpoly.V n)},\n  Refpoly.IsLatticePolytope P \u2192 Refpoly.IsIP P \u2192 Refpoly.IsLatticePolytope (Refpoly.polarDual P) \u2192 Refpoly.IsReflexive P",
+      "definition": "\u22ef",
+      "dependencies": [
+        "Nat",
+        "Refpoly.IsIP",
+        "Refpoly.IsLatticePolytope",
+        "Refpoly.IsReflexive",
+        "Refpoly.IsReflexive.mk",
+        "Refpoly.V",
+        "Refpoly.polarDual",
+        "Set"
+      ]
+    },
+    "Refpoly.IsReflexive.rec": {
+      "type": "{n : Nat} \u2192\n  {P : Set.{0} (Refpoly.V n)} \u2192\n    {motive : Refpoly.IsReflexive P \u2192 Sort u} \u2192\n      ((latticePolytope : Refpoly.IsLatticePolytope P) \u2192\n          (ip : Refpoly.IsIP P) \u2192 (dual_latticePolytope : Refpoly.IsLatticePolytope (Refpoly.polarDual P)) \u2192 motive \u22ef) \u2192\n        (t : Refpoly.IsReflexive P) \u2192 motive t",
+      "definition": "",
+      "dependencies": [
+        "Nat",
+        "Refpoly.IsIP",
+        "Refpoly.IsLatticePolytope",
+        "Refpoly.IsReflexive",
+        "Refpoly.IsReflexive.mk",
+        "Refpoly.V",
+        "Refpoly.polarDual",
+        "Set"
+      ]
+    },
+    "Refpoly.IsReflexive.recOn": {
+      "type": "{n : Nat} \u2192\n  {P : Set.{0} (Refpoly.V n)} \u2192\n    {motive : Refpoly.IsReflexive P \u2192 Sort u} \u2192\n      (t : Refpoly.IsReflexive P) \u2192\n        ((latticePolytope : Refpoly.IsLatticePolytope P) \u2192\n            (ip : Refpoly.IsIP P) \u2192\n              (dual_latticePolytope : Refpoly.IsLatticePolytope (Refpoly.polarDual P)) \u2192 motive \u22ef) \u2192\n          motive t",
+      "definition": "fun {n : Nat} {P : Set.{0} (Refpoly.V n)} {motive : Refpoly.IsReflexive P \u2192 Sort u} (t : Refpoly.IsReflexive P)\n    (mk :\n      (latticePolytope : Refpoly.IsLatticePolytope P) \u2192\n        (ip : Refpoly.IsIP P) \u2192 (dual_latticePolytope : Refpoly.IsLatticePolytope (Refpoly.polarDual P)) \u2192 motive \u22ef) =>\n  Refpoly.IsReflexive.rec.{u} mk t",
+      "dependencies": [
+        "Nat",
+        "Refpoly.IsIP",
+        "Refpoly.IsLatticePolytope",
+        "Refpoly.IsReflexive",
+        "Refpoly.IsReflexive.mk",
+        "Refpoly.IsReflexive.rec",
+        "Refpoly.V",
+        "Refpoly.polarDual",
+        "Set"
+      ]
+    },
+    "Refpoly.IsUnimodular": {
+      "type": "{n : Nat} \u2192 LinearEquiv.{0, 0, 0, 0} (RingHom.id.{0} Real) (Refpoly.V n) (Refpoly.V n) \u2192 Prop",
+      "definition": "",
+      "dependencies": [
+        "Fin",
+        "LinearEquiv",
+        "Nat",
+        "Pi.Function.module",
+        "Pi.addCommMonoid",
+        "Real",
+        "Real.instAddCommMonoid",
+        "Real.semiring",
+        "Refpoly.V",
+        "RingHom.id",
+        "RingHomInvPair.ids",
+        "Semiring.toModule",
+        "Semiring.toNonAssocSemiring"
+      ]
+    },
+    "Refpoly.IsUnimodular.casesOn": {
+      "type": "{n : Nat} \u2192\n  {g : LinearEquiv.{0, 0, 0, 0} (RingHom.id.{0} Real) (Refpoly.V n) (Refpoly.V n)} \u2192\n    {motive : Refpoly.IsUnimodular g \u2192 Sort u} \u2192\n      (t : Refpoly.IsUnimodular g) \u2192\n        ((fwd : \u2200 (x : Refpoly.V n), Refpoly.IsLatticePoint x \u2192 Refpoly.IsLatticePoint (g x)) \u2192\n            (bwd :\n                \u2200 (x : Refpoly.V n),\n                  Refpoly.IsLatticePoint x \u2192 Refpoly.IsLatticePoint ((LinearEquiv.symm.{0, 0, 0, 0} g) x)) \u2192\n              motive \u22ef) \u2192\n          motive t",
+      "definition": "fun {n : Nat} {g : LinearEquiv.{0, 0, 0, 0} (RingHom.id.{0} Real) (Refpoly.V n) (Refpoly.V n)}\n    {motive : Refpoly.IsUnimodular g \u2192 Sort u} (t : Refpoly.IsUnimodular g)\n    (mk :\n      (fwd : \u2200 (x : Refpoly.V n), Refpoly.IsLatticePoint x \u2192 Refpoly.IsLatticePoint (g x)) \u2192\n        (bwd :\n            \u2200 (x : Refpoly.V n),\n              Refpoly.IsLatticePoint x \u2192 Refpoly.IsLatticePoint ((LinearEquiv.symm.{0, 0, 0, 0} g) x)) \u2192\n          motive \u22ef) =>\n  Refpoly.IsUnimodular.rec.{u}\n    (fun (fwd : \u2200 (x : Refpoly.V n), Refpoly.IsLatticePoint x \u2192 Refpoly.IsLatticePoint (g x))\n        (bwd :\n          \u2200 (x : Refpoly.V n),\n            Refpoly.IsLatticePoint x \u2192 Refpoly.IsLatticePoint ((LinearEquiv.symm.{0, 0, 0, 0} g) x)) =>\n      mk fwd bwd)\n    t",
+      "dependencies": [
+        "DFinsupp.instEquivLikeLinearEquiv",
+        "DFunLike.coe",
+        "EquivLike.toFunLike",
+        "Fin",
+        "LinearEquiv",
+        "LinearEquiv.symm",
+        "Nat",
+        "Pi.Function.module",
+        "Pi.addCommMonoid",
+        "Real",
+        "Real.instAddCommMonoid",
+        "Real.semiring",
+        "Refpoly.IsLatticePoint",
+        "Refpoly.IsUnimodular",
+        "Refpoly.IsUnimodular.mk",
+        "Refpoly.IsUnimodular.rec",
+        "Refpoly.V",
+        "RingHom.id",
+        "RingHomInvPair.ids",
+        "Semiring.toModule",
+        "Semiring.toNonAssocSemiring"
+      ]
+    },
+    "Refpoly.IsUnimodular.mk": {
+      "type": "\u2200 {n : Nat} {g : LinearEquiv.{0, 0, 0, 0} (RingHom.id.{0} Real) (Refpoly.V n) (Refpoly.V n)},\n  (\u2200 (x : Refpoly.V n), Refpoly.IsLatticePoint x \u2192 Refpoly.IsLatticePoint (g x)) \u2192\n    (\u2200 (x : Refpoly.V n), Refpoly.IsLatticePoint x \u2192 Refpoly.IsLatticePoint ((LinearEquiv.symm.{0, 0, 0, 0} g) x)) \u2192\n      Refpoly.IsUnimodular g",
+      "definition": "",
+      "dependencies": [
+        "DFinsupp.instEquivLikeLinearEquiv",
+        "DFunLike.coe",
+        "EquivLike.toFunLike",
+        "Fin",
+        "LinearEquiv",
+        "LinearEquiv.symm",
+        "Nat",
+        "Pi.Function.module",
+        "Pi.addCommMonoid",
+        "Real",
+        "Real.instAddCommMonoid",
+        "Real.semiring",
+        "Refpoly.IsLatticePoint",
+        "Refpoly.IsUnimodular",
+        "Refpoly.V",
+        "RingHom.id",
+        "RingHomInvPair.ids",
+        "Semiring.toModule",
+        "Semiring.toNonAssocSemiring"
+      ]
+    },
+    "Refpoly.IsUnimodular.mk._flat_ctor": {
+      "type": "\u2200 {n : Nat} {g : LinearEquiv.{0, 0, 0, 0} (RingHom.id.{0} Real) (Refpoly.V n) (Refpoly.V n)},\n  (\u2200 (x : Refpoly.V n), Refpoly.IsLatticePoint x \u2192 Refpoly.IsLatticePoint (g x)) \u2192\n    (\u2200 (x : Refpoly.V n), Refpoly.IsLatticePoint x \u2192 Refpoly.IsLatticePoint ((LinearEquiv.symm.{0, 0, 0, 0} g) x)) \u2192\n      Refpoly.IsUnimodular g",
+      "definition": "\u22ef",
+      "dependencies": [
+        "DFinsupp.instEquivLikeLinearEquiv",
+        "DFunLike.coe",
+        "EquivLike.toFunLike",
+        "Fin",
+        "LinearEquiv",
+        "LinearEquiv.symm",
+        "Nat",
+        "Pi.Function.module",
+        "Pi.addCommMonoid",
+        "Real",
+        "Real.instAddCommMonoid",
+        "Real.semiring",
+        "Refpoly.IsLatticePoint",
+        "Refpoly.IsUnimodular",
+        "Refpoly.IsUnimodular.mk",
+        "Refpoly.V",
+        "RingHom.id",
+        "RingHomInvPair.ids",
+        "Semiring.toModule",
+        "Semiring.toNonAssocSemiring"
+      ]
+    },
+    "Refpoly.IsUnimodular.rec": {
+      "type": "{n : Nat} \u2192\n  {g : LinearEquiv.{0, 0, 0, 0} (RingHom.id.{0} Real) (Refpoly.V n) (Refpoly.V n)} \u2192\n    {motive : Refpoly.IsUnimodular g \u2192 Sort u} \u2192\n      ((fwd : \u2200 (x : Refpoly.V n), Refpoly.IsLatticePoint x \u2192 Refpoly.IsLatticePoint (g x)) \u2192\n          (bwd :\n              \u2200 (x : Refpoly.V n),\n                Refpoly.IsLatticePoint x \u2192 Refpoly.IsLatticePoint ((LinearEquiv.symm.{0, 0, 0, 0} g) x)) \u2192\n            motive \u22ef) \u2192\n        (t : Refpoly.IsUnimodular g) \u2192 motive t",
+      "definition": "",
+      "dependencies": [
+        "DFinsupp.instEquivLikeLinearEquiv",
+        "DFunLike.coe",
+        "EquivLike.toFunLike",
+        "Fin",
+        "LinearEquiv",
+        "LinearEquiv.symm",
+        "Nat",
+        "Pi.Function.module",
+        "Pi.addCommMonoid",
+        "Real",
+        "Real.instAddCommMonoid",
+        "Real.semiring",
+        "Refpoly.IsLatticePoint",
+        "Refpoly.IsUnimodular",
+        "Refpoly.IsUnimodular.mk",
+        "Refpoly.V",
+        "RingHom.id",
+        "RingHomInvPair.ids",
+        "Semiring.toModule",
+        "Semiring.toNonAssocSemiring"
+      ]
+    },
+    "Refpoly.IsUnimodular.recOn": {
+      "type": "{n : Nat} \u2192\n  {g : LinearEquiv.{0, 0, 0, 0} (RingHom.id.{0} Real) (Refpoly.V n) (Refpoly.V n)} \u2192\n    {motive : Refpoly.IsUnimodular g \u2192 Sort u} \u2192\n      (t : Refpoly.IsUnimodular g) \u2192\n        ((fwd : \u2200 (x : Refpoly.V n), Refpoly.IsLatticePoint x \u2192 Refpoly.IsLatticePoint (g x)) \u2192\n            (bwd :\n                \u2200 (x : Refpoly.V n),\n                  Refpoly.IsLatticePoint x \u2192 Refpoly.IsLatticePoint ((LinearEquiv.symm.{0, 0, 0, 0} g) x)) \u2192\n              motive \u22ef) \u2192\n          motive t",
+      "definition": "fun {n : Nat} {g : LinearEquiv.{0, 0, 0, 0} (RingHom.id.{0} Real) (Refpoly.V n) (Refpoly.V n)}\n    {motive : Refpoly.IsUnimodular g \u2192 Sort u} (t : Refpoly.IsUnimodular g)\n    (mk :\n      (fwd : \u2200 (x : Refpoly.V n), Refpoly.IsLatticePoint x \u2192 Refpoly.IsLatticePoint (g x)) \u2192\n        (bwd :\n            \u2200 (x : Refpoly.V n),\n              Refpoly.IsLatticePoint x \u2192 Refpoly.IsLatticePoint ((LinearEquiv.symm.{0, 0, 0, 0} g) x)) \u2192\n          motive \u22ef) =>\n  Refpoly.IsUnimodular.rec.{u} mk t",
+      "dependencies": [
+        "DFinsupp.instEquivLikeLinearEquiv",
+        "DFunLike.coe",
+        "EquivLike.toFunLike",
+        "Fin",
+        "LinearEquiv",
+        "LinearEquiv.symm",
+        "Nat",
+        "Pi.Function.module",
+        "Pi.addCommMonoid",
+        "Real",
+        "Real.instAddCommMonoid",
+        "Real.semiring",
+        "Refpoly.IsLatticePoint",
+        "Refpoly.IsUnimodular",
+        "Refpoly.IsUnimodular.mk",
+        "Refpoly.IsUnimodular.rec",
+        "Refpoly.V",
+        "RingHom.id",
+        "RingHomInvPair.ids",
+        "Semiring.toModule",
+        "Semiring.toNonAssocSemiring"
+      ]
+    },
+    "Refpoly.KS.AssemblyComplete": {
+      "type": "Refpoly.KS.Procedures \u2192 Prop",
+      "definition": "fun (p : Refpoly.KS.Procedures) =>\n  \u2200 (d : Nat) (C : Refpoly.KS.CWSCode d),\n    Refpoly.KS.ValidCWS C \u2192\n      Refpoly.KS.GeneratedRows (Refpoly.KS.Procedures.weights p) C \u2192\n        Membership.mem.{0, 0} (Refpoly.KS.Procedures.assemble p d (Refpoly.KS.Procedures.weights p)) C",
+      "dependencies": [
+        "List",
+        "List.instMembership",
+        "Membership.mem",
+        "Nat",
+        "Refpoly.KS.CWSCode",
+        "Refpoly.KS.GeneratedRows",
+        "Refpoly.KS.Procedures",
+        "Refpoly.KS.Procedures.assemble",
+        "Refpoly.KS.Procedures.weights",
+        "Refpoly.KS.ValidCWS"
+      ]
+    },
+    "Refpoly.KS.AssemblySound": {
+      "type": "Refpoly.KS.Procedures \u2192 Prop",
+      "definition": "fun (p : Refpoly.KS.Procedures) =>\n  Refpoly.KS.WeightsSound p \u2192\n    \u2200 (d : Nat) (C : Refpoly.KS.CWSCode d),\n      Membership.mem.{0, 0} (Refpoly.KS.Procedures.assemble p d (Refpoly.KS.Procedures.weights p)) C \u2192\n        And (Refpoly.KS.ValidCWS C) (Refpoly.KS.GeneratedRows (Refpoly.KS.Procedures.weights p) C)",
+      "dependencies": [
+        "And",
+        "List",
+        "List.instMembership",
+        "Membership.mem",
+        "Nat",
+        "Refpoly.KS.CWSCode",
+        "Refpoly.KS.GeneratedRows",
+        "Refpoly.KS.Procedures",
+        "Refpoly.KS.Procedures.assemble",
+        "Refpoly.KS.Procedures.weights",
+        "Refpoly.KS.ValidCWS",
+        "Refpoly.KS.WeightsSound"
+      ]
+    },
+    "Refpoly.KS.CWSCode": {
+      "type": "Nat \u2192 Type",
+      "definition": "",
+      "dependencies": [
+        "Nat"
+      ]
+    },
+    "Refpoly.KS.CWSCode.N": {
+      "type": "{d : Nat} \u2192 Refpoly.KS.CWSCode d \u2192 Nat",
+      "definition": "fun (d : Nat) (self : Refpoly.KS.CWSCode d) => self.1",
+      "dependencies": [
+        "Nat",
+        "Refpoly.KS.CWSCode"
+      ]
+    },
+    "Refpoly.KS.CWSCode._sizeOf_1": {
+      "type": "{d : Nat} \u2192 Refpoly.KS.CWSCode d \u2192 Nat",
+      "definition": "fun {d : Nat} (t : Refpoly.KS.CWSCode d) =>\n  Refpoly.KS.CWSCode.rec.{1}\n    (fun (N r : Nat) (rows : Fin r \u2192 Refpoly.KS.WeightCode N) =>\n      HAdd.hAdd.{0, 0, 0} (HAdd.hAdd.{0, 0, 0} 1 (sizeOf.{1} N)) (sizeOf.{1} r))\n    t",
+      "dependencies": [
+        "Fin",
+        "HAdd.hAdd",
+        "Nat",
+        "OfNat.ofNat",
+        "Refpoly.KS.CWSCode",
+        "Refpoly.KS.CWSCode.rec",
+        "Refpoly.KS.WeightCode",
+        "SizeOf.sizeOf",
+        "instAddNat",
+        "instHAdd",
+        "instOfNatNat",
+        "instSizeOfNat"
+      ]
+    },
+    "Refpoly.KS.CWSCode._sizeOf_inst": {
+      "type": "(d : Nat) \u2192 SizeOf.{1} (Refpoly.KS.CWSCode d)",
+      "definition": "fun (d : Nat) => SizeOf.mk.{1} fun (m : Refpoly.KS.CWSCode d) => Refpoly.KS.CWSCode._sizeOf_1 m",
+      "dependencies": [
+        "Nat",
+        "Refpoly.KS.CWSCode",
+        "Refpoly.KS.CWSCode._sizeOf_1",
+        "SizeOf",
+        "SizeOf.mk"
+      ]
+    },
+    "Refpoly.KS.CWSCode.casesOn": {
+      "type": "{d : Nat} \u2192\n  {motive : Refpoly.KS.CWSCode d \u2192 Sort u} \u2192\n    (t : Refpoly.KS.CWSCode d) \u2192\n      ((N r : Nat) \u2192 (rows : Fin r \u2192 Refpoly.KS.WeightCode N) \u2192 motive { N := N, r := r, rows := rows }) \u2192 motive t",
+      "definition": "fun {d : Nat} {motive : Refpoly.KS.CWSCode d \u2192 Sort u} (t : Refpoly.KS.CWSCode d)\n    (mk : (N r : Nat) \u2192 (rows : Fin r \u2192 Refpoly.KS.WeightCode N) \u2192 motive { N := N, r := r, rows := rows }) =>\n  Refpoly.KS.CWSCode.rec.{u} (fun (N r : Nat) (rows : Fin r \u2192 Refpoly.KS.WeightCode N) => mk N r rows) t",
+      "dependencies": [
+        "Fin",
+        "Nat",
+        "Refpoly.KS.CWSCode",
+        "Refpoly.KS.CWSCode.mk",
+        "Refpoly.KS.CWSCode.rec",
+        "Refpoly.KS.WeightCode"
+      ]
+    },
+    "Refpoly.KS.CWSCode.ctorIdx": {
+      "type": "{d : Nat} \u2192 Refpoly.KS.CWSCode d \u2192 Nat",
+      "definition": "fun {d : Nat} (x : Refpoly.KS.CWSCode d) => 0",
+      "dependencies": [
+        "Nat",
+        "Refpoly.KS.CWSCode"
+      ]
+    },
+    "Refpoly.KS.CWSCode.mk": {
+      "type": "{d : Nat} \u2192 (N r : Nat) \u2192 (Fin r \u2192 Refpoly.KS.WeightCode N) \u2192 Refpoly.KS.CWSCode d",
+      "definition": "",
+      "dependencies": [
+        "Fin",
+        "Nat",
+        "Refpoly.KS.CWSCode",
+        "Refpoly.KS.WeightCode"
+      ]
+    },
+    "Refpoly.KS.CWSCode.mk._flat_ctor": {
+      "type": "{d : Nat} \u2192 (N r : Nat) \u2192 (Fin r \u2192 Refpoly.KS.WeightCode N) \u2192 Refpoly.KS.CWSCode d",
+      "definition": "fun (d N r : Nat) (rows : Fin r \u2192 Refpoly.KS.WeightCode N) => { N := N, r := r, rows := rows }",
+      "dependencies": [
+        "Fin",
+        "Nat",
+        "Refpoly.KS.CWSCode",
+        "Refpoly.KS.CWSCode.mk",
+        "Refpoly.KS.WeightCode"
+      ]
+    },
+    "Refpoly.KS.CWSCode.mk.noConfusion": {
+      "type": "{d : Nat} \u2192\n  {P : Sort u} \u2192\n    {N r : Nat} \u2192\n      {rows : Fin r \u2192 Refpoly.KS.WeightCode N} \u2192\n        {N' r' : Nat} \u2192\n          {rows' : Fin r' \u2192 Refpoly.KS.WeightCode N'} \u2192\n            Eq.{1} { N := N, r := r, rows := rows } { N := N', r := r', rows := rows' } \u2192\n              (Eq.{1} N N' \u2192 Eq.{1} r r' \u2192 HEq.{1} rows rows' \u2192 P) \u2192 P",
+      "definition": "fun {d : Nat} {P : Sort u} {N r : Nat} {rows : Fin r \u2192 Refpoly.KS.WeightCode N} {N' r' : Nat}\n    {rows' : Fin r' \u2192 Refpoly.KS.WeightCode N'}\n    (eq : Eq.{1} { N := N, r := r, rows := rows } { N := N', r := r', rows := rows' })\n    (k : Eq.{1} N N' \u2192 Eq.{1} r r' \u2192 HEq.{1} rows rows' \u2192 P) =>\n  id.{u} (Refpoly.KS.CWSCode.noConfusion.{u} \u22ef \u22ef k)",
+      "dependencies": [
+        "Eq",
+        "Eq.refl",
+        "Fin",
+        "HEq",
+        "Nat",
+        "Refpoly.KS.CWSCode",
+        "Refpoly.KS.CWSCode.mk",
+        "Refpoly.KS.CWSCode.noConfusion",
+        "Refpoly.KS.WeightCode",
+        "heq_of_eq",
+        "id"
+      ]
+    },
+    "Refpoly.KS.CWSCode.noConfusion": {
+      "type": "{P : Sort u} \u2192\n  {d : Nat} \u2192\n    {t : Refpoly.KS.CWSCode d} \u2192\n      {d' : Nat} \u2192\n        {t' : Refpoly.KS.CWSCode d'} \u2192 Eq.{1} d d' \u2192 HEq.{1} t t' \u2192 Refpoly.KS.CWSCode.noConfusionType.{u} P t t'",
+      "definition": "fun {P : Sort u} {d : Nat} {t : Refpoly.KS.CWSCode d} {d' : Nat} {t' : Refpoly.KS.CWSCode d'} (eq_1 : Eq.{1} d d')\n    (eq_2 : HEq.{1} t t') =>\n  Eq.ndrec.{u, 1} (motive := fun {d' : Nat} =>\n    {t' : Refpoly.KS.CWSCode d'} \u2192 HEq.{1} t t' \u2192 Refpoly.KS.CWSCode.noConfusionType.{u} P t t')\n    (fun {t' : Refpoly.KS.CWSCode d} (eq_2 : HEq.{1} t t') =>\n      Eq.ndrec.{u, 1}\n        (Refpoly.KS.CWSCode.casesOn.{u} t\n          fun (N r : Nat) (rows : Fin r \u2192 Refpoly.KS.WeightCode N)\n            (k : Eq.{1} N N \u2192 Eq.{1} r r \u2192 HEq.{1} rows rows \u2192 P) =>\n          k \u22ef \u22ef \u22ef)\n        \u22ef)\n    eq_1 eq_2",
+      "dependencies": [
+        "Eq",
+        "Eq.ndrec",
+        "Eq.refl",
+        "Fin",
+        "HEq",
+        "HEq.refl",
+        "Nat",
+        "Refpoly.KS.CWSCode",
+        "Refpoly.KS.CWSCode.casesOn",
+        "Refpoly.KS.CWSCode.noConfusionType",
+        "Refpoly.KS.WeightCode",
+        "eq_of_heq"
+      ]
+    },
+    "Refpoly.KS.CWSCode.noConfusionType": {
+      "type": "Sort u \u2192 {d : Nat} \u2192 Refpoly.KS.CWSCode d \u2192 {d' : Nat} \u2192 Refpoly.KS.CWSCode d' \u2192 Sort u",
+      "definition": "fun (P : Sort u) {d : Nat} (t : Refpoly.KS.CWSCode d) {d' : Nat} (t' : Refpoly.KS.CWSCode d') =>\n  Refpoly.KS.CWSCode.casesOn.{u + 1} t fun (N r : Nat) (rows : Fin r \u2192 Refpoly.KS.WeightCode N) =>\n    Refpoly.KS.CWSCode.casesOn.{u + 1} t' fun (N_1 r_1 : Nat) (rows_1 : Fin r_1 \u2192 Refpoly.KS.WeightCode N_1) =>\n      (Eq.{1} N N_1 \u2192 Eq.{1} r r_1 \u2192 HEq.{1} rows rows_1 \u2192 P) \u2192 P",
+      "dependencies": [
+        "Eq",
+        "Fin",
+        "HEq",
+        "Nat",
+        "Refpoly.KS.CWSCode",
+        "Refpoly.KS.CWSCode.casesOn",
+        "Refpoly.KS.WeightCode"
+      ]
+    },
+    "Refpoly.KS.CWSCode.r": {
+      "type": "{d : Nat} \u2192 Refpoly.KS.CWSCode d \u2192 Nat",
+      "definition": "fun (d : Nat) (self : Refpoly.KS.CWSCode d) => self.2",
+      "dependencies": [
+        "Nat",
+        "Refpoly.KS.CWSCode"
+      ]
+    },
+    "Refpoly.KS.CWSCode.rec": {
+      "type": "{d : Nat} \u2192\n  {motive : Refpoly.KS.CWSCode d \u2192 Sort u} \u2192\n    ((N r : Nat) \u2192 (rows : Fin r \u2192 Refpoly.KS.WeightCode N) \u2192 motive { N := N, r := r, rows := rows }) \u2192\n      (t : Refpoly.KS.CWSCode d) \u2192 motive t",
+      "definition": "",
+      "dependencies": [
+        "Fin",
+        "Nat",
+        "Refpoly.KS.CWSCode",
+        "Refpoly.KS.CWSCode.mk",
+        "Refpoly.KS.WeightCode"
+      ]
+    },
+    "Refpoly.KS.CWSCode.recOn": {
+      "type": "{d : Nat} \u2192\n  {motive : Refpoly.KS.CWSCode d \u2192 Sort u} \u2192\n    (t : Refpoly.KS.CWSCode d) \u2192\n      ((N r : Nat) \u2192 (rows : Fin r \u2192 Refpoly.KS.WeightCode N) \u2192 motive { N := N, r := r, rows := rows }) \u2192 motive t",
+      "definition": "fun {d : Nat} {motive : Refpoly.KS.CWSCode d \u2192 Sort u} (t : Refpoly.KS.CWSCode d)\n    (mk : (N r : Nat) \u2192 (rows : Fin r \u2192 Refpoly.KS.WeightCode N) \u2192 motive { N := N, r := r, rows := rows }) =>\n  Refpoly.KS.CWSCode.rec.{u} mk t",
+      "dependencies": [
+        "Fin",
+        "Nat",
+        "Refpoly.KS.CWSCode",
+        "Refpoly.KS.CWSCode.mk",
+        "Refpoly.KS.CWSCode.rec",
+        "Refpoly.KS.WeightCode"
+      ]
+    },
+    "Refpoly.KS.CWSCode.rows": {
+      "type": "{d : Nat} \u2192\n  (self : Refpoly.KS.CWSCode d) \u2192 Fin (Refpoly.KS.CWSCode.r self) \u2192 Refpoly.KS.WeightCode (Refpoly.KS.CWSCode.N self)",
+      "definition": "fun (d : Nat) (self : Refpoly.KS.CWSCode d) => self.3",
+      "dependencies": [
+        "Fin",
+        "Nat",
+        "Refpoly.KS.CWSCode",
+        "Refpoly.KS.CWSCode.N",
+        "Refpoly.KS.CWSCode.r",
+        "Refpoly.KS.WeightCode"
+      ]
+    },
+    "Refpoly.KS.CircuitBasis": {
+      "type": "Prop",
+      "definition": "\u2200 (d : Nat),\n  LT.lt.{0} 0 d \u2192\n    \u2200 (P : Set.{0} (Refpoly.V d)),\n      Refpoly.IsReflexive P \u2192\n        \u2200 (S : Refpoly.KS.Seed d),\n          Refpoly.KS.ValidSeed P S \u2192\n            \u2203 (B : Refpoly.KS.RelationBasis S),\n              And (Refpoly.KS.ValidCWS (Refpoly.KS.RelationBasis.code B)) (Refpoly.KS.GeometricBasis B)",
+      "dependencies": [
+        "And",
+        "Exists",
+        "LT.lt",
+        "Nat",
+        "OfNat.ofNat",
+        "Refpoly.IsReflexive",
+        "Refpoly.KS.GeometricBasis",
+        "Refpoly.KS.RelationBasis",
+        "Refpoly.KS.RelationBasis.code",
+        "Refpoly.KS.Seed",
+        "Refpoly.KS.ValidCWS",
+        "Refpoly.KS.ValidSeed",
+        "Refpoly.V",
+        "Set",
+        "instLTNat",
+        "instOfNatNat"
+      ]
+    },
+    "Refpoly.KS.Classifies": {
+      "type": "Refpoly.KS.Procedures \u2192 Prop",
+      "definition": "fun (p : Refpoly.KS.Procedures) =>\n  \u2200 (d : Nat),\n    And\n      (\u2200 (R : Refpoly.KS.PolyCode d),\n        Membership.mem.{0, 0} (Refpoly.KS.enumerate p d) R \u2192 Refpoly.IsReflexive (Refpoly.KS.PolyCode.hull R))\n      (\u2200 (P : Set.{0} (Refpoly.V d)),\n        Refpoly.IsReflexive P \u2192\n          \u2203 (R : Refpoly.KS.PolyCode d),\n            And (Membership.mem.{0, 0} (Refpoly.KS.enumerate p d) R) (Refpoly.GLEquiv P (Refpoly.KS.PolyCode.hull R)))",
+      "dependencies": [
+        "And",
+        "Exists",
+        "List",
+        "List.instMembership",
+        "Membership.mem",
+        "Nat",
+        "Refpoly.GLEquiv",
+        "Refpoly.IsReflexive",
+        "Refpoly.KS.PolyCode",
+        "Refpoly.KS.PolyCode.hull",
+        "Refpoly.KS.Procedures",
+        "Refpoly.KS.enumerate",
+        "Refpoly.V",
+        "Set"
+      ]
+    },
+    "Refpoly.KS.Compatible": {
+      "type": "{d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 AddSubgroup.{0} (Refpoly.V d) \u2192 Prop",
+      "definition": "fun {d : Nat} (Q : Refpoly.KS.PolyCode d) (L : AddSubgroup.{0} (Refpoly.V d)) =>\n  And (LE.le.{0} (Refpoly.KS.coarsest (Refpoly.KS.PolyCode.hull Q)) L)\n    (LE.le.{0} L (Refpoly.KS.finest (Refpoly.KS.PolyCode.hull Q)))",
+      "dependencies": [
+        "AddSubgroup",
+        "AddSubgroup.instPartialOrder",
+        "And",
+        "Fin",
+        "LE.le",
+        "Nat",
+        "PartialOrder.toPreorder",
+        "Pi.addGroup",
+        "Preorder.toLE",
+        "Real",
+        "Real.instAddGroup",
+        "Refpoly.KS.PolyCode",
+        "Refpoly.KS.PolyCode.hull",
+        "Refpoly.KS.coarsest",
+        "Refpoly.KS.finest",
+        "Refpoly.V"
+      ]
+    },
+    "Refpoly.KS.ContainerPoints": {
+      "type": "Refpoly.KS.Procedures \u2192 Prop",
+      "definition": "fun (p : Refpoly.KS.Procedures) =>\n  \u2200 (d : Nat) (C : Refpoly.KS.CWSCode d),\n    Refpoly.KS.ValidCWS C \u2192\n      Eq.{1} (Refpoly.KS.pointSet (Refpoly.KS.Procedures.points p C))\n        (Inter.inter.{0} (Refpoly.KS.container (Refpoly.KS.Procedures.kernelBasis p C)) (Refpoly.latticePoints d))",
+      "dependencies": [
+        "Eq",
+        "Inter.inter",
+        "Nat",
+        "Refpoly.KS.CWSCode",
+        "Refpoly.KS.Procedures",
+        "Refpoly.KS.Procedures.kernelBasis",
+        "Refpoly.KS.Procedures.points",
+        "Refpoly.KS.ValidCWS",
+        "Refpoly.KS.container",
+        "Refpoly.KS.pointSet",
+        "Refpoly.V",
+        "Refpoly.latticePoints",
+        "Set",
+        "Set.instInter"
+      ]
+    },
+    "Refpoly.KS.Contracts": {
+      "type": "Refpoly.KS.Procedures \u2192 Prop",
+      "definition": "",
+      "dependencies": [
+        "Refpoly.KS.Procedures"
+      ]
+    },
+    "Refpoly.KS.Contracts.casesOn": {
+      "type": "{p : Refpoly.KS.Procedures} \u2192\n  {motive : Refpoly.KS.Contracts p \u2192 Sort u} \u2192\n    (t : Refpoly.KS.Contracts p) \u2192\n      ((seedBound : Refpoly.KS.SeedBound) \u2192\n          (circuitBasis : Refpoly.KS.CircuitBasis) \u2192\n            (weightsSound : Refpoly.KS.WeightsSound p) \u2192\n              (weightsComplete : Refpoly.KS.WeightsComplete p) \u2192\n                (assemblySound : Refpoly.KS.AssemblySound p) \u2192\n                  (assemblyComplete : Refpoly.KS.AssemblyComplete p) \u2192\n                    (kernelBases : Refpoly.KS.KernelBases p) \u2192\n                      (geometricContainers : Refpoly.KS.GeometricContainers p) \u2192\n                        (containerPoints : Refpoly.KS.ContainerPoints p) \u2192\n                          (subpolytopeRecovery : Refpoly.KS.SubpolytopeRecovery) \u2192\n                            (imageEligible : Refpoly.KS.ImageEligible) \u2192\n                              (eligibilityCheck : Refpoly.KS.EligibilityCheck p) \u2192\n                                (targetLattice : Refpoly.KS.TargetLattice) \u2192\n                                  (finiteLatticeInterval : Refpoly.KS.FiniteLatticeInterval) \u2192\n                                    (realizationsSound : Refpoly.KS.RealizationsSound p) \u2192\n                                      (realizationsComplete : Refpoly.KS.RealizationsComplete p) \u2192\n                                        (realizationEquivalence : Refpoly.KS.RealizationEquivalence) \u2192\n                                          (reflexivityCheck : Refpoly.KS.ReflexivityCheck p) \u2192 motive \u22ef) \u2192\n        motive t",
+      "definition": "fun {p : Refpoly.KS.Procedures} {motive : Refpoly.KS.Contracts p \u2192 Sort u} (t : Refpoly.KS.Contracts p)\n    (mk :\n      (seedBound : Refpoly.KS.SeedBound) \u2192\n        (circuitBasis : Refpoly.KS.CircuitBasis) \u2192\n          (weightsSound : Refpoly.KS.WeightsSound p) \u2192\n            (weightsComplete : Refpoly.KS.WeightsComplete p) \u2192\n              (assemblySound : Refpoly.KS.AssemblySound p) \u2192\n                (assemblyComplete : Refpoly.KS.AssemblyComplete p) \u2192\n                  (kernelBases : Refpoly.KS.KernelBases p) \u2192\n                    (geometricContainers : Refpoly.KS.GeometricContainers p) \u2192\n                      (containerPoints : Refpoly.KS.ContainerPoints p) \u2192\n                        (subpolytopeRecovery : Refpoly.KS.SubpolytopeRecovery) \u2192\n                          (imageEligible : Refpoly.KS.ImageEligible) \u2192\n                            (eligibilityCheck : Refpoly.KS.EligibilityCheck p) \u2192\n                              (targetLattice : Refpoly.KS.TargetLattice) \u2192\n                                (finiteLatticeInterval : Refpoly.KS.FiniteLatticeInterval) \u2192\n                                  (realizationsSound : Refpoly.KS.RealizationsSound p) \u2192\n                                    (realizationsComplete : Refpoly.KS.RealizationsComplete p) \u2192\n                                      (realizationEquivalence : Refpoly.KS.RealizationEquivalence) \u2192\n                                        (reflexivityCheck : Refpoly.KS.ReflexivityCheck p) \u2192 motive \u22ef) =>\n  Refpoly.KS.Contracts.rec.{u}\n    (fun (seedBound : Refpoly.KS.SeedBound) (circuitBasis : Refpoly.KS.CircuitBasis)\n        (weightsSound : Refpoly.KS.WeightsSound p) (weightsComplete : Refpoly.KS.WeightsComplete p)\n        (assemblySound : Refpoly.KS.AssemblySound p) (assemblyComplete : Refpoly.KS.AssemblyComplete p)\n        (kernelBases : Refpoly.KS.KernelBases p) (geometricContainers : Refpoly.KS.GeometricContainers p)\n        (containerPoints : Refpoly.KS.ContainerPoints p) (subpolytopeRecovery : Refpoly.KS.SubpolytopeRecovery)\n        (imageEligible : Refpoly.KS.ImageEligible) (eligibilityCheck : Refpoly.KS.EligibilityCheck p)\n        (targetLattice : Refpoly.KS.TargetLattice) (finiteLatticeInterval : Refpoly.KS.FiniteLatticeInterval)\n        (realizationsSound : Refpoly.KS.RealizationsSound p) (realizationsComplete : Refpoly.KS.RealizationsComplete p)\n        (realizationEquivalence : Refpoly.KS.RealizationEquivalence)\n        (reflexivityCheck : Refpoly.KS.ReflexivityCheck p) =>\n      mk seedBound circuitBasis weightsSound weightsComplete assemblySound assemblyComplete kernelBases\n        geometricContainers containerPoints subpolytopeRecovery imageEligible eligibilityCheck targetLattice\n        finiteLatticeInterval realizationsSound realizationsComplete realizationEquivalence reflexivityCheck)\n    t",
+      "dependencies": [
+        "Refpoly.KS.AssemblyComplete",
+        "Refpoly.KS.AssemblySound",
+        "Refpoly.KS.CircuitBasis",
+        "Refpoly.KS.ContainerPoints",
+        "Refpoly.KS.Contracts",
+        "Refpoly.KS.Contracts.mk",
+        "Refpoly.KS.Contracts.rec",
+        "Refpoly.KS.EligibilityCheck",
+        "Refpoly.KS.FiniteLatticeInterval",
+        "Refpoly.KS.GeometricContainers",
+        "Refpoly.KS.ImageEligible",
+        "Refpoly.KS.KernelBases",
+        "Refpoly.KS.Procedures",
+        "Refpoly.KS.RealizationEquivalence",
+        "Refpoly.KS.RealizationsComplete",
+        "Refpoly.KS.RealizationsSound",
+        "Refpoly.KS.ReflexivityCheck",
+        "Refpoly.KS.SeedBound",
+        "Refpoly.KS.SubpolytopeRecovery",
+        "Refpoly.KS.TargetLattice",
+        "Refpoly.KS.WeightsComplete",
+        "Refpoly.KS.WeightsSound"
+      ]
+    },
+    "Refpoly.KS.Contracts.mk": {
+      "type": "\u2200 {p : Refpoly.KS.Procedures},\n  Refpoly.KS.SeedBound \u2192\n    Refpoly.KS.CircuitBasis \u2192\n      Refpoly.KS.WeightsSound p \u2192\n        Refpoly.KS.WeightsComplete p \u2192\n          Refpoly.KS.AssemblySound p \u2192\n            Refpoly.KS.AssemblyComplete p \u2192\n              Refpoly.KS.KernelBases p \u2192\n                Refpoly.KS.GeometricContainers p \u2192\n                  Refpoly.KS.ContainerPoints p \u2192\n                    Refpoly.KS.SubpolytopeRecovery \u2192\n                      Refpoly.KS.ImageEligible \u2192\n                        Refpoly.KS.EligibilityCheck p \u2192\n                          Refpoly.KS.TargetLattice \u2192\n                            Refpoly.KS.FiniteLatticeInterval \u2192\n                              Refpoly.KS.RealizationsSound p \u2192\n                                Refpoly.KS.RealizationsComplete p \u2192\n                                  Refpoly.KS.RealizationEquivalence \u2192\n                                    Refpoly.KS.ReflexivityCheck p \u2192 Refpoly.KS.Contracts p",
+      "definition": "",
+      "dependencies": [
+        "Refpoly.KS.AssemblyComplete",
+        "Refpoly.KS.AssemblySound",
+        "Refpoly.KS.CircuitBasis",
+        "Refpoly.KS.ContainerPoints",
+        "Refpoly.KS.Contracts",
+        "Refpoly.KS.EligibilityCheck",
+        "Refpoly.KS.FiniteLatticeInterval",
+        "Refpoly.KS.GeometricContainers",
+        "Refpoly.KS.ImageEligible",
+        "Refpoly.KS.KernelBases",
+        "Refpoly.KS.Procedures",
+        "Refpoly.KS.RealizationEquivalence",
+        "Refpoly.KS.RealizationsComplete",
+        "Refpoly.KS.RealizationsSound",
+        "Refpoly.KS.ReflexivityCheck",
+        "Refpoly.KS.SeedBound",
+        "Refpoly.KS.SubpolytopeRecovery",
+        "Refpoly.KS.TargetLattice",
+        "Refpoly.KS.WeightsComplete",
+        "Refpoly.KS.WeightsSound"
+      ]
+    },
+    "Refpoly.KS.Contracts.mk._flat_ctor": {
+      "type": "\u2200 {p : Refpoly.KS.Procedures},\n  Refpoly.KS.SeedBound \u2192\n    Refpoly.KS.CircuitBasis \u2192\n      Refpoly.KS.WeightsSound p \u2192\n        Refpoly.KS.WeightsComplete p \u2192\n          Refpoly.KS.AssemblySound p \u2192\n            Refpoly.KS.AssemblyComplete p \u2192\n              Refpoly.KS.KernelBases p \u2192\n                Refpoly.KS.GeometricContainers p \u2192\n                  Refpoly.KS.ContainerPoints p \u2192\n                    Refpoly.KS.SubpolytopeRecovery \u2192\n                      Refpoly.KS.ImageEligible \u2192\n                        Refpoly.KS.EligibilityCheck p \u2192\n                          Refpoly.KS.TargetLattice \u2192\n                            Refpoly.KS.FiniteLatticeInterval \u2192\n                              Refpoly.KS.RealizationsSound p \u2192\n                                Refpoly.KS.RealizationsComplete p \u2192\n                                  Refpoly.KS.RealizationEquivalence \u2192\n                                    Refpoly.KS.ReflexivityCheck p \u2192 Refpoly.KS.Contracts p",
+      "definition": "\u22ef",
+      "dependencies": [
+        "Refpoly.KS.AssemblyComplete",
+        "Refpoly.KS.AssemblySound",
+        "Refpoly.KS.CircuitBasis",
+        "Refpoly.KS.ContainerPoints",
+        "Refpoly.KS.Contracts",
+        "Refpoly.KS.Contracts.mk",
+        "Refpoly.KS.EligibilityCheck",
+        "Refpoly.KS.FiniteLatticeInterval",
+        "Refpoly.KS.GeometricContainers",
+        "Refpoly.KS.ImageEligible",
+        "Refpoly.KS.KernelBases",
+        "Refpoly.KS.Procedures",
+        "Refpoly.KS.RealizationEquivalence",
+        "Refpoly.KS.RealizationsComplete",
+        "Refpoly.KS.RealizationsSound",
+        "Refpoly.KS.ReflexivityCheck",
+        "Refpoly.KS.SeedBound",
+        "Refpoly.KS.SubpolytopeRecovery",
+        "Refpoly.KS.TargetLattice",
+        "Refpoly.KS.WeightsComplete",
+        "Refpoly.KS.WeightsSound"
+      ]
+    },
+    "Refpoly.KS.Contracts.rec": {
+      "type": "{p : Refpoly.KS.Procedures} \u2192\n  {motive : Refpoly.KS.Contracts p \u2192 Sort u} \u2192\n    ((seedBound : Refpoly.KS.SeedBound) \u2192\n        (circuitBasis : Refpoly.KS.CircuitBasis) \u2192\n          (weightsSound : Refpoly.KS.WeightsSound p) \u2192\n            (weightsComplete : Refpoly.KS.WeightsComplete p) \u2192\n              (assemblySound : Refpoly.KS.AssemblySound p) \u2192\n                (assemblyComplete : Refpoly.KS.AssemblyComplete p) \u2192\n                  (kernelBases : Refpoly.KS.KernelBases p) \u2192\n                    (geometricContainers : Refpoly.KS.GeometricContainers p) \u2192\n                      (containerPoints : Refpoly.KS.ContainerPoints p) \u2192\n                        (subpolytopeRecovery : Refpoly.KS.SubpolytopeRecovery) \u2192\n                          (imageEligible : Refpoly.KS.ImageEligible) \u2192\n                            (eligibilityCheck : Refpoly.KS.EligibilityCheck p) \u2192\n                              (targetLattice : Refpoly.KS.TargetLattice) \u2192\n                                (finiteLatticeInterval : Refpoly.KS.FiniteLatticeInterval) \u2192\n                                  (realizationsSound : Refpoly.KS.RealizationsSound p) \u2192\n                                    (realizationsComplete : Refpoly.KS.RealizationsComplete p) \u2192\n                                      (realizationEquivalence : Refpoly.KS.RealizationEquivalence) \u2192\n                                        (reflexivityCheck : Refpoly.KS.ReflexivityCheck p) \u2192 motive \u22ef) \u2192\n      (t : Refpoly.KS.Contracts p) \u2192 motive t",
+      "definition": "",
+      "dependencies": [
+        "Refpoly.KS.AssemblyComplete",
+        "Refpoly.KS.AssemblySound",
+        "Refpoly.KS.CircuitBasis",
+        "Refpoly.KS.ContainerPoints",
+        "Refpoly.KS.Contracts",
+        "Refpoly.KS.Contracts.mk",
+        "Refpoly.KS.EligibilityCheck",
+        "Refpoly.KS.FiniteLatticeInterval",
+        "Refpoly.KS.GeometricContainers",
+        "Refpoly.KS.ImageEligible",
+        "Refpoly.KS.KernelBases",
+        "Refpoly.KS.Procedures",
+        "Refpoly.KS.RealizationEquivalence",
+        "Refpoly.KS.RealizationsComplete",
+        "Refpoly.KS.RealizationsSound",
+        "Refpoly.KS.ReflexivityCheck",
+        "Refpoly.KS.SeedBound",
+        "Refpoly.KS.SubpolytopeRecovery",
+        "Refpoly.KS.TargetLattice",
+        "Refpoly.KS.WeightsComplete",
+        "Refpoly.KS.WeightsSound"
+      ]
+    },
+    "Refpoly.KS.Contracts.recOn": {
+      "type": "{p : Refpoly.KS.Procedures} \u2192\n  {motive : Refpoly.KS.Contracts p \u2192 Sort u} \u2192\n    (t : Refpoly.KS.Contracts p) \u2192\n      ((seedBound : Refpoly.KS.SeedBound) \u2192\n          (circuitBasis : Refpoly.KS.CircuitBasis) \u2192\n            (weightsSound : Refpoly.KS.WeightsSound p) \u2192\n              (weightsComplete : Refpoly.KS.WeightsComplete p) \u2192\n                (assemblySound : Refpoly.KS.AssemblySound p) \u2192\n                  (assemblyComplete : Refpoly.KS.AssemblyComplete p) \u2192\n                    (kernelBases : Refpoly.KS.KernelBases p) \u2192\n                      (geometricContainers : Refpoly.KS.GeometricContainers p) \u2192\n                        (containerPoints : Refpoly.KS.ContainerPoints p) \u2192\n                          (subpolytopeRecovery : Refpoly.KS.SubpolytopeRecovery) \u2192\n                            (imageEligible : Refpoly.KS.ImageEligible) \u2192\n                              (eligibilityCheck : Refpoly.KS.EligibilityCheck p) \u2192\n                                (targetLattice : Refpoly.KS.TargetLattice) \u2192\n                                  (finiteLatticeInterval : Refpoly.KS.FiniteLatticeInterval) \u2192\n                                    (realizationsSound : Refpoly.KS.RealizationsSound p) \u2192\n                                      (realizationsComplete : Refpoly.KS.RealizationsComplete p) \u2192\n                                        (realizationEquivalence : Refpoly.KS.RealizationEquivalence) \u2192\n                                          (reflexivityCheck : Refpoly.KS.ReflexivityCheck p) \u2192 motive \u22ef) \u2192\n        motive t",
+      "definition": "fun {p : Refpoly.KS.Procedures} {motive : Refpoly.KS.Contracts p \u2192 Sort u} (t : Refpoly.KS.Contracts p)\n    (mk :\n      (seedBound : Refpoly.KS.SeedBound) \u2192\n        (circuitBasis : Refpoly.KS.CircuitBasis) \u2192\n          (weightsSound : Refpoly.KS.WeightsSound p) \u2192\n            (weightsComplete : Refpoly.KS.WeightsComplete p) \u2192\n              (assemblySound : Refpoly.KS.AssemblySound p) \u2192\n                (assemblyComplete : Refpoly.KS.AssemblyComplete p) \u2192\n                  (kernelBases : Refpoly.KS.KernelBases p) \u2192\n                    (geometricContainers : Refpoly.KS.GeometricContainers p) \u2192\n                      (containerPoints : Refpoly.KS.ContainerPoints p) \u2192\n                        (subpolytopeRecovery : Refpoly.KS.SubpolytopeRecovery) \u2192\n                          (imageEligible : Refpoly.KS.ImageEligible) \u2192\n                            (eligibilityCheck : Refpoly.KS.EligibilityCheck p) \u2192\n                              (targetLattice : Refpoly.KS.TargetLattice) \u2192\n                                (finiteLatticeInterval : Refpoly.KS.FiniteLatticeInterval) \u2192\n                                  (realizationsSound : Refpoly.KS.RealizationsSound p) \u2192\n                                    (realizationsComplete : Refpoly.KS.RealizationsComplete p) \u2192\n                                      (realizationEquivalence : Refpoly.KS.RealizationEquivalence) \u2192\n                                        (reflexivityCheck : Refpoly.KS.ReflexivityCheck p) \u2192 motive \u22ef) =>\n  Refpoly.KS.Contracts.rec.{u} mk t",
+      "dependencies": [
+        "Refpoly.KS.AssemblyComplete",
+        "Refpoly.KS.AssemblySound",
+        "Refpoly.KS.CircuitBasis",
+        "Refpoly.KS.ContainerPoints",
+        "Refpoly.KS.Contracts",
+        "Refpoly.KS.Contracts.mk",
+        "Refpoly.KS.Contracts.rec",
+        "Refpoly.KS.EligibilityCheck",
+        "Refpoly.KS.FiniteLatticeInterval",
+        "Refpoly.KS.GeometricContainers",
+        "Refpoly.KS.ImageEligible",
+        "Refpoly.KS.KernelBases",
+        "Refpoly.KS.Procedures",
+        "Refpoly.KS.RealizationEquivalence",
+        "Refpoly.KS.RealizationsComplete",
+        "Refpoly.KS.RealizationsSound",
+        "Refpoly.KS.ReflexivityCheck",
+        "Refpoly.KS.SeedBound",
+        "Refpoly.KS.SubpolytopeRecovery",
+        "Refpoly.KS.TargetLattice",
+        "Refpoly.KS.WeightsComplete",
+        "Refpoly.KS.WeightsSound"
+      ]
+    },
+    "Refpoly.KS.EligibilityCheck": {
+      "type": "Refpoly.KS.Procedures \u2192 Prop",
+      "definition": "fun (p : Refpoly.KS.Procedures) =>\n  \u2200 (d : Nat) (Q : Refpoly.KS.PolyCode d),\n    Iff (Eq.{1} (Refpoly.KS.Procedures.eligible p Q) true) (Refpoly.KS.Eligible Q)",
+      "dependencies": [
+        "Bool",
+        "Bool.true",
+        "Eq",
+        "Iff",
+        "Nat",
+        "Refpoly.KS.Eligible",
+        "Refpoly.KS.PolyCode",
+        "Refpoly.KS.Procedures",
+        "Refpoly.KS.Procedures.eligible"
+      ]
+    },
+    "Refpoly.KS.Eligible": {
+      "type": "{d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 Prop",
+      "definition": "fun {d : Nat} (Q : Refpoly.KS.PolyCode d) =>\n  And (Refpoly.IsIP (Refpoly.KS.PolyCode.hull Q)) (Refpoly.KS.IntegralVPM (Refpoly.KS.PolyCode.hull Q))",
+      "dependencies": [
+        "And",
+        "Nat",
+        "Refpoly.IsIP",
+        "Refpoly.KS.IntegralVPM",
+        "Refpoly.KS.PolyCode",
+        "Refpoly.KS.PolyCode.hull"
+      ]
+    },
+    "Refpoly.KS.FiniteLatticeInterval": {
+      "type": "Prop",
+      "definition": "\u2200 (d : Nat) (Q : Refpoly.KS.PolyCode d), Refpoly.KS.Eligible Q \u2192 Set.Finite.{0} (Refpoly.KS.LatticeInterval Q)",
+      "dependencies": [
+        "AddSubgroup",
+        "Fin",
+        "Nat",
+        "Pi.addGroup",
+        "Real",
+        "Real.instAddGroup",
+        "Refpoly.KS.Eligible",
+        "Refpoly.KS.LatticeInterval",
+        "Refpoly.KS.PolyCode",
+        "Refpoly.V",
+        "Set.Finite"
+      ]
+    },
+    "Refpoly.KS.ForwardIntegral": {
+      "type": "{d : Nat} \u2192 LinearEquiv.{0, 0, 0, 0} (RingHom.id.{0} Real) (Refpoly.V d) (Refpoly.V d) \u2192 Prop",
+      "definition": "fun {d : Nat} (f : LinearEquiv.{0, 0, 0, 0} (RingHom.id.{0} Real) (Refpoly.V d) (Refpoly.V d)) =>\n  \u2200 (x : Refpoly.V d), Refpoly.IsLatticePoint x \u2192 Refpoly.IsLatticePoint (f x)",
+      "dependencies": [
+        "DFinsupp.instEquivLikeLinearEquiv",
+        "DFunLike.coe",
+        "EquivLike.toFunLike",
+        "Fin",
+        "LinearEquiv",
+        "Nat",
+        "Pi.Function.module",
+        "Pi.addCommMonoid",
+        "Real",
+        "Real.instAddCommMonoid",
+        "Real.semiring",
+        "Refpoly.IsLatticePoint",
+        "Refpoly.V",
+        "RingHom.id",
+        "RingHomInvPair.ids",
+        "Semiring.toModule",
+        "Semiring.toNonAssocSemiring"
+      ]
+    },
+    "Refpoly.KS.GeneratedRows": {
+      "type": "{d : Nat} \u2192 ((m : Nat) \u2192 List.{0} (Refpoly.KS.WeightCode m)) \u2192 Refpoly.KS.CWSCode d \u2192 Prop",
+      "definition": "fun {d : Nat} (weights : (m : Nat) \u2192 List.{0} (Refpoly.KS.WeightCode m)) (C : Refpoly.KS.CWSCode d) =>\n  \u2200 (a : Fin (Refpoly.KS.CWSCode.r C)),\n    \u2203 (m : Nat),\n      And (LE.le.{0} m (HAdd.hAdd.{0, 0, 0} d 1))\n        (\u2203 (e : Function.Embedding.{1, 1} (Fin m) (Fin (Refpoly.KS.CWSCode.N C))) (w : Refpoly.KS.WeightCode m),\n          And (Membership.mem.{0, 0} (weights m) w) (Eq.{1} (Refpoly.KS.CWSCode.rows C a) (Refpoly.KS.pad e w)))",
+      "dependencies": [
+        "And",
+        "Eq",
+        "Exists",
+        "Fin",
+        "Function.Embedding",
+        "HAdd.hAdd",
+        "LE.le",
+        "List",
+        "List.instMembership",
+        "Membership.mem",
+        "Nat",
+        "OfNat.ofNat",
+        "Refpoly.KS.CWSCode",
+        "Refpoly.KS.CWSCode.N",
+        "Refpoly.KS.CWSCode.r",
+        "Refpoly.KS.CWSCode.rows",
+        "Refpoly.KS.WeightCode",
+        "Refpoly.KS.pad",
+        "instAddNat",
+        "instHAdd",
+        "instLENat",
+        "instOfNatNat"
+      ]
+    },
+    "Refpoly.KS.GeometricBasis": {
+      "type": "{d : Nat} \u2192 {S : Refpoly.KS.Seed d} \u2192 Refpoly.KS.RelationBasis S \u2192 Prop",
+      "definition": "fun {d : Nat} {S : Refpoly.KS.Seed d} (B : Refpoly.KS.RelationBasis S) =>\n  And\n    (Eq.{1} (Submodule.span.{0, 0} Real (Set.range.{0, 1} (Refpoly.KS.realRows (Refpoly.KS.RelationBasis.code B))))\n      (LinearMap.ker.{0, 0, 0, 0}\n        (Matrix.mulVecLin.{0, 0, 0} fun (i : Fin d) (j : Fin (Refpoly.KS.Seed.N S)) => Refpoly.KS.Seed.vertices S j i)))\n    (\u2200 (a : Fin (Refpoly.KS.RelationBasis.r B)),\n      \u2203 (m : Nat),\n        And (LE.le.{0} m (HAdd.hAdd.{0, 0, 0} d 1))\n          (\u2203 (e : Function.Embedding.{1, 1} (Fin m) (Fin (Refpoly.KS.Seed.N S))) (w : Refpoly.KS.WeightCode m),\n            And (Refpoly.KS.PrimitiveIP w)\n              (And (Eq.{1} (Refpoly.KS.RelationBasis.rows B a) (Refpoly.KS.pad e w))\n                (And (AffineIndependent.{0, 0, 0, 0} Real fun (i : Fin m) => Refpoly.KS.Seed.vertices S (e i))\n                  (Eq.{1}\n                    (\u2211 i : Fin m,\n                      HSMul.hSMul.{0, 0, 0} (\u2191(Refpoly.KS.normalized w i)) (Refpoly.KS.Seed.vertices S (e i)))\n                    0)))))",
+      "dependencies": [
+        "AffineIndependent",
+        "And",
+        "CommSemiring.toSemiring",
+        "DFunLike.coe",
+        "Eq",
+        "Exists",
+        "Fin",
+        "Fin.fintype",
+        "Finset.instAddTorsorForall",
+        "Finset.sum",
+        "Finset.univ",
+        "Function.Embedding",
+        "Function.hasSMul",
+        "Function.instFunLikeEmbedding",
+        "HAdd.hAdd",
+        "HSMul.hSMul",
+        "LE.le",
+        "LinearMap.ker",
+        "Matrix.mulVecLin",
+        "Nat",
+        "NonAssocSemiring.toNonUnitalNonAssocSemiring",
+        "NonUnitalNonAssocSemiring.toAddCommMonoid",
+        "OfNat.ofNat",
+        "Pi.Function.module",
+        "Pi.addCommGroup",
+        "Pi.addCommMonoid",
+        "Pi.instZero",
+        "Rat.cast",
+        "Real",
+        "Real.instAddCommGroup",
+        "Real.instAddCommMonoid",
+        "Real.instCommSemiring",
+        "Real.instMul",
+        "Real.instRatCast",
+        "Real.instRing",
+        "Real.instZero",
+        "Real.semiring",
+        "Refpoly.KS.CWSCode.N",
+        "Refpoly.KS.CWSCode.r",
+        "Refpoly.KS.PrimitiveIP",
+        "Refpoly.KS.RelationBasis",
+        "Refpoly.KS.RelationBasis.code",
+        "Refpoly.KS.RelationBasis.r",
+        "Refpoly.KS.RelationBasis.rows",
+        "Refpoly.KS.Seed",
+        "Refpoly.KS.Seed.N",
+        "Refpoly.KS.Seed.vertices",
+        "Refpoly.KS.WeightCode",
+        "Refpoly.KS.normalized",
+        "Refpoly.KS.pad",
+        "Refpoly.KS.realRows",
+        "Refpoly.V",
+        "Ring.toSemiring",
+        "RingHom.id",
+        "Semiring.toAddCommMonoid",
+        "Semiring.toModule",
+        "Semiring.toNonAssocSemiring",
+        "Set.range",
+        "Submodule",
+        "Submodule.span",
+        "Zero.toOfNat0",
+        "instAddNat",
+        "instHAdd",
+        "instHSMul",
+        "instLENat",
+        "instOfNatNat",
+        "instSMulOfMul"
+      ]
+    },
+    "Refpoly.KS.GeometricContainers": {
+      "type": "Refpoly.KS.Procedures \u2192 Prop",
+      "definition": "fun (p : Refpoly.KS.Procedures) =>\n  \u2200 (d : Nat),\n    LT.lt.{0} 0 d \u2192\n      \u2200 (P : Set.{0} (Refpoly.V d)),\n        Refpoly.IsReflexive P \u2192\n          \u2200 (S : Refpoly.KS.Seed d),\n            Refpoly.KS.ValidSeed P S \u2192\n              \u2200 (B : Refpoly.KS.RelationBasis S),\n                Refpoly.KS.ValidCWS (Refpoly.KS.RelationBasis.code B) \u2192\n                  Refpoly.KS.GeometricBasis B \u2192\n                    Refpoly.KS.KernelBasisCorrect (Refpoly.KS.RelationBasis.code B)\n                        (Refpoly.KS.Procedures.kernelBasis p (Refpoly.KS.RelationBasis.code B)) \u2192\n                      \u2203 (f : LinearEquiv.{0, 0, 0, 0} (RingHom.id.{0} Real) (Refpoly.V d) (Refpoly.V d)),\n                        And (Refpoly.KS.ForwardIntegral f)\n                          (Subset.{0} (Set.image.{0, 0} (\u21d1f) P)\n                            (Refpoly.KS.container\n                              (Refpoly.KS.Procedures.kernelBasis p (Refpoly.KS.RelationBasis.code B))))",
+      "dependencies": [
+        "And",
+        "DFinsupp.instEquivLikeLinearEquiv",
+        "DFunLike.coe",
+        "EquivLike.toFunLike",
+        "Exists",
+        "Fin",
+        "HasSubset.Subset",
+        "LT.lt",
+        "LinearEquiv",
+        "Nat",
+        "OfNat.ofNat",
+        "Pi.Function.module",
+        "Pi.addCommMonoid",
+        "Real",
+        "Real.instAddCommMonoid",
+        "Real.semiring",
+        "Refpoly.IsReflexive",
+        "Refpoly.KS.ForwardIntegral",
+        "Refpoly.KS.GeometricBasis",
+        "Refpoly.KS.KernelBasisCorrect",
+        "Refpoly.KS.Procedures",
+        "Refpoly.KS.Procedures.kernelBasis",
+        "Refpoly.KS.RelationBasis",
+        "Refpoly.KS.RelationBasis.code",
+        "Refpoly.KS.Seed",
+        "Refpoly.KS.ValidCWS",
+        "Refpoly.KS.ValidSeed",
+        "Refpoly.KS.container",
+        "Refpoly.V",
+        "RingHom.id",
+        "RingHomInvPair.ids",
+        "Semiring.toModule",
+        "Semiring.toNonAssocSemiring",
+        "Set",
+        "Set.image",
+        "Set.instHasSubset",
+        "instLTNat",
+        "instOfNatNat"
+      ]
+    },
+    "Refpoly.KS.ImageEligible": {
+      "type": "Prop",
+      "definition": "\u2200 (d : Nat) (P : Set.{0} (Refpoly.V d)),\n  Refpoly.IsReflexive P \u2192\n    \u2200 (f : LinearEquiv.{0, 0, 0, 0} (RingHom.id.{0} Real) (Refpoly.V d) (Refpoly.V d)),\n      Refpoly.KS.ForwardIntegral f \u2192\n        \u2200 (Q : Refpoly.KS.PolyCode d),\n          Eq.{1} (Refpoly.KS.PolyCode.hull Q) (Set.image.{0, 0} (\u21d1f) P) \u2192 Refpoly.KS.Eligible Q",
+      "dependencies": [
+        "DFinsupp.instEquivLikeLinearEquiv",
+        "DFunLike.coe",
+        "Eq",
+        "EquivLike.toFunLike",
+        "Fin",
+        "LinearEquiv",
+        "Nat",
+        "Pi.Function.module",
+        "Pi.addCommMonoid",
+        "Real",
+        "Real.instAddCommMonoid",
+        "Real.semiring",
+        "Refpoly.IsReflexive",
+        "Refpoly.KS.Eligible",
+        "Refpoly.KS.ForwardIntegral",
+        "Refpoly.KS.PolyCode",
+        "Refpoly.KS.PolyCode.hull",
+        "Refpoly.V",
+        "RingHom.id",
+        "RingHomInvPair.ids",
+        "Semiring.toModule",
+        "Semiring.toNonAssocSemiring",
+        "Set",
+        "Set.image"
+      ]
+    },
+    "Refpoly.KS.IntPoint": {
+      "type": "Nat \u2192 Type",
+      "definition": "fun (d : Nat) => Fin d \u2192 Int",
+      "dependencies": [
+        "Fin",
+        "Int",
+        "Nat"
+      ]
+    },
+    "Refpoly.KS.IntegralVPM": {
+      "type": "{d : Nat} \u2192 Set.{0} (Refpoly.V d) \u2192 Prop",
+      "definition": "fun {d : Nat} (P : Set.{0} (Refpoly.V d)) =>\n  \u2200 (v : Refpoly.V d),\n    Membership.mem.{0, 0} (Set.extremePoints.{0, 0} Real P) v \u2192\n      \u2200 (u : Refpoly.V d),\n        Membership.mem.{0, 0} (Set.extremePoints.{0, 0} Real (Refpoly.polarDual P)) u \u2192\n          \u2203 (z : Int), Eq.{1} (dotProduct.{0, 0} u v) \u2191z",
+      "dependencies": [
+        "Eq",
+        "Exists",
+        "Fin",
+        "Fin.fintype",
+        "Function.hasSMul",
+        "Int",
+        "Int.cast",
+        "Membership.mem",
+        "Nat",
+        "Pi.addCommMonoid",
+        "Real",
+        "Real.instAddCommMonoid",
+        "Real.instIntCast",
+        "Real.instMul",
+        "Real.partialOrder",
+        "Real.semiring",
+        "Refpoly.V",
+        "Refpoly.polarDual",
+        "Set",
+        "Set.extremePoints",
+        "Set.instMembership",
+        "dotProduct",
+        "instSMulOfMul"
+      ]
+    },
+    "Refpoly.KS.KernelBases": {
+      "type": "Refpoly.KS.Procedures \u2192 Prop",
+      "definition": "fun (p : Refpoly.KS.Procedures) =>\n  \u2200 (d : Nat) (C : Refpoly.KS.CWSCode d),\n    Refpoly.KS.ValidCWS C \u2192 Refpoly.KS.KernelBasisCorrect C (Refpoly.KS.Procedures.kernelBasis p C)",
+      "dependencies": [
+        "Nat",
+        "Refpoly.KS.CWSCode",
+        "Refpoly.KS.KernelBasisCorrect",
+        "Refpoly.KS.Procedures",
+        "Refpoly.KS.Procedures.kernelBasis",
+        "Refpoly.KS.ValidCWS"
+      ]
+    },
+    "Refpoly.KS.KernelBasisCorrect": {
+      "type": "{d : Nat} \u2192 (C : Refpoly.KS.CWSCode d) \u2192 (Fin (Refpoly.KS.CWSCode.N C) \u2192 Fin d \u2192 Int) \u2192 Prop",
+      "definition": "fun {d : Nat} (C : Refpoly.KS.CWSCode d) (b : Fin (Refpoly.KS.CWSCode.N C) \u2192 Fin d \u2192 Int) =>\n  And (Function.Injective.{1, 1} \u21d1(Refpoly.KS.basisMap b))\n    (And (Eq.{1} (LinearMap.range.{0, 0, 0, 0} (Refpoly.KS.basisMap b)) (Refpoly.KS.kernelSpace C))\n      (\u2200 (y : Refpoly.V (Refpoly.KS.CWSCode.N C)),\n        Membership.mem.{0, 0} (Refpoly.KS.kernelSpace C) y \u2192\n          Refpoly.IsLatticePoint y \u2192\n            \u2203 (x : Refpoly.V d), And (Refpoly.IsLatticePoint x) (Eq.{1} ((Refpoly.KS.basisMap b) x) y)))",
+      "dependencies": [
+        "And",
+        "DFunLike.coe",
+        "Eq",
+        "Exists",
+        "Fin",
+        "Function.Injective",
+        "Int",
+        "LinearMap",
+        "LinearMap.instFunLike",
+        "LinearMap.range",
+        "Membership.mem",
+        "Nat",
+        "Pi.Function.module",
+        "Pi.addCommMonoid",
+        "Real",
+        "Real.instAddCommMonoid",
+        "Real.semiring",
+        "Refpoly.IsLatticePoint",
+        "Refpoly.KS.CWSCode",
+        "Refpoly.KS.CWSCode.N",
+        "Refpoly.KS.basisMap",
+        "Refpoly.KS.kernelSpace",
+        "Refpoly.V",
+        "RingHom.id",
+        "RingHomSurjective.ids",
+        "Semiring.toModule",
+        "Semiring.toNonAssocSemiring",
+        "SetLike.instMembership",
+        "Submodule",
+        "Submodule.setLike"
+      ]
+    },
+    "Refpoly.KS.LatticeInterval": {
+      "type": "{d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 Set.{0} (AddSubgroup.{0} (Refpoly.V d))",
+      "definition": "fun {d : Nat} (Q : Refpoly.KS.PolyCode d) =>\n  setOf.{0} fun (L : AddSubgroup.{0} (Refpoly.V d)) => Refpoly.KS.Compatible Q L",
+      "dependencies": [
+        "AddSubgroup",
+        "Fin",
+        "Nat",
+        "Pi.addGroup",
+        "Real",
+        "Real.instAddGroup",
+        "Refpoly.KS.Compatible",
+        "Refpoly.KS.PolyCode",
+        "Refpoly.V",
+        "Set",
+        "setOf"
+      ]
+    },
+    "Refpoly.KS.PolyCode": {
+      "type": "Nat \u2192 Type",
+      "definition": "",
+      "dependencies": [
+        "Nat"
+      ]
+    },
+    "Refpoly.KS.PolyCode._sizeOf_1": {
+      "type": "{d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 Nat",
+      "definition": "fun {d : Nat} (t : Refpoly.KS.PolyCode d) =>\n  Refpoly.KS.PolyCode.rec.{1}\n    (fun (points : List.{0} (Refpoly.KS.IntPoint d)) => HAdd.hAdd.{0, 0, 0} 1 (sizeOf.{1} points)) t",
+      "dependencies": [
+        "HAdd.hAdd",
+        "List",
+        "List._sizeOf_inst",
+        "Nat",
+        "OfNat.ofNat",
+        "Refpoly.KS.IntPoint",
+        "Refpoly.KS.PolyCode",
+        "Refpoly.KS.PolyCode.rec",
+        "SizeOf.sizeOf",
+        "instAddNat",
+        "instHAdd",
+        "instOfNatNat",
+        "instSizeOfDefault"
+      ]
+    },
+    "Refpoly.KS.PolyCode._sizeOf_inst": {
+      "type": "(d : Nat) \u2192 SizeOf.{1} (Refpoly.KS.PolyCode d)",
+      "definition": "fun (d : Nat) => SizeOf.mk.{1} fun (m : Refpoly.KS.PolyCode d) => Refpoly.KS.PolyCode._sizeOf_1 m",
+      "dependencies": [
+        "Nat",
+        "Refpoly.KS.PolyCode",
+        "Refpoly.KS.PolyCode._sizeOf_1",
+        "SizeOf",
+        "SizeOf.mk"
+      ]
+    },
+    "Refpoly.KS.PolyCode.casesOn": {
+      "type": "{d : Nat} \u2192\n  {motive : Refpoly.KS.PolyCode d \u2192 Sort u} \u2192\n    (t : Refpoly.KS.PolyCode d) \u2192 ((points : List.{0} (Refpoly.KS.IntPoint d)) \u2192 motive { points := points }) \u2192 motive t",
+      "definition": "fun {d : Nat} {motive : Refpoly.KS.PolyCode d \u2192 Sort u} (t : Refpoly.KS.PolyCode d)\n    (mk : (points : List.{0} (Refpoly.KS.IntPoint d)) \u2192 motive { points := points }) =>\n  Refpoly.KS.PolyCode.rec.{u} (fun (points : List.{0} (Refpoly.KS.IntPoint d)) => mk points) t",
+      "dependencies": [
+        "List",
+        "Nat",
+        "Refpoly.KS.IntPoint",
+        "Refpoly.KS.PolyCode",
+        "Refpoly.KS.PolyCode.mk",
+        "Refpoly.KS.PolyCode.rec"
+      ]
+    },
+    "Refpoly.KS.PolyCode.ctorIdx": {
+      "type": "{d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 Nat",
+      "definition": "fun {d : Nat} (x : Refpoly.KS.PolyCode d) => 0",
+      "dependencies": [
+        "Nat",
+        "Refpoly.KS.PolyCode"
+      ]
+    },
+    "Refpoly.KS.PolyCode.hull": {
+      "type": "{d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 Set.{0} (Refpoly.V d)",
+      "definition": "fun {d : Nat} (P : Refpoly.KS.PolyCode d) =>\n  (convexHull.{0, 0} Real) (Refpoly.KS.pointSet (Refpoly.KS.PolyCode.points P))",
+      "dependencies": [
+        "ChainCompletePartialOrder.instOfCompleteLattice",
+        "ChainCompletePartialOrder.toPartialOrder",
+        "ClosureOperator",
+        "ClosureOperator.instFunLike",
+        "CompleteAtomicBooleanAlgebra.toCompleteBooleanAlgebra",
+        "CompleteBooleanAlgebra.toCompleteLattice",
+        "DFunLike.coe",
+        "Fin",
+        "Nat",
+        "PartialOrder.toPreorder",
+        "Pi.Function.module",
+        "Pi.addCommMonoid",
+        "Real",
+        "Real.instAddCommMonoid",
+        "Real.partialOrder",
+        "Real.semiring",
+        "Refpoly.KS.PolyCode",
+        "Refpoly.KS.PolyCode.points",
+        "Refpoly.KS.pointSet",
+        "Refpoly.V",
+        "Semiring.toModule",
+        "Set",
+        "Set.instCompleteAtomicBooleanAlgebra",
+        "convexHull"
+      ]
+    },
+    "Refpoly.KS.PolyCode.mk": {
+      "type": "{d : Nat} \u2192 List.{0} (Refpoly.KS.IntPoint d) \u2192 Refpoly.KS.PolyCode d",
+      "definition": "",
+      "dependencies": [
+        "List",
+        "Nat",
+        "Refpoly.KS.IntPoint",
+        "Refpoly.KS.PolyCode"
+      ]
+    },
+    "Refpoly.KS.PolyCode.mk._flat_ctor": {
+      "type": "{d : Nat} \u2192 List.{0} (Refpoly.KS.IntPoint d) \u2192 Refpoly.KS.PolyCode d",
+      "definition": "fun (d : Nat) (points : List.{0} (Refpoly.KS.IntPoint d)) => { points := points }",
+      "dependencies": [
+        "List",
+        "Nat",
+        "Refpoly.KS.IntPoint",
+        "Refpoly.KS.PolyCode",
+        "Refpoly.KS.PolyCode.mk"
+      ]
+    },
+    "Refpoly.KS.PolyCode.mk.noConfusion": {
+      "type": "{d : Nat} \u2192\n  {P : Sort u} \u2192\n    {points points' : List.{0} (Refpoly.KS.IntPoint d)} \u2192\n      Eq.{1} { points := points } { points := points' } \u2192 (HEq.{1} points points' \u2192 P) \u2192 P",
+      "definition": "fun {d : Nat} {P : Sort u} {points points' : List.{0} (Refpoly.KS.IntPoint d)}\n    (eq : Eq.{1} { points := points } { points := points' }) (k : HEq.{1} points points' \u2192 P) =>\n  id.{u} (Refpoly.KS.PolyCode.noConfusion.{u} \u22ef \u22ef k)",
+      "dependencies": [
+        "Eq",
+        "Eq.refl",
+        "HEq",
+        "List",
+        "Nat",
+        "Refpoly.KS.IntPoint",
+        "Refpoly.KS.PolyCode",
+        "Refpoly.KS.PolyCode.mk",
+        "Refpoly.KS.PolyCode.noConfusion",
+        "heq_of_eq",
+        "id"
+      ]
+    },
+    "Refpoly.KS.PolyCode.noConfusion": {
+      "type": "{P : Sort u} \u2192\n  {d : Nat} \u2192\n    {t : Refpoly.KS.PolyCode d} \u2192\n      {d' : Nat} \u2192\n        {t' : Refpoly.KS.PolyCode d'} \u2192 Eq.{1} d d' \u2192 HEq.{1} t t' \u2192 Refpoly.KS.PolyCode.noConfusionType.{u} P t t'",
+      "definition": "fun {P : Sort u} {d : Nat} {t : Refpoly.KS.PolyCode d} {d' : Nat} {t' : Refpoly.KS.PolyCode d'} (eq_1 : Eq.{1} d d')\n    (eq_2 : HEq.{1} t t') =>\n  Eq.ndrec.{u, 1} (motive := fun {d' : Nat} =>\n    {t' : Refpoly.KS.PolyCode d'} \u2192 HEq.{1} t t' \u2192 Refpoly.KS.PolyCode.noConfusionType.{u} P t t')\n    (fun {t' : Refpoly.KS.PolyCode d} (eq_2 : HEq.{1} t t') =>\n      Eq.ndrec.{u, 1}\n        (Refpoly.KS.PolyCode.casesOn.{u} t\n          fun (points : List.{0} (Refpoly.KS.IntPoint d)) (k : HEq.{1} points points \u2192 P) => k \u22ef)\n        \u22ef)\n    eq_1 eq_2",
+      "dependencies": [
+        "Eq",
+        "Eq.ndrec",
+        "HEq",
+        "HEq.refl",
+        "List",
+        "Nat",
+        "Refpoly.KS.IntPoint",
+        "Refpoly.KS.PolyCode",
+        "Refpoly.KS.PolyCode.casesOn",
+        "Refpoly.KS.PolyCode.noConfusionType",
+        "eq_of_heq"
+      ]
+    },
+    "Refpoly.KS.PolyCode.noConfusionType": {
+      "type": "Sort u \u2192 {d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 {d' : Nat} \u2192 Refpoly.KS.PolyCode d' \u2192 Sort u",
+      "definition": "fun (P : Sort u) {d : Nat} (t : Refpoly.KS.PolyCode d) {d' : Nat} (t' : Refpoly.KS.PolyCode d') =>\n  Refpoly.KS.PolyCode.casesOn.{u + 1} t fun (points : List.{0} (Refpoly.KS.IntPoint d)) =>\n    Refpoly.KS.PolyCode.casesOn.{u + 1} t' fun (points_1 : List.{0} (Refpoly.KS.IntPoint d')) =>\n      (HEq.{1} points points_1 \u2192 P) \u2192 P",
+      "dependencies": [
+        "HEq",
+        "List",
+        "Nat",
+        "Refpoly.KS.IntPoint",
+        "Refpoly.KS.PolyCode",
+        "Refpoly.KS.PolyCode.casesOn"
+      ]
+    },
+    "Refpoly.KS.PolyCode.points": {
+      "type": "{d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 List.{0} (Refpoly.KS.IntPoint d)",
+      "definition": "fun (d : Nat) (self : Refpoly.KS.PolyCode d) => self.1",
+      "dependencies": [
+        "List",
+        "Nat",
+        "Refpoly.KS.IntPoint",
+        "Refpoly.KS.PolyCode"
+      ]
+    },
+    "Refpoly.KS.PolyCode.rec": {
+      "type": "{d : Nat} \u2192\n  {motive : Refpoly.KS.PolyCode d \u2192 Sort u} \u2192\n    ((points : List.{0} (Refpoly.KS.IntPoint d)) \u2192 motive { points := points }) \u2192 (t : Refpoly.KS.PolyCode d) \u2192 motive t",
+      "definition": "",
+      "dependencies": [
+        "List",
+        "Nat",
+        "Refpoly.KS.IntPoint",
+        "Refpoly.KS.PolyCode",
+        "Refpoly.KS.PolyCode.mk"
+      ]
+    },
+    "Refpoly.KS.PolyCode.recOn": {
+      "type": "{d : Nat} \u2192\n  {motive : Refpoly.KS.PolyCode d \u2192 Sort u} \u2192\n    (t : Refpoly.KS.PolyCode d) \u2192 ((points : List.{0} (Refpoly.KS.IntPoint d)) \u2192 motive { points := points }) \u2192 motive t",
+      "definition": "fun {d : Nat} {motive : Refpoly.KS.PolyCode d \u2192 Sort u} (t : Refpoly.KS.PolyCode d)\n    (mk : (points : List.{0} (Refpoly.KS.IntPoint d)) \u2192 motive { points := points }) =>\n  Refpoly.KS.PolyCode.rec.{u} mk t",
+      "dependencies": [
+        "List",
+        "Nat",
+        "Refpoly.KS.IntPoint",
+        "Refpoly.KS.PolyCode",
+        "Refpoly.KS.PolyCode.mk",
+        "Refpoly.KS.PolyCode.rec"
+      ]
+    },
+    "Refpoly.KS.PrimitiveIP": {
+      "type": "{m : Nat} \u2192 Refpoly.KS.WeightCode m \u2192 Prop",
+      "definition": "fun {m : Nat} (w : Refpoly.KS.WeightCode m) =>\n  And (Eq.{1} (Finset.gcd.{0, 0} Finset.univ.{0} w) 1)\n    (Refpoly.IsIPWeightSystem fun (i : Fin m) => \u2191(Refpoly.KS.normalized w i))",
+      "dependencies": [
+        "And",
+        "Eq",
+        "Fin",
+        "Fin.fintype",
+        "Finset.gcd",
+        "Finset.univ",
+        "Nat",
+        "Nat.instCommMonoidWithZero",
+        "OfNat.ofNat",
+        "Rat.cast",
+        "Real",
+        "Real.instRatCast",
+        "Refpoly.IsIPWeightSystem",
+        "Refpoly.KS.WeightCode",
+        "Refpoly.KS.normalized",
+        "instNormalizedGCDMonoidNat",
+        "instOfNatNat"
+      ]
+    },
+    "Refpoly.KS.Procedures": {
+      "type": "Type",
+      "definition": "",
+      "dependencies": []
+    },
+    "Refpoly.KS.Procedures._sizeOf_1": {
+      "type": "Refpoly.KS.Procedures \u2192 Nat",
+      "definition": "fun (t : Refpoly.KS.Procedures) =>\n  Refpoly.KS.Procedures.rec.{1}\n    (fun (weights : (m : Nat) \u2192 List.{0} (Refpoly.KS.WeightCode m))\n        (assemble : (d : Nat) \u2192 ((m : Nat) \u2192 List.{0} (Refpoly.KS.WeightCode m)) \u2192 List.{0} (Refpoly.KS.CWSCode d))\n        (kernelBasis : {d : Nat} \u2192 (C : Refpoly.KS.CWSCode d) \u2192 Fin (Refpoly.KS.CWSCode.N C) \u2192 Fin d \u2192 Int)\n        (points : {d : Nat} \u2192 Refpoly.KS.CWSCode d \u2192 List.{0} (Refpoly.KS.IntPoint d))\n        (eligible : {d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 Bool)\n        (realize : {d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 List.{0} (Refpoly.KS.PolyCode d))\n        (reflexive : {d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 Bool) =>\n      1)\n    t",
+      "dependencies": [
+        "Bool",
+        "Fin",
+        "Int",
+        "List",
+        "Nat",
+        "OfNat.ofNat",
+        "Refpoly.KS.CWSCode",
+        "Refpoly.KS.CWSCode.N",
+        "Refpoly.KS.IntPoint",
+        "Refpoly.KS.PolyCode",
+        "Refpoly.KS.Procedures",
+        "Refpoly.KS.Procedures.rec",
+        "Refpoly.KS.WeightCode",
+        "instOfNatNat"
+      ]
+    },
+    "Refpoly.KS.Procedures._sizeOf_inst": {
+      "type": "SizeOf.{1} Refpoly.KS.Procedures",
+      "definition": "SizeOf.mk.{1} fun (m : Refpoly.KS.Procedures) => Refpoly.KS.Procedures._sizeOf_1 m",
+      "dependencies": [
+        "Refpoly.KS.Procedures",
+        "Refpoly.KS.Procedures._sizeOf_1",
+        "SizeOf",
+        "SizeOf.mk"
+      ]
+    },
+    "Refpoly.KS.Procedures.assemble": {
+      "type": "Refpoly.KS.Procedures \u2192 (d : Nat) \u2192 ((m : Nat) \u2192 List.{0} (Refpoly.KS.WeightCode m)) \u2192 List.{0} (Refpoly.KS.CWSCode d)",
+      "definition": "fun (self : Refpoly.KS.Procedures) => self.2",
+      "dependencies": [
+        "List",
+        "Nat",
+        "Refpoly.KS.CWSCode",
+        "Refpoly.KS.Procedures",
+        "Refpoly.KS.WeightCode"
+      ]
+    },
+    "Refpoly.KS.Procedures.casesOn": {
+      "type": "{motive : Refpoly.KS.Procedures \u2192 Sort u} \u2192\n  (t : Refpoly.KS.Procedures) \u2192\n    ((weights : (m : Nat) \u2192 List.{0} (Refpoly.KS.WeightCode m)) \u2192\n        (assemble : (d : Nat) \u2192 ((m : Nat) \u2192 List.{0} (Refpoly.KS.WeightCode m)) \u2192 List.{0} (Refpoly.KS.CWSCode d)) \u2192\n          (kernelBasis : {d : Nat} \u2192 (C : Refpoly.KS.CWSCode d) \u2192 Fin (Refpoly.KS.CWSCode.N C) \u2192 Fin d \u2192 Int) \u2192\n            (points : {d : Nat} \u2192 Refpoly.KS.CWSCode d \u2192 List.{0} (Refpoly.KS.IntPoint d)) \u2192\n              (eligible : {d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 Bool) \u2192\n                (realize : {d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 List.{0} (Refpoly.KS.PolyCode d)) \u2192\n                  (reflexive : {d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 Bool) \u2192\n                    motive\n                      { weights := weights, assemble := assemble, kernelBasis := kernelBasis, points := points,\n                        eligible := eligible, realize := realize, reflexive := reflexive }) \u2192\n      motive t",
+      "definition": "fun {motive : Refpoly.KS.Procedures \u2192 Sort u} (t : Refpoly.KS.Procedures)\n    (mk :\n      (weights : (m : Nat) \u2192 List.{0} (Refpoly.KS.WeightCode m)) \u2192\n        (assemble : (d : Nat) \u2192 ((m : Nat) \u2192 List.{0} (Refpoly.KS.WeightCode m)) \u2192 List.{0} (Refpoly.KS.CWSCode d)) \u2192\n          (kernelBasis : {d : Nat} \u2192 (C : Refpoly.KS.CWSCode d) \u2192 Fin (Refpoly.KS.CWSCode.N C) \u2192 Fin d \u2192 Int) \u2192\n            (points : {d : Nat} \u2192 Refpoly.KS.CWSCode d \u2192 List.{0} (Refpoly.KS.IntPoint d)) \u2192\n              (eligible : {d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 Bool) \u2192\n                (realize : {d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 List.{0} (Refpoly.KS.PolyCode d)) \u2192\n                  (reflexive : {d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 Bool) \u2192\n                    motive\n                      { weights := weights, assemble := assemble, kernelBasis := kernelBasis, points := points,\n                        eligible := eligible, realize := realize, reflexive := reflexive }) =>\n  Refpoly.KS.Procedures.rec.{u}\n    (fun (weights : (m : Nat) \u2192 List.{0} (Refpoly.KS.WeightCode m))\n        (assemble : (d : Nat) \u2192 ((m : Nat) \u2192 List.{0} (Refpoly.KS.WeightCode m)) \u2192 List.{0} (Refpoly.KS.CWSCode d))\n        (kernelBasis : {d : Nat} \u2192 (C : Refpoly.KS.CWSCode d) \u2192 Fin (Refpoly.KS.CWSCode.N C) \u2192 Fin d \u2192 Int)\n        (points : {d : Nat} \u2192 Refpoly.KS.CWSCode d \u2192 List.{0} (Refpoly.KS.IntPoint d))\n        (eligible : {d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 Bool)\n        (realize : {d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 List.{0} (Refpoly.KS.PolyCode d))\n        (reflexive : {d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 Bool) =>\n      mk weights assemble kernelBasis points eligible realize reflexive)\n    t",
+      "dependencies": [
+        "Bool",
+        "Fin",
+        "Int",
+        "List",
+        "Nat",
+        "Refpoly.KS.CWSCode",
+        "Refpoly.KS.CWSCode.N",
+        "Refpoly.KS.IntPoint",
+        "Refpoly.KS.PolyCode",
+        "Refpoly.KS.Procedures",
+        "Refpoly.KS.Procedures.mk",
+        "Refpoly.KS.Procedures.rec",
+        "Refpoly.KS.WeightCode"
+      ]
+    },
+    "Refpoly.KS.Procedures.ctorIdx": {
+      "type": "Refpoly.KS.Procedures \u2192 Nat",
+      "definition": "fun (x : Refpoly.KS.Procedures) => 0",
+      "dependencies": [
+        "Nat",
+        "Refpoly.KS.Procedures"
+      ]
+    },
+    "Refpoly.KS.Procedures.eligible": {
+      "type": "Refpoly.KS.Procedures \u2192 {d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 Bool",
+      "definition": "fun (self : Refpoly.KS.Procedures) => self.5",
+      "dependencies": [
+        "Bool",
+        "Nat",
+        "Refpoly.KS.PolyCode",
+        "Refpoly.KS.Procedures"
+      ]
+    },
+    "Refpoly.KS.Procedures.kernelBasis": {
+      "type": "Refpoly.KS.Procedures \u2192 {d : Nat} \u2192 (C : Refpoly.KS.CWSCode d) \u2192 Fin (Refpoly.KS.CWSCode.N C) \u2192 Fin d \u2192 Int",
+      "definition": "fun (self : Refpoly.KS.Procedures) => self.3",
+      "dependencies": [
+        "Fin",
+        "Int",
+        "Nat",
+        "Refpoly.KS.CWSCode",
+        "Refpoly.KS.CWSCode.N",
+        "Refpoly.KS.Procedures"
+      ]
+    },
+    "Refpoly.KS.Procedures.mk": {
+      "type": "((m : Nat) \u2192 List.{0} (Refpoly.KS.WeightCode m)) \u2192\n  ((d : Nat) \u2192 ((m : Nat) \u2192 List.{0} (Refpoly.KS.WeightCode m)) \u2192 List.{0} (Refpoly.KS.CWSCode d)) \u2192\n    ({d : Nat} \u2192 (C : Refpoly.KS.CWSCode d) \u2192 Fin (Refpoly.KS.CWSCode.N C) \u2192 Fin d \u2192 Int) \u2192\n      ({d : Nat} \u2192 Refpoly.KS.CWSCode d \u2192 List.{0} (Refpoly.KS.IntPoint d)) \u2192\n        ({d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 Bool) \u2192\n          ({d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 List.{0} (Refpoly.KS.PolyCode d)) \u2192\n            ({d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 Bool) \u2192 Refpoly.KS.Procedures",
+      "definition": "",
+      "dependencies": [
+        "Bool",
+        "Fin",
+        "Int",
+        "List",
+        "Nat",
+        "Refpoly.KS.CWSCode",
+        "Refpoly.KS.CWSCode.N",
+        "Refpoly.KS.IntPoint",
+        "Refpoly.KS.PolyCode",
+        "Refpoly.KS.Procedures",
+        "Refpoly.KS.WeightCode"
+      ]
+    },
+    "Refpoly.KS.Procedures.mk._flat_ctor": {
+      "type": "((m : Nat) \u2192 List.{0} (Refpoly.KS.WeightCode m)) \u2192\n  ((d : Nat) \u2192 ((m : Nat) \u2192 List.{0} (Refpoly.KS.WeightCode m)) \u2192 List.{0} (Refpoly.KS.CWSCode d)) \u2192\n    ({d : Nat} \u2192 (C : Refpoly.KS.CWSCode d) \u2192 Fin (Refpoly.KS.CWSCode.N C) \u2192 Fin d \u2192 Int) \u2192\n      ({d : Nat} \u2192 Refpoly.KS.CWSCode d \u2192 List.{0} (Refpoly.KS.IntPoint d)) \u2192\n        ({d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 Bool) \u2192\n          ({d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 List.{0} (Refpoly.KS.PolyCode d)) \u2192\n            ({d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 Bool) \u2192 Refpoly.KS.Procedures",
+      "definition": "fun (weights : (m : Nat) \u2192 List.{0} (Refpoly.KS.WeightCode m))\n    (assemble : (d : Nat) \u2192 ((m : Nat) \u2192 List.{0} (Refpoly.KS.WeightCode m)) \u2192 List.{0} (Refpoly.KS.CWSCode d))\n    (kernelBasis : {d : Nat} \u2192 (C : Refpoly.KS.CWSCode d) \u2192 Fin (Refpoly.KS.CWSCode.N C) \u2192 Fin d \u2192 Int)\n    (points : {d : Nat} \u2192 Refpoly.KS.CWSCode d \u2192 List.{0} (Refpoly.KS.IntPoint d))\n    (eligible : {d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 Bool)\n    (realize : {d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 List.{0} (Refpoly.KS.PolyCode d))\n    (reflexive : {d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 Bool) =>\n  { weights := weights, assemble := assemble, kernelBasis := kernelBasis, points := points, eligible := eligible,\n    realize := realize, reflexive := reflexive }",
+      "dependencies": [
+        "Bool",
+        "Fin",
+        "Int",
+        "List",
+        "Nat",
+        "Refpoly.KS.CWSCode",
+        "Refpoly.KS.CWSCode.N",
+        "Refpoly.KS.IntPoint",
+        "Refpoly.KS.PolyCode",
+        "Refpoly.KS.Procedures",
+        "Refpoly.KS.Procedures.mk",
+        "Refpoly.KS.WeightCode"
+      ]
+    },
+    "Refpoly.KS.Procedures.mk.noConfusion": {
+      "type": "{P : Sort u} \u2192\n  {weights : (m : Nat) \u2192 List.{0} (Refpoly.KS.WeightCode m)} \u2192\n    {assemble : (d : Nat) \u2192 ((m : Nat) \u2192 List.{0} (Refpoly.KS.WeightCode m)) \u2192 List.{0} (Refpoly.KS.CWSCode d)} \u2192\n      {kernelBasis : {d : Nat} \u2192 (C : Refpoly.KS.CWSCode d) \u2192 Fin (Refpoly.KS.CWSCode.N C) \u2192 Fin d \u2192 Int} \u2192\n        {points : {d : Nat} \u2192 Refpoly.KS.CWSCode d \u2192 List.{0} (Refpoly.KS.IntPoint d)} \u2192\n          {eligible : {d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 Bool} \u2192\n            {realize : {d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 List.{0} (Refpoly.KS.PolyCode d)} \u2192\n              {reflexive : {d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 Bool} \u2192\n                {weights' : (m : Nat) \u2192 List.{0} (Refpoly.KS.WeightCode m)} \u2192\n                  {assemble' :\n                      (d : Nat) \u2192 ((m : Nat) \u2192 List.{0} (Refpoly.KS.WeightCode m)) \u2192 List.{0} (Refpoly.KS.CWSCode d)} \u2192\n                    {kernelBasis' :\n                        {d : Nat} \u2192 (C : Refpoly.KS.CWSCode d) \u2192 Fin (Refpoly.KS.CWSCode.N C) \u2192 Fin d \u2192 Int} \u2192\n                      {points' : {d : Nat} \u2192 Refpoly.KS.CWSCode d \u2192 List.{0} (Refpoly.KS.IntPoint d)} \u2192\n                        {eligible' : {d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 Bool} \u2192\n                          {realize' : {d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 List.{0} (Refpoly.KS.PolyCode d)} \u2192\n                            {reflexive' : {d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 Bool} \u2192\n                              Eq.{1}\n                                  { weights := weights, assemble := assemble, kernelBasis := kernelBasis,\n                                    points := points, eligible := eligible, realize := realize, reflexive := reflexive }\n                                  { weights := weights', assemble := assemble', kernelBasis := kernelBasis',\n                                    points := points', eligible := eligible', realize := realize',\n                                    reflexive := reflexive' } \u2192\n                                (Eq.{1} weights weights' \u2192\n                                    Eq.{1} assemble assemble' \u2192\n                                      Eq.{1} kernelBasis kernelBasis' \u2192\n                                        Eq.{1} points points' \u2192\n                                          Eq.{1} eligible eligible' \u2192\n                                            Eq.{1} realize realize' \u2192 Eq.{1} reflexive reflexive' \u2192 P) \u2192\n                                  P",
+      "definition": "fun {P : Sort u} {weights : (m : Nat) \u2192 List.{0} (Refpoly.KS.WeightCode m)}\n    {assemble : (d : Nat) \u2192 ((m : Nat) \u2192 List.{0} (Refpoly.KS.WeightCode m)) \u2192 List.{0} (Refpoly.KS.CWSCode d)}\n    {kernelBasis : {d : Nat} \u2192 (C : Refpoly.KS.CWSCode d) \u2192 Fin (Refpoly.KS.CWSCode.N C) \u2192 Fin d \u2192 Int}\n    {points : {d : Nat} \u2192 Refpoly.KS.CWSCode d \u2192 List.{0} (Refpoly.KS.IntPoint d)}\n    {eligible : {d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 Bool}\n    {realize : {d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 List.{0} (Refpoly.KS.PolyCode d)}\n    {reflexive : {d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 Bool} {weights' : (m : Nat) \u2192 List.{0} (Refpoly.KS.WeightCode m)}\n    {assemble' : (d : Nat) \u2192 ((m : Nat) \u2192 List.{0} (Refpoly.KS.WeightCode m)) \u2192 List.{0} (Refpoly.KS.CWSCode d)}\n    {kernelBasis' : {d : Nat} \u2192 (C : Refpoly.KS.CWSCode d) \u2192 Fin (Refpoly.KS.CWSCode.N C) \u2192 Fin d \u2192 Int}\n    {points' : {d : Nat} \u2192 Refpoly.KS.CWSCode d \u2192 List.{0} (Refpoly.KS.IntPoint d)}\n    {eligible' : {d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 Bool}\n    {realize' : {d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 List.{0} (Refpoly.KS.PolyCode d)}\n    {reflexive' : {d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 Bool}\n    (eq :\n      Eq.{1}\n        { weights := weights, assemble := assemble, kernelBasis := kernelBasis, points := points, eligible := eligible,\n          realize := realize, reflexive := reflexive }\n        { weights := weights', assemble := assemble', kernelBasis := kernelBasis', points := points',\n          eligible := eligible', realize := realize', reflexive := reflexive' })\n    (k :\n      Eq.{1} weights weights' \u2192\n        Eq.{1} assemble assemble' \u2192\n          Eq.{1} kernelBasis kernelBasis' \u2192\n            Eq.{1} points points' \u2192\n              Eq.{1} eligible eligible' \u2192 Eq.{1} realize realize' \u2192 Eq.{1} reflexive reflexive' \u2192 P) =>\n  id.{u} (Refpoly.KS.Procedures.noConfusion.{u} eq k)",
+      "dependencies": [
+        "Bool",
+        "Eq",
+        "Fin",
+        "Int",
+        "List",
+        "Nat",
+        "Refpoly.KS.CWSCode",
+        "Refpoly.KS.CWSCode.N",
+        "Refpoly.KS.IntPoint",
+        "Refpoly.KS.PolyCode",
+        "Refpoly.KS.Procedures",
+        "Refpoly.KS.Procedures.mk",
+        "Refpoly.KS.Procedures.noConfusion",
+        "Refpoly.KS.WeightCode",
+        "id"
+      ]
+    },
+    "Refpoly.KS.Procedures.noConfusion": {
+      "type": "{P : Sort u} \u2192 {t t' : Refpoly.KS.Procedures} \u2192 Eq.{1} t t' \u2192 Refpoly.KS.Procedures.noConfusionType.{u} P t t'",
+      "definition": "fun {P : Sort u} {t t' : Refpoly.KS.Procedures} (eq : Eq.{1} t t') =>\n  Eq.ndrec.{u, 1}\n    (Refpoly.KS.Procedures.casesOn.{u} t\n      fun (weights : (m : Nat) \u2192 List.{0} (Refpoly.KS.WeightCode m))\n        (assemble : (d : Nat) \u2192 ((m : Nat) \u2192 List.{0} (Refpoly.KS.WeightCode m)) \u2192 List.{0} (Refpoly.KS.CWSCode d))\n        (kernelBasis : {d : Nat} \u2192 (C : Refpoly.KS.CWSCode d) \u2192 Fin (Refpoly.KS.CWSCode.N C) \u2192 Fin d \u2192 Int)\n        (points : {d : Nat} \u2192 Refpoly.KS.CWSCode d \u2192 List.{0} (Refpoly.KS.IntPoint d))\n        (eligible : {d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 Bool)\n        (realize : {d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 List.{0} (Refpoly.KS.PolyCode d))\n        (reflexive : {d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 Bool)\n        (k :\n          Eq.{1} weights weights \u2192\n            Eq.{1} assemble assemble \u2192\n              Eq.{1} kernelBasis kernelBasis \u2192\n                Eq.{1} points points \u2192\n                  Eq.{1} eligible eligible \u2192 Eq.{1} realize realize \u2192 Eq.{1} reflexive reflexive \u2192 P) =>\n      k \u22ef \u22ef \u22ef \u22ef \u22ef \u22ef \u22ef)\n    eq",
+      "dependencies": [
+        "Bool",
+        "Eq",
+        "Eq.ndrec",
+        "Eq.refl",
+        "Fin",
+        "Int",
+        "List",
+        "Nat",
+        "Refpoly.KS.CWSCode",
+        "Refpoly.KS.CWSCode.N",
+        "Refpoly.KS.IntPoint",
+        "Refpoly.KS.PolyCode",
+        "Refpoly.KS.Procedures",
+        "Refpoly.KS.Procedures.casesOn",
+        "Refpoly.KS.Procedures.noConfusionType",
+        "Refpoly.KS.WeightCode"
+      ]
+    },
+    "Refpoly.KS.Procedures.noConfusionType": {
+      "type": "Sort u \u2192 Refpoly.KS.Procedures \u2192 Refpoly.KS.Procedures \u2192 Sort u",
+      "definition": "fun (P : Sort u) (t t' : Refpoly.KS.Procedures) =>\n  Refpoly.KS.Procedures.casesOn.{u + 1} t\n    fun (weights : (m : Nat) \u2192 List.{0} (Refpoly.KS.WeightCode m))\n      (assemble : (d : Nat) \u2192 ((m : Nat) \u2192 List.{0} (Refpoly.KS.WeightCode m)) \u2192 List.{0} (Refpoly.KS.CWSCode d))\n      (kernelBasis : {d : Nat} \u2192 (C : Refpoly.KS.CWSCode d) \u2192 Fin (Refpoly.KS.CWSCode.N C) \u2192 Fin d \u2192 Int)\n      (points : {d : Nat} \u2192 Refpoly.KS.CWSCode d \u2192 List.{0} (Refpoly.KS.IntPoint d))\n      (eligible : {d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 Bool)\n      (realize : {d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 List.{0} (Refpoly.KS.PolyCode d))\n      (reflexive : {d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 Bool) =>\n    Refpoly.KS.Procedures.casesOn.{u + 1} t'\n      fun (weights_1 : (m : Nat) \u2192 List.{0} (Refpoly.KS.WeightCode m))\n        (assemble_1 : (d : Nat) \u2192 ((m : Nat) \u2192 List.{0} (Refpoly.KS.WeightCode m)) \u2192 List.{0} (Refpoly.KS.CWSCode d))\n        (kernelBasis_1 : {d : Nat} \u2192 (C : Refpoly.KS.CWSCode d) \u2192 Fin (Refpoly.KS.CWSCode.N C) \u2192 Fin d \u2192 Int)\n        (points_1 : {d : Nat} \u2192 Refpoly.KS.CWSCode d \u2192 List.{0} (Refpoly.KS.IntPoint d))\n        (eligible_1 : {d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 Bool)\n        (realize_1 : {d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 List.{0} (Refpoly.KS.PolyCode d))\n        (reflexive_1 : {d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 Bool) =>\n      (Eq.{1} weights weights_1 \u2192\n          Eq.{1} assemble assemble_1 \u2192\n            Eq.{1} kernelBasis kernelBasis_1 \u2192\n              Eq.{1} points points_1 \u2192\n                Eq.{1} eligible eligible_1 \u2192 Eq.{1} realize realize_1 \u2192 Eq.{1} reflexive reflexive_1 \u2192 P) \u2192\n        P",
+      "dependencies": [
+        "Bool",
+        "Eq",
+        "Fin",
+        "Int",
+        "List",
+        "Nat",
+        "Refpoly.KS.CWSCode",
+        "Refpoly.KS.CWSCode.N",
+        "Refpoly.KS.IntPoint",
+        "Refpoly.KS.PolyCode",
+        "Refpoly.KS.Procedures",
+        "Refpoly.KS.Procedures.casesOn",
+        "Refpoly.KS.WeightCode"
+      ]
+    },
+    "Refpoly.KS.Procedures.points": {
+      "type": "Refpoly.KS.Procedures \u2192 {d : Nat} \u2192 Refpoly.KS.CWSCode d \u2192 List.{0} (Refpoly.KS.IntPoint d)",
+      "definition": "fun (self : Refpoly.KS.Procedures) => self.4",
+      "dependencies": [
+        "List",
+        "Nat",
+        "Refpoly.KS.CWSCode",
+        "Refpoly.KS.IntPoint",
+        "Refpoly.KS.Procedures"
+      ]
+    },
+    "Refpoly.KS.Procedures.realize": {
+      "type": "Refpoly.KS.Procedures \u2192 {d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 List.{0} (Refpoly.KS.PolyCode d)",
+      "definition": "fun (self : Refpoly.KS.Procedures) => self.6",
+      "dependencies": [
+        "List",
+        "Nat",
+        "Refpoly.KS.PolyCode",
+        "Refpoly.KS.Procedures"
+      ]
+    },
+    "Refpoly.KS.Procedures.rec": {
+      "type": "{motive : Refpoly.KS.Procedures \u2192 Sort u} \u2192\n  ((weights : (m : Nat) \u2192 List.{0} (Refpoly.KS.WeightCode m)) \u2192\n      (assemble : (d : Nat) \u2192 ((m : Nat) \u2192 List.{0} (Refpoly.KS.WeightCode m)) \u2192 List.{0} (Refpoly.KS.CWSCode d)) \u2192\n        (kernelBasis : {d : Nat} \u2192 (C : Refpoly.KS.CWSCode d) \u2192 Fin (Refpoly.KS.CWSCode.N C) \u2192 Fin d \u2192 Int) \u2192\n          (points : {d : Nat} \u2192 Refpoly.KS.CWSCode d \u2192 List.{0} (Refpoly.KS.IntPoint d)) \u2192\n            (eligible : {d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 Bool) \u2192\n              (realize : {d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 List.{0} (Refpoly.KS.PolyCode d)) \u2192\n                (reflexive : {d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 Bool) \u2192\n                  motive\n                    { weights := weights, assemble := assemble, kernelBasis := kernelBasis, points := points,\n                      eligible := eligible, realize := realize, reflexive := reflexive }) \u2192\n    (t : Refpoly.KS.Procedures) \u2192 motive t",
+      "definition": "",
+      "dependencies": [
+        "Bool",
+        "Fin",
+        "Int",
+        "List",
+        "Nat",
+        "Refpoly.KS.CWSCode",
+        "Refpoly.KS.CWSCode.N",
+        "Refpoly.KS.IntPoint",
+        "Refpoly.KS.PolyCode",
+        "Refpoly.KS.Procedures",
+        "Refpoly.KS.Procedures.mk",
+        "Refpoly.KS.WeightCode"
+      ]
+    },
+    "Refpoly.KS.Procedures.recOn": {
+      "type": "{motive : Refpoly.KS.Procedures \u2192 Sort u} \u2192\n  (t : Refpoly.KS.Procedures) \u2192\n    ((weights : (m : Nat) \u2192 List.{0} (Refpoly.KS.WeightCode m)) \u2192\n        (assemble : (d : Nat) \u2192 ((m : Nat) \u2192 List.{0} (Refpoly.KS.WeightCode m)) \u2192 List.{0} (Refpoly.KS.CWSCode d)) \u2192\n          (kernelBasis : {d : Nat} \u2192 (C : Refpoly.KS.CWSCode d) \u2192 Fin (Refpoly.KS.CWSCode.N C) \u2192 Fin d \u2192 Int) \u2192\n            (points : {d : Nat} \u2192 Refpoly.KS.CWSCode d \u2192 List.{0} (Refpoly.KS.IntPoint d)) \u2192\n              (eligible : {d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 Bool) \u2192\n                (realize : {d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 List.{0} (Refpoly.KS.PolyCode d)) \u2192\n                  (reflexive : {d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 Bool) \u2192\n                    motive\n                      { weights := weights, assemble := assemble, kernelBasis := kernelBasis, points := points,\n                        eligible := eligible, realize := realize, reflexive := reflexive }) \u2192\n      motive t",
+      "definition": "fun {motive : Refpoly.KS.Procedures \u2192 Sort u} (t : Refpoly.KS.Procedures)\n    (mk :\n      (weights : (m : Nat) \u2192 List.{0} (Refpoly.KS.WeightCode m)) \u2192\n        (assemble : (d : Nat) \u2192 ((m : Nat) \u2192 List.{0} (Refpoly.KS.WeightCode m)) \u2192 List.{0} (Refpoly.KS.CWSCode d)) \u2192\n          (kernelBasis : {d : Nat} \u2192 (C : Refpoly.KS.CWSCode d) \u2192 Fin (Refpoly.KS.CWSCode.N C) \u2192 Fin d \u2192 Int) \u2192\n            (points : {d : Nat} \u2192 Refpoly.KS.CWSCode d \u2192 List.{0} (Refpoly.KS.IntPoint d)) \u2192\n              (eligible : {d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 Bool) \u2192\n                (realize : {d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 List.{0} (Refpoly.KS.PolyCode d)) \u2192\n                  (reflexive : {d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 Bool) \u2192\n                    motive\n                      { weights := weights, assemble := assemble, kernelBasis := kernelBasis, points := points,\n                        eligible := eligible, realize := realize, reflexive := reflexive }) =>\n  Refpoly.KS.Procedures.rec.{u} mk t",
+      "dependencies": [
+        "Bool",
+        "Fin",
+        "Int",
+        "List",
+        "Nat",
+        "Refpoly.KS.CWSCode",
+        "Refpoly.KS.CWSCode.N",
+        "Refpoly.KS.IntPoint",
+        "Refpoly.KS.PolyCode",
+        "Refpoly.KS.Procedures",
+        "Refpoly.KS.Procedures.mk",
+        "Refpoly.KS.Procedures.rec",
+        "Refpoly.KS.WeightCode"
+      ]
+    },
+    "Refpoly.KS.Procedures.reflexive": {
+      "type": "Refpoly.KS.Procedures \u2192 {d : Nat} \u2192 Refpoly.KS.PolyCode d \u2192 Bool",
+      "definition": "fun (self : Refpoly.KS.Procedures) => self.7",
+      "dependencies": [
+        "Bool",
+        "Nat",
+        "Refpoly.KS.PolyCode",
+        "Refpoly.KS.Procedures"
+      ]
+    },
+    "Refpoly.KS.Procedures.weights": {
+      "type": "Refpoly.KS.Procedures \u2192 (m : Nat) \u2192 List.{0} (Refpoly.KS.WeightCode m)",
+      "definition": "fun (self : Refpoly.KS.Procedures) => self.1",
+      "dependencies": [
+        "List",
+        "Nat",
+        "Refpoly.KS.Procedures",
+        "Refpoly.KS.WeightCode"
+      ]
+    },
+    "Refpoly.KS.RealizationEquivalence": {
+      "type": "Prop",
+      "definition": "\u2200 (d : Nat) (P : Set.{0} (Refpoly.V d)) (R : Refpoly.KS.PolyCode d)\n  (f e : LinearEquiv.{0, 0, 0, 0} (RingHom.id.{0} Real) (Refpoly.V d) (Refpoly.V d)),\n  Eq.{1} (Set.image.{0, 0} (\u21d1e) (Refpoly.KS.PolyCode.hull R)) (Set.image.{0, 0} (\u21d1f) P) \u2192\n    Eq.{1} (Refpoly.KS.imageLattice e) (Refpoly.KS.imageLattice f) \u2192 Refpoly.GLEquiv P (Refpoly.KS.PolyCode.hull R)",
+      "dependencies": [
+        "AddSubgroup",
+        "DFinsupp.instEquivLikeLinearEquiv",
+        "DFunLike.coe",
+        "Eq",
+        "EquivLike.toFunLike",
+        "Fin",
+        "LinearEquiv",
+        "Nat",
+        "Pi.Function.module",
+        "Pi.addCommMonoid",
+        "Pi.addGroup",
+        "Real",
+        "Real.instAddCommMonoid",
+        "Real.instAddGroup",
+        "Real.semiring",
+        "Refpoly.GLEquiv",
+        "Refpoly.KS.PolyCode",
+        "Refpoly.KS.PolyCode.hull",
+        "Refpoly.KS.imageLattice",
+        "Refpoly.V",
+        "RingHom.id",
+        "RingHomInvPair.ids",
+        "Semiring.toModule",
+        "Semiring.toNonAssocSemiring",
+        "Set",
+        "Set.image"
+      ]
+    },
+    "Refpoly.KS.RealizationsComplete": {
+      "type": "Refpoly.KS.Procedures \u2192 Prop",
+      "definition": "fun (p : Refpoly.KS.Procedures) =>\n  \u2200 (d : Nat) (Q : Refpoly.KS.PolyCode d),\n    Refpoly.KS.Eligible Q \u2192\n      Set.Finite.{0} (Refpoly.KS.LatticeInterval Q) \u2192\n        \u2200 (L : AddSubgroup.{0} (Refpoly.V d)),\n          Refpoly.KS.Compatible Q L \u2192\n            \u2203 (R : Refpoly.KS.PolyCode d),\n              And (Membership.mem.{0, 0} (Refpoly.KS.Procedures.realize p Q) R)\n                (\u2203 (e : LinearEquiv.{0, 0, 0, 0} (RingHom.id.{0} Real) (Refpoly.V d) (Refpoly.V d)),\n                  And (Eq.{1} (Set.image.{0, 0} (\u21d1e) (Refpoly.KS.PolyCode.hull R)) (Refpoly.KS.PolyCode.hull Q))\n                    (Eq.{1} (Refpoly.KS.imageLattice e) L))",
+      "dependencies": [
+        "AddSubgroup",
+        "And",
+        "DFinsupp.instEquivLikeLinearEquiv",
+        "DFunLike.coe",
+        "Eq",
+        "EquivLike.toFunLike",
+        "Exists",
+        "Fin",
+        "LinearEquiv",
+        "List",
+        "List.instMembership",
+        "Membership.mem",
+        "Nat",
+        "Pi.Function.module",
+        "Pi.addCommMonoid",
+        "Pi.addGroup",
+        "Real",
+        "Real.instAddCommMonoid",
+        "Real.instAddGroup",
+        "Real.semiring",
+        "Refpoly.KS.Compatible",
+        "Refpoly.KS.Eligible",
+        "Refpoly.KS.LatticeInterval",
+        "Refpoly.KS.PolyCode",
+        "Refpoly.KS.PolyCode.hull",
+        "Refpoly.KS.Procedures",
+        "Refpoly.KS.Procedures.realize",
+        "Refpoly.KS.imageLattice",
+        "Refpoly.V",
+        "RingHom.id",
+        "RingHomInvPair.ids",
+        "Semiring.toModule",
+        "Semiring.toNonAssocSemiring",
+        "Set",
+        "Set.Finite",
+        "Set.image"
+      ]
+    },
+    "Refpoly.KS.RealizationsSound": {
+      "type": "Refpoly.KS.Procedures \u2192 Prop",
+      "definition": "fun (p : Refpoly.KS.Procedures) =>\n  \u2200 (d : Nat) (Q : Refpoly.KS.PolyCode d),\n    Refpoly.KS.Eligible Q \u2192\n      \u2200 (R : Refpoly.KS.PolyCode d),\n        Membership.mem.{0, 0} (Refpoly.KS.Procedures.realize p Q) R \u2192\n          And (Refpoly.IsReflexive (Refpoly.KS.PolyCode.hull R))\n            (\u2203 (e : LinearEquiv.{0, 0, 0, 0} (RingHom.id.{0} Real) (Refpoly.V d) (Refpoly.V d)),\n              And (Eq.{1} (Set.image.{0, 0} (\u21d1e) (Refpoly.KS.PolyCode.hull R)) (Refpoly.KS.PolyCode.hull Q))\n                (Refpoly.KS.Compatible Q (Refpoly.KS.imageLattice e)))",
+      "dependencies": [
+        "And",
+        "DFinsupp.instEquivLikeLinearEquiv",
+        "DFunLike.coe",
+        "Eq",
+        "EquivLike.toFunLike",
+        "Exists",
+        "Fin",
+        "LinearEquiv",
+        "List",
+        "List.instMembership",
+        "Membership.mem",
+        "Nat",
+        "Pi.Function.module",
+        "Pi.addCommMonoid",
+        "Real",
+        "Real.instAddCommMonoid",
+        "Real.semiring",
+        "Refpoly.IsReflexive",
+        "Refpoly.KS.Compatible",
+        "Refpoly.KS.Eligible",
+        "Refpoly.KS.PolyCode",
+        "Refpoly.KS.PolyCode.hull",
+        "Refpoly.KS.Procedures",
+        "Refpoly.KS.Procedures.realize",
+        "Refpoly.KS.imageLattice",
+        "Refpoly.V",
+        "RingHom.id",
+        "RingHomInvPair.ids",
+        "Semiring.toModule",
+        "Semiring.toNonAssocSemiring",
+        "Set",
+        "Set.image"
+      ]
+    },
+    "Refpoly.KS.ReflexivityCheck": {
+      "type": "Refpoly.KS.Procedures \u2192 Prop",
+      "definition": "fun (p : Refpoly.KS.Procedures) =>\n  \u2200 (d : Nat) (R : Refpoly.KS.PolyCode d),\n    Iff (Eq.{1} (Refpoly.KS.Procedures.reflexive p R) true) (Refpoly.IsReflexive (Refpoly.KS.PolyCode.hull R))",
+      "dependencies": [
+        "Bool",
+        "Bool.true",
+        "Eq",
+        "Iff",
+        "Nat",
+        "Refpoly.IsReflexive",
+        "Refpoly.KS.PolyCode",
+        "Refpoly.KS.PolyCode.hull",
+        "Refpoly.KS.Procedures",
+        "Refpoly.KS.Procedures.reflexive"
+      ]
+    },
+    "Refpoly.KS.RelationBasis": {
+      "type": "{d : Nat} \u2192 Refpoly.KS.Seed d \u2192 Type",
+      "definition": "",
+      "dependencies": [
+        "Nat",
+        "Refpoly.KS.Seed"
+      ]
+    },
+    "Refpoly.KS.RelationBasis._sizeOf_1": {
+      "type": "{d : Nat} \u2192 {S : Refpoly.KS.Seed d} \u2192 Refpoly.KS.RelationBasis S \u2192 Nat",
+      "definition": "fun {d : Nat} {S : Refpoly.KS.Seed d} (t : Refpoly.KS.RelationBasis S) =>\n  Refpoly.KS.RelationBasis.rec.{1}\n    (fun (r : Nat) (rows : Fin r \u2192 Refpoly.KS.WeightCode (Refpoly.KS.Seed.N S)) => HAdd.hAdd.{0, 0, 0} 1 (sizeOf.{1} r))\n    t",
+      "dependencies": [
+        "Fin",
+        "HAdd.hAdd",
+        "Nat",
+        "OfNat.ofNat",
+        "Refpoly.KS.RelationBasis",
+        "Refpoly.KS.RelationBasis.rec",
+        "Refpoly.KS.Seed",
+        "Refpoly.KS.Seed.N",
+        "Refpoly.KS.WeightCode",
+        "SizeOf.sizeOf",
+        "instAddNat",
+        "instHAdd",
+        "instOfNatNat",
+        "instSizeOfNat"
+      ]
+    },
+    "Refpoly.KS.RelationBasis._sizeOf_inst": {
+      "type": "{d : Nat} \u2192 (S : Refpoly.KS.Seed d) \u2192 SizeOf.{1} (Refpoly.KS.RelationBasis S)",
+      "definition": "fun {d : Nat} (S : Refpoly.KS.Seed d) =>\n  SizeOf.mk.{1} fun (m : Refpoly.KS.RelationBasis S) => Refpoly.KS.RelationBasis._sizeOf_1 m",
+      "dependencies": [
+        "Nat",
+        "Refpoly.KS.RelationBasis",
+        "Refpoly.KS.RelationBasis._sizeOf_1",
+        "Refpoly.KS.Seed",
+        "SizeOf",
+        "SizeOf.mk"
+      ]
+    },
+    "Refpoly.KS.RelationBasis.casesOn": {
+      "type": "{d : Nat} \u2192\n  {S : Refpoly.KS.Seed d} \u2192\n    {motive : Refpoly.KS.RelationBasis S \u2192 Sort u} \u2192\n      (t : Refpoly.KS.RelationBasis S) \u2192\n        ((r : Nat) \u2192 (rows : Fin r \u2192 Refpoly.KS.WeightCode (Refpoly.KS.Seed.N S)) \u2192 motive { r := r, rows := rows }) \u2192\n          motive t",
+      "definition": "fun {d : Nat} {S : Refpoly.KS.Seed d} {motive : Refpoly.KS.RelationBasis S \u2192 Sort u} (t : Refpoly.KS.RelationBasis S)\n    (mk : (r : Nat) \u2192 (rows : Fin r \u2192 Refpoly.KS.WeightCode (Refpoly.KS.Seed.N S)) \u2192 motive { r := r, rows := rows }) =>\n  Refpoly.KS.RelationBasis.rec.{u}\n    (fun (r : Nat) (rows : Fin r \u2192 Refpoly.KS.WeightCode (Refpoly.KS.Seed.N S)) => mk r rows) t",
+      "dependencies": [
+        "Fin",
+        "Nat",
+        "Refpoly.KS.RelationBasis",
+        "Refpoly.KS.RelationBasis.mk",
+        "Refpoly.KS.RelationBasis.rec",
+        "Refpoly.KS.Seed",
+        "Refpoly.KS.Seed.N",
+        "Refpoly.KS.WeightCode"
+      ]
+    },
+    "Refpoly.KS.RelationBasis.code": {
+      "type": "{d : Nat} \u2192 {S : Refpoly.KS.Seed d} \u2192 Refpoly.KS.RelationBasis S \u2192 Refpoly.KS.CWSCode d",
+      "definition": "fun {d : Nat} {S : Refpoly.KS.Seed d} (B : Refpoly.KS.RelationBasis S) =>\n  { N := Refpoly.KS.Seed.N S, r := Refpoly.KS.RelationBasis.r B, rows := Refpoly.KS.RelationBasis.rows B }",
+      "dependencies": [
+        "Nat",
+        "Refpoly.KS.CWSCode",
+        "Refpoly.KS.CWSCode.mk",
+        "Refpoly.KS.RelationBasis",
+        "Refpoly.KS.RelationBasis.r",
+        "Refpoly.KS.RelationBasis.rows",
+        "Refpoly.KS.Seed",
+        "Refpoly.KS.Seed.N"
+      ]
+    },
+    "Refpoly.KS.RelationBasis.ctorIdx": {
+      "type": "{d : Nat} \u2192 {S : Refpoly.KS.Seed d} \u2192 Refpoly.KS.RelationBasis S \u2192 Nat",
+      "definition": "fun {d : Nat} {S : Refpoly.KS.Seed d} (x : Refpoly.KS.RelationBasis S) => 0",
+      "dependencies": [
+        "Nat",
+        "Refpoly.KS.RelationBasis",
+        "Refpoly.KS.Seed"
+      ]
+    },
+    "Refpoly.KS.RelationBasis.mk": {
+      "type": "{d : Nat} \u2192\n  {S : Refpoly.KS.Seed d} \u2192\n    (r : Nat) \u2192 (Fin r \u2192 Refpoly.KS.WeightCode (Refpoly.KS.Seed.N S)) \u2192 Refpoly.KS.RelationBasis S",
+      "definition": "",
+      "dependencies": [
+        "Fin",
+        "Nat",
+        "Refpoly.KS.RelationBasis",
+        "Refpoly.KS.Seed",
+        "Refpoly.KS.Seed.N",
+        "Refpoly.KS.WeightCode"
+      ]
+    },
+    "Refpoly.KS.RelationBasis.mk._flat_ctor": {
+      "type": "{d : Nat} \u2192\n  {S : Refpoly.KS.Seed d} \u2192\n    (r : Nat) \u2192 (Fin r \u2192 Refpoly.KS.WeightCode (Refpoly.KS.Seed.N S)) \u2192 Refpoly.KS.RelationBasis S",
+      "definition": "fun {d : Nat} (S : Refpoly.KS.Seed d) (r : Nat) (rows : Fin r \u2192 Refpoly.KS.WeightCode (Refpoly.KS.Seed.N S)) =>\n  { r := r, rows := rows }",
+      "dependencies": [
+        "Fin",
+        "Nat",
+        "Refpoly.KS.RelationBasis",
+        "Refpoly.KS.RelationBasis.mk",
+        "Refpoly.KS.Seed",
+        "Refpoly.KS.Seed.N",
+        "Refpoly.KS.WeightCode"
+      ]
+    },
+    "Refpoly.KS.RelationBasis.mk.noConfusion": {
+      "type": "{d : Nat} \u2192\n  {S : Refpoly.KS.Seed d} \u2192\n    {P : Sort u} \u2192\n      {r : Nat} \u2192\n        {rows : Fin r \u2192 Refpoly.KS.WeightCode (Refpoly.KS.Seed.N S)} \u2192\n          {r' : Nat} \u2192\n            {rows' : Fin r' \u2192 Refpoly.KS.WeightCode (Refpoly.KS.Seed.N S)} \u2192\n              Eq.{1} { r := r, rows := rows } { r := r', rows := rows' } \u2192 (Eq.{1} r r' \u2192 HEq.{1} rows rows' \u2192 P) \u2192 P",
+      "definition": "fun {d : Nat} {S : Refpoly.KS.Seed d} {P : Sort u} {r : Nat}\n    {rows : Fin r \u2192 Refpoly.KS.WeightCode (Refpoly.KS.Seed.N S)} {r' : Nat}\n    {rows' : Fin r' \u2192 Refpoly.KS.WeightCode (Refpoly.KS.Seed.N S)}\n    (eq : Eq.{1} { r := r, rows := rows } { r := r', rows := rows' }) (k : Eq.{1} r r' \u2192 HEq.{1} rows rows' \u2192 P) =>\n  id.{u} (Refpoly.KS.RelationBasis.noConfusion.{u} \u22ef \u22ef \u22ef k)",
+      "dependencies": [
+        "Eq",
+        "Eq.refl",
+        "Fin",
+        "HEq",
+        "HEq.refl",
+        "Nat",
+        "Refpoly.KS.RelationBasis",
+        "Refpoly.KS.RelationBasis.mk",
+        "Refpoly.KS.RelationBasis.noConfusion",
+        "Refpoly.KS.Seed",
+        "Refpoly.KS.Seed.N",
+        "Refpoly.KS.WeightCode",
+        "heq_of_eq",
+        "id"
+      ]
+    },
+    "Refpoly.KS.RelationBasis.noConfusion": {
+      "type": "{P : Sort u} \u2192\n  {d : Nat} \u2192\n    {S : Refpoly.KS.Seed d} \u2192\n      {t : Refpoly.KS.RelationBasis S} \u2192\n        {d' : Nat} \u2192\n          {S' : Refpoly.KS.Seed d'} \u2192\n            {t' : Refpoly.KS.RelationBasis S'} \u2192\n              Eq.{1} d d' \u2192 HEq.{1} S S' \u2192 HEq.{1} t t' \u2192 Refpoly.KS.RelationBasis.noConfusionType.{u} P t t'",
+      "definition": "fun {P : Sort u} {d : Nat} {S : Refpoly.KS.Seed d} {t : Refpoly.KS.RelationBasis S} {d' : Nat} {S' : Refpoly.KS.Seed d'}\n    {t' : Refpoly.KS.RelationBasis S'} (eq_1 : Eq.{1} d d') (eq_2 : HEq.{1} S S') (eq_3 : HEq.{1} t t') =>\n  Eq.ndrec.{u, 1} (motive := fun {d' : Nat} =>\n    {S' : Refpoly.KS.Seed d'} \u2192\n      {t' : Refpoly.KS.RelationBasis S'} \u2192\n        HEq.{1} S S' \u2192 HEq.{1} t t' \u2192 Refpoly.KS.RelationBasis.noConfusionType.{u} P t t')\n    (fun {S' : Refpoly.KS.Seed d} {t' : Refpoly.KS.RelationBasis S'} (eq_2 : HEq.{1} S S') (eq_3 : HEq.{1} t t') =>\n      Eq.ndrec.{u, 1} (motive := fun {S' : Refpoly.KS.Seed d} =>\n        {t' : Refpoly.KS.RelationBasis S'} \u2192 HEq.{1} t t' \u2192 Refpoly.KS.RelationBasis.noConfusionType.{u} P t t')\n        (fun {t' : Refpoly.KS.RelationBasis S} (eq_3 : HEq.{1} t t') =>\n          Eq.ndrec.{u, 1}\n            (Refpoly.KS.RelationBasis.casesOn.{u} t\n              fun (r : Nat) (rows : Fin r \u2192 Refpoly.KS.WeightCode (Refpoly.KS.Seed.N S))\n                (k : Eq.{1} r r \u2192 HEq.{1} rows rows \u2192 P) =>\n              k \u22ef \u22ef)\n            \u22ef)\n        \u22ef eq_3)\n    eq_1 eq_2 eq_3",
+      "dependencies": [
+        "Eq",
+        "Eq.ndrec",
+        "Eq.refl",
+        "Fin",
+        "HEq",
+        "HEq.refl",
+        "Nat",
+        "Refpoly.KS.RelationBasis",
+        "Refpoly.KS.RelationBasis.casesOn",
+        "Refpoly.KS.RelationBasis.noConfusionType",
+        "Refpoly.KS.Seed",
+        "Refpoly.KS.Seed.N",
+        "Refpoly.KS.WeightCode",
+        "eq_of_heq"
+      ]
+    },
+    "Refpoly.KS.RelationBasis.noConfusionType": {
+      "type": "Sort u \u2192\n  {d : Nat} \u2192\n    {S : Refpoly.KS.Seed d} \u2192\n      Refpoly.KS.RelationBasis S \u2192 {d' : Nat} \u2192 {S' : Refpoly.KS.Seed d'} \u2192 Refpoly.KS.RelationBasis S' \u2192 Sort u",
+      "definition": "fun (P : Sort u) {d : Nat} {S : Refpoly.KS.Seed d} (t : Refpoly.KS.RelationBasis S) {d' : Nat} {S' : Refpoly.KS.Seed d'}\n    (t' : Refpoly.KS.RelationBasis S') =>\n  Refpoly.KS.RelationBasis.casesOn.{u + 1} t\n    fun (r : Nat) (rows : Fin r \u2192 Refpoly.KS.WeightCode (Refpoly.KS.Seed.N S)) =>\n    Refpoly.KS.RelationBasis.casesOn.{u + 1} t'\n      fun (r_1 : Nat) (rows_1 : Fin r_1 \u2192 Refpoly.KS.WeightCode (Refpoly.KS.Seed.N S')) =>\n      (Eq.{1} r r_1 \u2192 HEq.{1} rows rows_1 \u2192 P) \u2192 P",
+      "dependencies": [
+        "Eq",
+        "Fin",
+        "HEq",
+        "Nat",
+        "Refpoly.KS.RelationBasis",
+        "Refpoly.KS.RelationBasis.casesOn",
+        "Refpoly.KS.Seed",
+        "Refpoly.KS.Seed.N",
+        "Refpoly.KS.WeightCode"
+      ]
+    },
+    "Refpoly.KS.RelationBasis.r": {
+      "type": "{d : Nat} \u2192 {S : Refpoly.KS.Seed d} \u2192 Refpoly.KS.RelationBasis S \u2192 Nat",
+      "definition": "fun (d : Nat) (S : Refpoly.KS.Seed d) (self : Refpoly.KS.RelationBasis S) => self.1",
+      "dependencies": [
+        "Nat",
+        "Refpoly.KS.RelationBasis",
+        "Refpoly.KS.Seed"
+      ]
+    },
+    "Refpoly.KS.RelationBasis.rec": {
+      "type": "{d : Nat} \u2192\n  {S : Refpoly.KS.Seed d} \u2192\n    {motive : Refpoly.KS.RelationBasis S \u2192 Sort u} \u2192\n      ((r : Nat) \u2192 (rows : Fin r \u2192 Refpoly.KS.WeightCode (Refpoly.KS.Seed.N S)) \u2192 motive { r := r, rows := rows }) \u2192\n        (t : Refpoly.KS.RelationBasis S) \u2192 motive t",
+      "definition": "",
+      "dependencies": [
+        "Fin",
+        "Nat",
+        "Refpoly.KS.RelationBasis",
+        "Refpoly.KS.RelationBasis.mk",
+        "Refpoly.KS.Seed",
+        "Refpoly.KS.Seed.N",
+        "Refpoly.KS.WeightCode"
+      ]
+    },
+    "Refpoly.KS.RelationBasis.recOn": {
+      "type": "{d : Nat} \u2192\n  {S : Refpoly.KS.Seed d} \u2192\n    {motive : Refpoly.KS.RelationBasis S \u2192 Sort u} \u2192\n      (t : Refpoly.KS.RelationBasis S) \u2192\n        ((r : Nat) \u2192 (rows : Fin r \u2192 Refpoly.KS.WeightCode (Refpoly.KS.Seed.N S)) \u2192 motive { r := r, rows := rows }) \u2192\n          motive t",
+      "definition": "fun {d : Nat} {S : Refpoly.KS.Seed d} {motive : Refpoly.KS.RelationBasis S \u2192 Sort u} (t : Refpoly.KS.RelationBasis S)\n    (mk : (r : Nat) \u2192 (rows : Fin r \u2192 Refpoly.KS.WeightCode (Refpoly.KS.Seed.N S)) \u2192 motive { r := r, rows := rows }) =>\n  Refpoly.KS.RelationBasis.rec.{u} mk t",
+      "dependencies": [
+        "Fin",
+        "Nat",
+        "Refpoly.KS.RelationBasis",
+        "Refpoly.KS.RelationBasis.mk",
+        "Refpoly.KS.RelationBasis.rec",
+        "Refpoly.KS.Seed",
+        "Refpoly.KS.Seed.N",
+        "Refpoly.KS.WeightCode"
+      ]
+    },
+    "Refpoly.KS.RelationBasis.rows": {
+      "type": "{d : Nat} \u2192\n  {S : Refpoly.KS.Seed d} \u2192\n    (self : Refpoly.KS.RelationBasis S) \u2192\n      Fin (Refpoly.KS.RelationBasis.r self) \u2192 Refpoly.KS.WeightCode (Refpoly.KS.Seed.N S)",
+      "definition": "fun (d : Nat) (S : Refpoly.KS.Seed d) (self : Refpoly.KS.RelationBasis S) => self.2",
+      "dependencies": [
+        "Fin",
+        "Nat",
+        "Refpoly.KS.RelationBasis",
+        "Refpoly.KS.RelationBasis.r",
+        "Refpoly.KS.Seed",
+        "Refpoly.KS.Seed.N",
+        "Refpoly.KS.WeightCode"
+      ]
+    },
+    "Refpoly.KS.Seed": {
+      "type": "Nat \u2192 Type",
+      "definition": "",
+      "dependencies": [
+        "Nat"
+      ]
+    },
+    "Refpoly.KS.Seed.N": {
+      "type": "{d : Nat} \u2192 Refpoly.KS.Seed d \u2192 Nat",
+      "definition": "fun (d : Nat) (self : Refpoly.KS.Seed d) => self.1",
+      "dependencies": [
+        "Nat",
+        "Refpoly.KS.Seed"
+      ]
+    },
+    "Refpoly.KS.Seed._sizeOf_1": {
+      "type": "{d : Nat} \u2192 Refpoly.KS.Seed d \u2192 Nat",
+      "definition": "fun {d : Nat} (t : Refpoly.KS.Seed d) =>\n  Refpoly.KS.Seed.rec.{1} (fun (N : Nat) (vertices : Fin N \u2192 Refpoly.V d) => HAdd.hAdd.{0, 0, 0} 1 (sizeOf.{1} N)) t",
+      "dependencies": [
+        "Fin",
+        "HAdd.hAdd",
+        "Nat",
+        "OfNat.ofNat",
+        "Refpoly.KS.Seed",
+        "Refpoly.KS.Seed.rec",
+        "Refpoly.V",
+        "SizeOf.sizeOf",
+        "instAddNat",
+        "instHAdd",
+        "instOfNatNat",
+        "instSizeOfNat"
+      ]
+    },
+    "Refpoly.KS.Seed._sizeOf_inst": {
+      "type": "(d : Nat) \u2192 SizeOf.{1} (Refpoly.KS.Seed d)",
+      "definition": "fun (d : Nat) => SizeOf.mk.{1} fun (m : Refpoly.KS.Seed d) => Refpoly.KS.Seed._sizeOf_1 m",
+      "dependencies": [
+        "Nat",
+        "Refpoly.KS.Seed",
+        "Refpoly.KS.Seed._sizeOf_1",
+        "SizeOf",
+        "SizeOf.mk"
+      ]
+    },
+    "Refpoly.KS.Seed.casesOn": {
+      "type": "{d : Nat} \u2192\n  {motive : Refpoly.KS.Seed d \u2192 Sort u} \u2192\n    (t : Refpoly.KS.Seed d) \u2192\n      ((N : Nat) \u2192 (vertices : Fin N \u2192 Refpoly.V d) \u2192 motive { N := N, vertices := vertices }) \u2192 motive t",
+      "definition": "fun {d : Nat} {motive : Refpoly.KS.Seed d \u2192 Sort u} (t : Refpoly.KS.Seed d)\n    (mk : (N : Nat) \u2192 (vertices : Fin N \u2192 Refpoly.V d) \u2192 motive { N := N, vertices := vertices }) =>\n  Refpoly.KS.Seed.rec.{u} (fun (N : Nat) (vertices : Fin N \u2192 Refpoly.V d) => mk N vertices) t",
+      "dependencies": [
+        "Fin",
+        "Nat",
+        "Refpoly.KS.Seed",
+        "Refpoly.KS.Seed.mk",
+        "Refpoly.KS.Seed.rec",
+        "Refpoly.V"
+      ]
+    },
+    "Refpoly.KS.Seed.ctorIdx": {
+      "type": "{d : Nat} \u2192 Refpoly.KS.Seed d \u2192 Nat",
+      "definition": "fun {d : Nat} (x : Refpoly.KS.Seed d) => 0",
+      "dependencies": [
+        "Nat",
+        "Refpoly.KS.Seed"
+      ]
+    },
+    "Refpoly.KS.Seed.mk": {
+      "type": "{d : Nat} \u2192 (N : Nat) \u2192 (Fin N \u2192 Refpoly.V d) \u2192 Refpoly.KS.Seed d",
+      "definition": "",
+      "dependencies": [
+        "Fin",
+        "Nat",
+        "Refpoly.KS.Seed",
+        "Refpoly.V"
+      ]
+    },
+    "Refpoly.KS.Seed.mk._flat_ctor": {
+      "type": "{d : Nat} \u2192 (N : Nat) \u2192 (Fin N \u2192 Refpoly.V d) \u2192 Refpoly.KS.Seed d",
+      "definition": "fun (d N : Nat) (vertices : Fin N \u2192 Refpoly.V d) => { N := N, vertices := vertices }",
+      "dependencies": [
+        "Fin",
+        "Nat",
+        "Refpoly.KS.Seed",
+        "Refpoly.KS.Seed.mk",
+        "Refpoly.V"
+      ]
+    },
+    "Refpoly.KS.Seed.mk.noConfusion": {
+      "type": "{d : Nat} \u2192\n  {P : Sort u} \u2192\n    {N : Nat} \u2192\n      {vertices : Fin N \u2192 Refpoly.V d} \u2192\n        {N' : Nat} \u2192\n          {vertices' : Fin N' \u2192 Refpoly.V d} \u2192\n            Eq.{1} { N := N, vertices := vertices } { N := N', vertices := vertices' } \u2192\n              (Eq.{1} N N' \u2192 HEq.{1} vertices vertices' \u2192 P) \u2192 P",
+      "definition": "fun {d : Nat} {P : Sort u} {N : Nat} {vertices : Fin N \u2192 Refpoly.V d} {N' : Nat} {vertices' : Fin N' \u2192 Refpoly.V d}\n    (eq : Eq.{1} { N := N, vertices := vertices } { N := N', vertices := vertices' })\n    (k : Eq.{1} N N' \u2192 HEq.{1} vertices vertices' \u2192 P) =>\n  id.{u} (Refpoly.KS.Seed.noConfusion.{u} \u22ef \u22ef k)",
+      "dependencies": [
+        "Eq",
+        "Eq.refl",
+        "Fin",
+        "HEq",
+        "Nat",
+        "Refpoly.KS.Seed",
+        "Refpoly.KS.Seed.mk",
+        "Refpoly.KS.Seed.noConfusion",
+        "Refpoly.V",
+        "heq_of_eq",
+        "id"
+      ]
+    },
+    "Refpoly.KS.Seed.noConfusion": {
+      "type": "{P : Sort u} \u2192\n  {d : Nat} \u2192\n    {t : Refpoly.KS.Seed d} \u2192\n      {d' : Nat} \u2192 {t' : Refpoly.KS.Seed d'} \u2192 Eq.{1} d d' \u2192 HEq.{1} t t' \u2192 Refpoly.KS.Seed.noConfusionType.{u} P t t'",
+      "definition": "fun {P : Sort u} {d : Nat} {t : Refpoly.KS.Seed d} {d' : Nat} {t' : Refpoly.KS.Seed d'} (eq_1 : Eq.{1} d d')\n    (eq_2 : HEq.{1} t t') =>\n  Eq.ndrec.{u, 1} (motive := fun {d' : Nat} =>\n    {t' : Refpoly.KS.Seed d'} \u2192 HEq.{1} t t' \u2192 Refpoly.KS.Seed.noConfusionType.{u} P t t')\n    (fun {t' : Refpoly.KS.Seed d} (eq_2 : HEq.{1} t t') =>\n      Eq.ndrec.{u, 1}\n        (Refpoly.KS.Seed.casesOn.{u} t\n          fun (N : Nat) (vertices : Fin N \u2192 Refpoly.V d) (k : Eq.{1} N N \u2192 HEq.{1} vertices vertices \u2192 P) => k \u22ef \u22ef)\n        \u22ef)\n    eq_1 eq_2",
+      "dependencies": [
+        "Eq",
+        "Eq.ndrec",
+        "Eq.refl",
+        "Fin",
+        "HEq",
+        "HEq.refl",
+        "Nat",
+        "Refpoly.KS.Seed",
+        "Refpoly.KS.Seed.casesOn",
+        "Refpoly.KS.Seed.noConfusionType",
+        "Refpoly.V",
+        "eq_of_heq"
+      ]
+    },
+    "Refpoly.KS.Seed.noConfusionType": {
+      "type": "Sort u \u2192 {d : Nat} \u2192 Refpoly.KS.Seed d \u2192 {d' : Nat} \u2192 Refpoly.KS.Seed d' \u2192 Sort u",
+      "definition": "fun (P : Sort u) {d : Nat} (t : Refpoly.KS.Seed d) {d' : Nat} (t' : Refpoly.KS.Seed d') =>\n  Refpoly.KS.Seed.casesOn.{u + 1} t fun (N : Nat) (vertices : Fin N \u2192 Refpoly.V d) =>\n    Refpoly.KS.Seed.casesOn.{u + 1} t' fun (N_1 : Nat) (vertices_1 : Fin N_1 \u2192 Refpoly.V d') =>\n      (Eq.{1} N N_1 \u2192 HEq.{1} vertices vertices_1 \u2192 P) \u2192 P",
+      "dependencies": [
+        "Eq",
+        "Fin",
+        "HEq",
+        "Nat",
+        "Refpoly.KS.Seed",
+        "Refpoly.KS.Seed.casesOn",
+        "Refpoly.V"
+      ]
+    },
+    "Refpoly.KS.Seed.rec": {
+      "type": "{d : Nat} \u2192\n  {motive : Refpoly.KS.Seed d \u2192 Sort u} \u2192\n    ((N : Nat) \u2192 (vertices : Fin N \u2192 Refpoly.V d) \u2192 motive { N := N, vertices := vertices }) \u2192\n      (t : Refpoly.KS.Seed d) \u2192 motive t",
+      "definition": "",
+      "dependencies": [
+        "Fin",
+        "Nat",
+        "Refpoly.KS.Seed",
+        "Refpoly.KS.Seed.mk",
+        "Refpoly.V"
+      ]
+    },
+    "Refpoly.KS.Seed.recOn": {
+      "type": "{d : Nat} \u2192\n  {motive : Refpoly.KS.Seed d \u2192 Sort u} \u2192\n    (t : Refpoly.KS.Seed d) \u2192\n      ((N : Nat) \u2192 (vertices : Fin N \u2192 Refpoly.V d) \u2192 motive { N := N, vertices := vertices }) \u2192 motive t",
+      "definition": "fun {d : Nat} {motive : Refpoly.KS.Seed d \u2192 Sort u} (t : Refpoly.KS.Seed d)\n    (mk : (N : Nat) \u2192 (vertices : Fin N \u2192 Refpoly.V d) \u2192 motive { N := N, vertices := vertices }) =>\n  Refpoly.KS.Seed.rec.{u} mk t",
+      "dependencies": [
+        "Fin",
+        "Nat",
+        "Refpoly.KS.Seed",
+        "Refpoly.KS.Seed.mk",
+        "Refpoly.KS.Seed.rec",
+        "Refpoly.V"
+      ]
+    },
+    "Refpoly.KS.Seed.vertices": {
+      "type": "{d : Nat} \u2192 (self : Refpoly.KS.Seed d) \u2192 Fin (Refpoly.KS.Seed.N self) \u2192 Refpoly.V d",
+      "definition": "fun (d : Nat) (self : Refpoly.KS.Seed d) => self.2",
+      "dependencies": [
+        "Fin",
+        "Nat",
+        "Refpoly.KS.Seed",
+        "Refpoly.KS.Seed.N",
+        "Refpoly.V"
+      ]
+    },
+    "Refpoly.KS.SeedBound": {
+      "type": "Prop",
+      "definition": "\u2200 (d : Nat),\n  LT.lt.{0} 0 d \u2192\n    \u2200 (P : Set.{0} (Refpoly.V d)), Refpoly.IsReflexive P \u2192 \u2203 (S : Refpoly.KS.Seed d), Refpoly.KS.ValidSeed P S",
+      "dependencies": [
+        "Exists",
+        "LT.lt",
+        "Nat",
+        "OfNat.ofNat",
+        "Refpoly.IsReflexive",
+        "Refpoly.KS.Seed",
+        "Refpoly.KS.ValidSeed",
+        "Refpoly.V",
+        "Set",
+        "instLTNat",
+        "instOfNatNat"
+      ]
+    },
+    "Refpoly.KS.SubpolytopeRecovery": {
+      "type": "Prop",
+      "definition": "\u2200 (d : Nat) (xs : List.{0} (Refpoly.KS.IntPoint d)) (P : Set.{0} (Refpoly.V d)),\n  Refpoly.IsLatticePolytope P \u2192\n    \u2200 (f : LinearEquiv.{0, 0, 0, 0} (RingHom.id.{0} Real) (Refpoly.V d) (Refpoly.V d)),\n      Refpoly.KS.ForwardIntegral f \u2192\n        Subset.{0} (Inter.inter.{0} (Set.image.{0, 0} (\u21d1f) P) (Refpoly.latticePoints d)) (Refpoly.KS.pointSet xs) \u2192\n          \u2203 (Q : Refpoly.KS.PolyCode d),\n            And (Membership.mem.{0, 0} (Refpoly.KS.subpolytopes xs) Q)\n              (Eq.{1} (Refpoly.KS.PolyCode.hull Q) (Set.image.{0, 0} (\u21d1f) P))",
+      "dependencies": [
+        "And",
+        "DFinsupp.instEquivLikeLinearEquiv",
+        "DFunLike.coe",
+        "Eq",
+        "EquivLike.toFunLike",
+        "Exists",
+        "Fin",
+        "HasSubset.Subset",
+        "Inter.inter",
+        "LinearEquiv",
+        "List",
+        "List.instMembership",
+        "Membership.mem",
+        "Nat",
+        "Pi.Function.module",
+        "Pi.addCommMonoid",
+        "Real",
+        "Real.instAddCommMonoid",
+        "Real.semiring",
+        "Refpoly.IsLatticePolytope",
+        "Refpoly.KS.ForwardIntegral",
+        "Refpoly.KS.IntPoint",
+        "Refpoly.KS.PolyCode",
+        "Refpoly.KS.PolyCode.hull",
+        "Refpoly.KS.pointSet",
+        "Refpoly.KS.subpolytopes",
+        "Refpoly.V",
+        "Refpoly.latticePoints",
+        "RingHom.id",
+        "RingHomInvPair.ids",
+        "Semiring.toModule",
+        "Semiring.toNonAssocSemiring",
+        "Set",
+        "Set.image",
+        "Set.instHasSubset",
+        "Set.instInter"
+      ]
+    },
+    "Refpoly.KS.TargetLattice": {
+      "type": "Prop",
+      "definition": "\u2200 (d : Nat) (P : Set.{0} (Refpoly.V d)),\n  Refpoly.IsReflexive P \u2192\n    \u2200 (f : LinearEquiv.{0, 0, 0, 0} (RingHom.id.{0} Real) (Refpoly.V d) (Refpoly.V d)),\n      Refpoly.KS.ForwardIntegral f \u2192\n        \u2200 (Q : Refpoly.KS.PolyCode d),\n          Eq.{1} (Refpoly.KS.PolyCode.hull Q) (Set.image.{0, 0} (\u21d1f) P) \u2192\n            Refpoly.KS.Compatible Q (Refpoly.KS.imageLattice f)",
+      "dependencies": [
+        "DFinsupp.instEquivLikeLinearEquiv",
+        "DFunLike.coe",
+        "Eq",
+        "EquivLike.toFunLike",
+        "Fin",
+        "LinearEquiv",
+        "Nat",
+        "Pi.Function.module",
+        "Pi.addCommMonoid",
+        "Real",
+        "Real.instAddCommMonoid",
+        "Real.semiring",
+        "Refpoly.IsReflexive",
+        "Refpoly.KS.Compatible",
+        "Refpoly.KS.ForwardIntegral",
+        "Refpoly.KS.PolyCode",
+        "Refpoly.KS.PolyCode.hull",
+        "Refpoly.KS.imageLattice",
+        "Refpoly.V",
+        "RingHom.id",
+        "RingHomInvPair.ids",
+        "Semiring.toModule",
+        "Semiring.toNonAssocSemiring",
+        "Set",
+        "Set.image"
+      ]
+    },
+    "Refpoly.KS.ValidCWS": {
+      "type": "{d : Nat} \u2192 Refpoly.KS.CWSCode d \u2192 Prop",
+      "definition": "fun {d : Nat} (C : Refpoly.KS.CWSCode d) =>\n  And (Eq.{1} (HAdd.hAdd.{0, 0, 0} d (Refpoly.KS.CWSCode.r C)) (Refpoly.KS.CWSCode.N C))\n    (And (LE.le.{0} (Refpoly.KS.CWSCode.N C) (HMul.hMul.{0, 0, 0} 2 d))\n      (And (LE.le.{0} (Refpoly.KS.CWSCode.r C) d)\n        (And (LinearIndependent.{0, 0, 0} Real (Refpoly.KS.realRows C))\n          (\u2200 (j : Fin (Refpoly.KS.CWSCode.N C)),\n            \u2203 (a : Fin (Refpoly.KS.CWSCode.r C)), LT.lt.{0} 0 (Refpoly.KS.CWSCode.rows C a j)))))",
+      "dependencies": [
+        "And",
+        "Eq",
+        "Exists",
+        "Fin",
+        "HAdd.hAdd",
+        "HMul.hMul",
+        "LE.le",
+        "LT.lt",
+        "LinearIndependent",
+        "Nat",
+        "OfNat.ofNat",
+        "Pi.Function.module",
+        "Pi.addCommMonoid",
+        "Real",
+        "Real.instAddCommMonoid",
+        "Real.semiring",
+        "Refpoly.KS.CWSCode",
+        "Refpoly.KS.CWSCode.N",
+        "Refpoly.KS.CWSCode.r",
+        "Refpoly.KS.CWSCode.rows",
+        "Refpoly.KS.realRows",
+        "Refpoly.V",
+        "Semiring.toModule",
+        "instAddNat",
+        "instHAdd",
+        "instHMul",
+        "instLENat",
+        "instLTNat",
+        "instMulNat",
+        "instOfNatNat"
+      ]
+    },
+    "Refpoly.KS.ValidSeed": {
+      "type": "{d : Nat} \u2192 Set.{0} (Refpoly.V d) \u2192 Refpoly.KS.Seed d \u2192 Prop",
+      "definition": "fun {d : Nat} (P : Set.{0} (Refpoly.V d)) (S : Refpoly.KS.Seed d) =>\n  And (Function.Injective.{1, 1} (Refpoly.KS.Seed.vertices S))\n    (And\n      (\u2200 (i : Fin (Refpoly.KS.Seed.N S)),\n        And (Refpoly.IsLatticePoint (Refpoly.KS.Seed.vertices S i))\n          (Membership.mem.{0, 0} (Refpoly.polarDual P) (Refpoly.KS.Seed.vertices S i)))\n      (And (Refpoly.IsIP ((convexHull.{0, 0} Real) (Set.range.{0, 1} (Refpoly.KS.Seed.vertices S))))\n        (And\n          (\u2200 (T : Finset.{0} (Fin (Refpoly.KS.Seed.N S))),\n            Ne.{1} T Finset.univ.{0} \u2192\n              Not (Refpoly.IsIP ((convexHull.{0, 0} Real) (Set.image.{0, 0} (Refpoly.KS.Seed.vertices S) \u2191T))))\n          (And (LE.le.{0} (HAdd.hAdd.{0, 0, 0} d 1) (Refpoly.KS.Seed.N S))\n            (LE.le.{0} (Refpoly.KS.Seed.N S) (HMul.hMul.{0, 0, 0} 2 d))))))",
+      "dependencies": [
+        "And",
+        "ChainCompletePartialOrder.instOfCompleteLattice",
+        "ChainCompletePartialOrder.toPartialOrder",
+        "ClosureOperator",
+        "ClosureOperator.instFunLike",
+        "CompleteAtomicBooleanAlgebra.toCompleteBooleanAlgebra",
+        "CompleteBooleanAlgebra.toCompleteLattice",
+        "DFunLike.coe",
+        "Fin",
+        "Fin.fintype",
+        "Finset",
+        "Finset.instSetLike",
+        "Finset.univ",
+        "Function.Injective",
+        "HAdd.hAdd",
+        "HMul.hMul",
+        "LE.le",
+        "Membership.mem",
+        "Nat",
+        "Ne",
+        "Not",
+        "OfNat.ofNat",
+        "PartialOrder.toPreorder",
+        "Pi.Function.module",
+        "Pi.addCommMonoid",
+        "Real",
+        "Real.instAddCommMonoid",
+        "Real.partialOrder",
+        "Real.semiring",
+        "Refpoly.IsIP",
+        "Refpoly.IsLatticePoint",
+        "Refpoly.KS.Seed",
+        "Refpoly.KS.Seed.N",
+        "Refpoly.KS.Seed.vertices",
+        "Refpoly.V",
+        "Refpoly.polarDual",
+        "Semiring.toModule",
+        "Set",
+        "Set.image",
+        "Set.instCompleteAtomicBooleanAlgebra",
+        "Set.instMembership",
+        "Set.range",
+        "SetLike.coe",
+        "convexHull",
+        "instAddNat",
+        "instHAdd",
+        "instHMul",
+        "instLENat",
+        "instMulNat",
+        "instOfNatNat"
+      ]
+    },
+    "Refpoly.KS.WeightCode": {
+      "type": "Nat \u2192 Type",
+      "definition": "fun (m : Nat) => Fin m \u2192 Nat",
+      "dependencies": [
+        "Fin",
+        "Nat"
+      ]
+    },
+    "Refpoly.KS.WeightsComplete": {
+      "type": "Refpoly.KS.Procedures \u2192 Prop",
+      "definition": "fun (p : Refpoly.KS.Procedures) =>\n  \u2200 (m : Nat) (w : Refpoly.KS.WeightCode m),\n    Refpoly.KS.PrimitiveIP w \u2192 Membership.mem.{0, 0} (Refpoly.KS.Procedures.weights p m) w",
+      "dependencies": [
+        "List",
+        "List.instMembership",
+        "Membership.mem",
+        "Nat",
+        "Refpoly.KS.PrimitiveIP",
+        "Refpoly.KS.Procedures",
+        "Refpoly.KS.Procedures.weights",
+        "Refpoly.KS.WeightCode"
+      ]
+    },
+    "Refpoly.KS.WeightsSound": {
+      "type": "Refpoly.KS.Procedures \u2192 Prop",
+      "definition": "fun (p : Refpoly.KS.Procedures) =>\n  \u2200 (m : Nat) (w : Refpoly.KS.WeightCode m),\n    Membership.mem.{0, 0} (Refpoly.KS.Procedures.weights p m) w \u2192 Refpoly.KS.PrimitiveIP w",
+      "dependencies": [
+        "List",
+        "List.instMembership",
+        "Membership.mem",
+        "Nat",
+        "Refpoly.KS.PrimitiveIP",
+        "Refpoly.KS.Procedures",
+        "Refpoly.KS.Procedures.weights",
+        "Refpoly.KS.WeightCode"
+      ]
+    },
+    "Refpoly.KS.basisMap": {
+      "type": "{d : Nat} \u2192\n  {C : Refpoly.KS.CWSCode d} \u2192\n    (Fin (Refpoly.KS.CWSCode.N C) \u2192 Fin d \u2192 Int) \u2192\n      LinearMap.{0, 0, 0, 0} (RingHom.id.{0} Real) (Refpoly.V d) (Refpoly.V (Refpoly.KS.CWSCode.N C))",
+      "definition": "fun {d : Nat} {C : Refpoly.KS.CWSCode d} (b : Fin (Refpoly.KS.CWSCode.N C) \u2192 Fin d \u2192 Int) =>\n  Matrix.mulVecLin.{0, 0, 0} fun (j : Fin (Refpoly.KS.CWSCode.N C)) (i : Fin d) => \u2191(b j i)",
+      "dependencies": [
+        "Fin",
+        "Fin.fintype",
+        "Int",
+        "Int.cast",
+        "LinearMap",
+        "Matrix.mulVecLin",
+        "Nat",
+        "Pi.Function.module",
+        "Pi.addCommMonoid",
+        "Real",
+        "Real.instAddCommMonoid",
+        "Real.instCommSemiring",
+        "Real.instIntCast",
+        "Real.semiring",
+        "Refpoly.KS.CWSCode",
+        "Refpoly.KS.CWSCode.N",
+        "Refpoly.V",
+        "RingHom.id",
+        "Semiring.toModule",
+        "Semiring.toNonAssocSemiring"
+      ]
+    },
+    "Refpoly.KS.candidates": {
+      "type": "Refpoly.KS.Procedures \u2192 (d : Nat) \u2192 List.{0} (Refpoly.KS.PolyCode d)",
+      "definition": "fun (p : Refpoly.KS.Procedures) (d : Nat) =>\n  List.flatMap.{0, 0}\n    (fun (C : Refpoly.KS.CWSCode d) =>\n      List.flatMap.{0, 0}\n        (fun (Q : Refpoly.KS.PolyCode d) =>\n          ite.{1} (Eq.{1} (Refpoly.KS.Procedures.eligible p Q) true) (Refpoly.KS.Procedures.realize p Q) List.nil.{0})\n        (Refpoly.KS.subpolytopes (Refpoly.KS.Procedures.points p C)))\n    (Refpoly.KS.Procedures.assemble p d (Refpoly.KS.Procedures.weights p))",
+      "dependencies": [
+        "Bool",
+        "Bool.true",
+        "Eq",
+        "List",
+        "List.flatMap",
+        "List.nil",
+        "Nat",
+        "Refpoly.KS.CWSCode",
+        "Refpoly.KS.PolyCode",
+        "Refpoly.KS.Procedures",
+        "Refpoly.KS.Procedures.assemble",
+        "Refpoly.KS.Procedures.eligible",
+        "Refpoly.KS.Procedures.points",
+        "Refpoly.KS.Procedures.realize",
+        "Refpoly.KS.Procedures.weights",
+        "Refpoly.KS.subpolytopes",
+        "instDecidableEqBool",
+        "ite"
+      ]
+    },
+    "Refpoly.KS.coarsest": {
+      "type": "{d : Nat} \u2192 Set.{0} (Refpoly.V d) \u2192 AddSubgroup.{0} (Refpoly.V d)",
+      "definition": "fun {d : Nat} (P : Set.{0} (Refpoly.V d)) => AddSubgroup.closure.{0} (Set.extremePoints.{0, 0} Real P)",
+      "dependencies": [
+        "AddSubgroup",
+        "AddSubgroup.closure",
+        "Fin",
+        "Function.hasSMul",
+        "Nat",
+        "Pi.addCommMonoid",
+        "Pi.addGroup",
+        "Real",
+        "Real.instAddCommMonoid",
+        "Real.instAddGroup",
+        "Real.instMul",
+        "Real.partialOrder",
+        "Real.semiring",
+        "Refpoly.V",
+        "Set",
+        "Set.extremePoints",
+        "instSMulOfMul"
+      ]
+    },
+    "Refpoly.KS.container": {
+      "type": "{d : Nat} \u2192 {C : Refpoly.KS.CWSCode d} \u2192 (Fin (Refpoly.KS.CWSCode.N C) \u2192 Fin d \u2192 Int) \u2192 Set.{0} (Refpoly.V d)",
+      "definition": "fun {d : Nat} {C : Refpoly.KS.CWSCode d} (b : Fin (Refpoly.KS.CWSCode.N C) \u2192 Fin d \u2192 Int) =>\n  (convexHull.{0, 0} Real)\n    (setOf.{0} fun (x : Refpoly.V d) =>\n      And (Refpoly.IsLatticePoint x)\n        (\u2200 (j : Fin (Refpoly.KS.CWSCode.N C)), LE.le.{0} (-1) ((Refpoly.KS.basisMap b) x j)))",
+      "dependencies": [
+        "And",
+        "ChainCompletePartialOrder.instOfCompleteLattice",
+        "ChainCompletePartialOrder.toPartialOrder",
+        "ClosureOperator",
+        "ClosureOperator.instFunLike",
+        "CompleteAtomicBooleanAlgebra.toCompleteBooleanAlgebra",
+        "CompleteBooleanAlgebra.toCompleteLattice",
+        "DFunLike.coe",
+        "Fin",
+        "Int",
+        "LE.le",
+        "LinearMap",
+        "LinearMap.instFunLike",
+        "Nat",
+        "Neg.neg",
+        "OfNat.ofNat",
+        "One.toOfNat1",
+        "PartialOrder.toPreorder",
+        "Pi.Function.module",
+        "Pi.addCommMonoid",
+        "Real",
+        "Real.instAddCommMonoid",
+        "Real.instLE",
+        "Real.instNeg",
+        "Real.instOne",
+        "Real.partialOrder",
+        "Real.semiring",
+        "Refpoly.IsLatticePoint",
+        "Refpoly.KS.CWSCode",
+        "Refpoly.KS.CWSCode.N",
+        "Refpoly.KS.basisMap",
+        "Refpoly.V",
+        "RingHom.id",
+        "Semiring.toModule",
+        "Semiring.toNonAssocSemiring",
+        "Set",
+        "Set.instCompleteAtomicBooleanAlgebra",
+        "convexHull",
+        "setOf"
+      ]
+    },
+    "Refpoly.KS.enumerate": {
+      "type": "Refpoly.KS.Procedures \u2192 (d : Nat) \u2192 List.{0} (Refpoly.KS.PolyCode d)",
+      "definition": "fun (p : Refpoly.KS.Procedures) (d : Nat) =>\n  ite.{1} (Eq.{1} d 0) (List.cons.{0} (Refpoly.KS.originCode d) List.nil.{0})\n    (List.filter.{0} (Refpoly.KS.Procedures.reflexive p) (Refpoly.KS.candidates p d))",
+      "dependencies": [
+        "Eq",
+        "List",
+        "List.cons",
+        "List.filter",
+        "List.nil",
+        "Nat",
+        "OfNat.ofNat",
+        "Refpoly.KS.PolyCode",
+        "Refpoly.KS.Procedures",
+        "Refpoly.KS.Procedures.reflexive",
+        "Refpoly.KS.candidates",
+        "Refpoly.KS.originCode",
+        "instDecidableEqNat",
+        "instOfNatNat",
+        "ite"
+      ]
+    },
+    "Refpoly.KS.finest": {
+      "type": "{d : Nat} \u2192 Set.{0} (Refpoly.V d) \u2192 AddSubgroup.{0} (Refpoly.V d)",
+      "definition": "fun {d : Nat} (P : Set.{0} (Refpoly.V d)) =>\n  AddSubgroup.mk.{0}\n    (AddSubmonoid.mk.{0}\n      (AddSubsemigroup.mk.{0}\n        (setOf.{0} fun (x : Refpoly.V d) =>\n          \u2200 (u : Refpoly.V d),\n            Membership.mem.{0, 0} (Set.extremePoints.{0, 0} Real (Refpoly.polarDual P)) u \u2192\n              \u2203 (z : Int), Eq.{1} (dotProduct.{0, 0} u x) \u2191z)\n        \u22ef)\n      \u22ef)\n    \u22ef",
+      "dependencies": [
+        "AddGroup.toSubNegMonoid",
+        "AddMonoid.toAddZeroClass",
+        "AddSubgroup",
+        "AddSubgroup.mk",
+        "AddSubmonoid.mk",
+        "AddSubsemigroup.mk",
+        "AddZero.toAdd",
+        "AddZeroClass.toAddZero",
+        "Eq",
+        "Exists",
+        "Fin",
+        "Fin.fintype",
+        "Function.hasSMul",
+        "Int",
+        "Int.cast",
+        "Membership.mem",
+        "Nat",
+        "Pi.addCommMonoid",
+        "Pi.addGroup",
+        "Real",
+        "Real.instAddCommMonoid",
+        "Real.instAddGroup",
+        "Real.instIntCast",
+        "Real.instMul",
+        "Real.partialOrder",
+        "Real.semiring",
+        "Refpoly.KS.finest._proof_1",
+        "Refpoly.KS.finest._proof_2",
+        "Refpoly.KS.finest._proof_3",
+        "Refpoly.V",
+        "Refpoly.polarDual",
+        "Set",
+        "Set.extremePoints",
+        "Set.instMembership",
+        "SubNegMonoid.toAddMonoid",
+        "dotProduct",
+        "instSMulOfMul",
+        "setOf"
+      ]
+    },
+    "Refpoly.KS.imageLattice": {
+      "type": "{d : Nat} \u2192 LinearEquiv.{0, 0, 0, 0} (RingHom.id.{0} Real) (Refpoly.V d) (Refpoly.V d) \u2192 AddSubgroup.{0} (Refpoly.V d)",
+      "definition": "fun {d : Nat} (f : LinearEquiv.{0, 0, 0, 0} (RingHom.id.{0} Real) (Refpoly.V d) (Refpoly.V d)) =>\n  AddSubgroup.map.{0, 0} (LinearMap.toAddMonoidHom.{0, 0, 0, 0} \u2191f) (Refpoly.KS.integerLattice d)",
+      "dependencies": [
+        "AddSubgroup",
+        "AddSubgroup.map",
+        "Fin",
+        "LinearEquiv",
+        "LinearEquiv.toLinearMap",
+        "LinearMap.toAddMonoidHom",
+        "Nat",
+        "Pi.Function.module",
+        "Pi.addCommMonoid",
+        "Pi.addGroup",
+        "Real",
+        "Real.instAddCommMonoid",
+        "Real.instAddGroup",
+        "Real.semiring",
+        "Refpoly.KS.integerLattice",
+        "Refpoly.V",
+        "RingHom.id",
+        "RingHomInvPair.ids",
+        "Semiring.toModule",
+        "Semiring.toNonAssocSemiring"
+      ]
+    },
+    "Refpoly.KS.integerLattice": {
+      "type": "(d : Nat) \u2192 AddSubgroup.{0} (Refpoly.V d)",
+      "definition": "fun (d : Nat) => AddSubgroup.mk.{0} (AddSubmonoid.mk.{0} (AddSubsemigroup.mk.{0} (Refpoly.latticePoints d) \u22ef) \u22ef) \u22ef",
+      "dependencies": [
+        "AddGroup.toSubNegMonoid",
+        "AddMonoid.toAddZeroClass",
+        "AddSubgroup",
+        "AddSubgroup.mk",
+        "AddSubmonoid.mk",
+        "AddSubsemigroup.mk",
+        "AddZero.toAdd",
+        "AddZeroClass.toAddZero",
+        "Fin",
+        "Nat",
+        "Pi.addGroup",
+        "Real",
+        "Real.instAddGroup",
+        "Refpoly.KS.integerLattice._proof_1",
+        "Refpoly.KS.integerLattice._proof_2",
+        "Refpoly.V",
+        "Refpoly.isLatticePoint_zero",
+        "Refpoly.latticePoints",
+        "SubNegMonoid.toAddMonoid"
+      ]
+    },
+    "Refpoly.KS.kernelSpace": {
+      "type": "{d : Nat} \u2192 (C : Refpoly.KS.CWSCode d) \u2192 Submodule.{0, 0} Real (Refpoly.V (Refpoly.KS.CWSCode.N C))",
+      "definition": "fun {d : Nat} (C : Refpoly.KS.CWSCode d) =>\n  LinearMap.ker.{0, 0, 0, 0} (Matrix.mulVecLin.{0, 0, 0} (Refpoly.KS.realRows C))",
+      "dependencies": [
+        "CommSemiring.toSemiring",
+        "Fin",
+        "Fin.fintype",
+        "LinearMap.ker",
+        "Matrix.mulVecLin",
+        "Nat",
+        "NonAssocSemiring.toNonUnitalNonAssocSemiring",
+        "NonUnitalNonAssocSemiring.toAddCommMonoid",
+        "Pi.Function.module",
+        "Pi.addCommMonoid",
+        "Real",
+        "Real.instAddCommMonoid",
+        "Real.instCommSemiring",
+        "Real.semiring",
+        "Refpoly.KS.CWSCode",
+        "Refpoly.KS.CWSCode.N",
+        "Refpoly.KS.CWSCode.r",
+        "Refpoly.KS.realRows",
+        "Refpoly.V",
+        "RingHom.id",
+        "Semiring.toModule",
+        "Semiring.toNonAssocSemiring",
+        "Submodule"
+      ]
+    },
+    "Refpoly.KS.normalized": {
+      "type": "{m : Nat} \u2192 Refpoly.KS.WeightCode m \u2192 Fin m \u2192 Rat",
+      "definition": "fun {m : Nat} (w : Refpoly.KS.WeightCode m) (i : Fin m) => HDiv.hDiv.{0, 0, 0} \u2191(w i) \u2191(\u2211 j : Fin m, w j)",
+      "dependencies": [
+        "Fin",
+        "Fin.fintype",
+        "Finset.sum",
+        "Finset.univ",
+        "HDiv.hDiv",
+        "Nat",
+        "Nat.cast",
+        "Nat.instAddCommMonoid",
+        "Rat",
+        "Rat.instDiv",
+        "Rat.instNatCast",
+        "Refpoly.KS.WeightCode",
+        "instHDiv"
+      ]
+    },
+    "Refpoly.KS.ofInt": {
+      "type": "{d : Nat} \u2192 Refpoly.KS.IntPoint d \u2192 Refpoly.V d",
+      "definition": "fun {d : Nat} (x : Refpoly.KS.IntPoint d) (i : Fin d) => \u2191(x i)",
+      "dependencies": [
+        "Fin",
+        "Int.cast",
+        "Nat",
+        "Real",
+        "Real.instIntCast",
+        "Refpoly.KS.IntPoint",
+        "Refpoly.V"
+      ]
+    },
+    "Refpoly.KS.originCode": {
+      "type": "(d : Nat) \u2192 Refpoly.KS.PolyCode d",
+      "definition": "fun (d : Nat) => { points := List.cons.{0} 0 List.nil.{0} }",
+      "dependencies": [
+        "Fin",
+        "Int",
+        "Int.instSemiring",
+        "List.cons",
+        "List.nil",
+        "MulZeroClass.toZero",
+        "Nat",
+        "OfNat.ofNat",
+        "Pi.instZero",
+        "Refpoly.KS.IntPoint",
+        "Refpoly.KS.PolyCode",
+        "Refpoly.KS.PolyCode.mk",
+        "Zero.toOfNat0",
+        "instMulZeroClassOfSemiring"
+      ]
+    },
+    "Refpoly.KS.pad": {
+      "type": "{m N : Nat} \u2192 Function.Embedding.{1, 1} (Fin m) (Fin N) \u2192 Refpoly.KS.WeightCode m \u2192 Refpoly.KS.WeightCode N",
+      "definition": "fun {m N : Nat} (e : Function.Embedding.{1, 1} (Fin m) (Fin N)) (w : Refpoly.KS.WeightCode m) (j : Fin N) =>\n  \u2211 i : Fin m with Eq.{1} (e i) j, w i",
+      "dependencies": [
+        "DFunLike.coe",
+        "Eq",
+        "Fin",
+        "Fin.fintype",
+        "Finset.filter",
+        "Finset.sum",
+        "Finset.univ",
+        "Function.Embedding",
+        "Function.instFunLikeEmbedding",
+        "Nat",
+        "Nat.instAddCommMonoid",
+        "Refpoly.KS.WeightCode",
+        "instDecidableEqFin"
+      ]
+    },
+    "Refpoly.KS.pointSet": {
+      "type": "{d : Nat} \u2192 List.{0} (Refpoly.KS.IntPoint d) \u2192 Set.{0} (Refpoly.V d)",
+      "definition": "fun {d : Nat} (xs : List.{0} (Refpoly.KS.IntPoint d)) =>\n  Set.image.{0, 0} Refpoly.KS.ofInt (setOf.{0} fun (x : Refpoly.KS.IntPoint d) => Membership.mem.{0, 0} xs x)",
+      "dependencies": [
+        "List",
+        "List.instMembership",
+        "Membership.mem",
+        "Nat",
+        "Refpoly.KS.IntPoint",
+        "Refpoly.KS.ofInt",
+        "Refpoly.V",
+        "Set",
+        "Set.image",
+        "setOf"
+      ]
+    },
+    "Refpoly.KS.realRows": {
+      "type": "{d : Nat} \u2192 (C : Refpoly.KS.CWSCode d) \u2192 Fin (Refpoly.KS.CWSCode.r C) \u2192 Refpoly.V (Refpoly.KS.CWSCode.N C)",
+      "definition": "fun {d : Nat} (C : Refpoly.KS.CWSCode d) (a : Fin (Refpoly.KS.CWSCode.r C)) (j : Fin (Refpoly.KS.CWSCode.N C)) =>\n  \u2191(Refpoly.KS.CWSCode.rows C a j)",
+      "dependencies": [
+        "Fin",
+        "Nat",
+        "Nat.cast",
+        "Real",
+        "Real.instNatCast",
+        "Refpoly.KS.CWSCode",
+        "Refpoly.KS.CWSCode.N",
+        "Refpoly.KS.CWSCode.r",
+        "Refpoly.KS.CWSCode.rows",
+        "Refpoly.V"
+      ]
+    },
+    "Refpoly.KS.subpolytopes": {
+      "type": "{d : Nat} \u2192 List.{0} (Refpoly.KS.IntPoint d) \u2192 List.{0} (Refpoly.KS.PolyCode d)",
+      "definition": "fun {d : Nat} (xs : List.{0} (Refpoly.KS.IntPoint d)) => List.map.{0, 0} Refpoly.KS.PolyCode.mk (List.sublists.{0} xs)",
+      "dependencies": [
+        "List",
+        "List.map",
+        "List.sublists",
+        "Nat",
+        "Refpoly.KS.IntPoint",
+        "Refpoly.KS.PolyCode",
+        "Refpoly.KS.PolyCode.mk"
+      ]
+    },
+    "Refpoly.V": {
+      "type": "Nat \u2192 Type",
+      "definition": "fun (n : Nat) => Fin n \u2192 Real",
+      "dependencies": [
+        "Fin",
+        "Nat",
+        "Real"
+      ]
+    },
+    "Refpoly.dotLin": {
+      "type": "{n : Nat} \u2192 Refpoly.V n \u2192 LinearMap.{0, 0, 0, 0} (RingHom.id.{0} Real) (Refpoly.V n) Real",
+      "definition": "fun {n : Nat} (q : Refpoly.V n) =>\n  LinearMap.mk.{0, 0, 0, 0} (AddHom.mk.{0, 0} (fun (y : Refpoly.V n) => dotProduct.{0, 0} q y) \u22ef) \u22ef",
+      "dependencies": [
+        "AddCommMagma.toAdd",
+        "AddCommMonoid.toAddCommSemigroup",
+        "AddCommSemigroup.toAddCommMagma",
+        "AddHom.mk",
+        "Fin",
+        "Fin.fintype",
+        "LinearMap",
+        "LinearMap.mk",
+        "Nat",
+        "Pi.Function.module",
+        "Pi.addCommMonoid",
+        "Real",
+        "Real.instAddCommMonoid",
+        "Real.instMul",
+        "Real.semiring",
+        "Refpoly.V",
+        "Refpoly.dotLin._proof_1",
+        "Refpoly.dotLin._proof_2",
+        "RingHom.id",
+        "Semiring.toModule",
+        "Semiring.toNonAssocSemiring",
+        "dotProduct"
+      ]
+    },
+    "Refpoly.latticeHull": {
+      "type": "{n : Nat} \u2192 Set.{0} (Refpoly.V n) \u2192 Set.{0} (Refpoly.V n)",
+      "definition": "fun {n : Nat} (P : Set.{0} (Refpoly.V n)) => (convexHull.{0, 0} Real) (Inter.inter.{0} P (Refpoly.latticePoints n))",
+      "dependencies": [
+        "ChainCompletePartialOrder.instOfCompleteLattice",
+        "ChainCompletePartialOrder.toPartialOrder",
+        "ClosureOperator",
+        "ClosureOperator.instFunLike",
+        "CompleteAtomicBooleanAlgebra.toCompleteBooleanAlgebra",
+        "CompleteBooleanAlgebra.toCompleteLattice",
+        "DFunLike.coe",
+        "Fin",
+        "Inter.inter",
+        "Nat",
+        "PartialOrder.toPreorder",
+        "Pi.Function.module",
+        "Pi.addCommMonoid",
+        "Real",
+        "Real.instAddCommMonoid",
+        "Real.partialOrder",
+        "Real.semiring",
+        "Refpoly.V",
+        "Refpoly.latticePoints",
+        "Semiring.toModule",
+        "Set",
+        "Set.instCompleteAtomicBooleanAlgebra",
+        "Set.instInter",
+        "convexHull"
+      ]
+    },
+    "Refpoly.latticePoints": {
+      "type": "(n : Nat) \u2192 Set.{0} (Refpoly.V n)",
+      "definition": "fun (n : Nat) => setOf.{0} fun (x : Refpoly.V n) => Refpoly.IsLatticePoint x",
+      "dependencies": [
+        "Nat",
+        "Refpoly.IsLatticePoint",
+        "Refpoly.V",
+        "Set",
+        "setOf"
+      ]
+    },
+    "Refpoly.polarDual": {
+      "type": "{n : Nat} \u2192 Set.{0} (Refpoly.V n) \u2192 Set.{0} (Refpoly.V n)",
+      "definition": "fun {n : Nat} (P : Set.{0} (Refpoly.V n)) =>\n  setOf.{0} fun (y : Refpoly.V n) =>\n    \u2200 (x : Refpoly.V n), Membership.mem.{0, 0} P x \u2192 LE.le.{0} (-1) (dotProduct.{0, 0} y x)",
+      "dependencies": [
+        "Fin",
+        "Fin.fintype",
+        "LE.le",
+        "Membership.mem",
+        "Nat",
+        "Neg.neg",
+        "OfNat.ofNat",
+        "One.toOfNat1",
+        "Real",
+        "Real.instAddCommMonoid",
+        "Real.instLE",
+        "Real.instMul",
+        "Real.instNeg",
+        "Real.instOne",
+        "Refpoly.V",
+        "Set",
+        "Set.instMembership",
+        "dotProduct",
+        "setOf"
+      ]
+    },
+    "Refpoly.wsHyperplane": {
+      "type": "{n : Nat} \u2192 Refpoly.V n \u2192 Submodule.{0, 0} Real (Refpoly.V n)",
+      "definition": "fun {n : Nat} (q : Refpoly.V n) => LinearMap.ker.{0, 0, 0, 0} (Refpoly.dotLin q)",
+      "dependencies": [
+        "Fin",
+        "LinearMap.ker",
+        "Nat",
+        "Pi.Function.module",
+        "Pi.addCommMonoid",
+        "Real",
+        "Real.instAddCommMonoid",
+        "Real.semiring",
+        "Refpoly.V",
+        "Refpoly.dotLin",
+        "RingHom.id",
+        "Semiring.toModule",
+        "Semiring.toNonAssocSemiring",
+        "Submodule"
+      ]
+    },
+    "Refpoly.wsLatticeGensAt": {
+      "type": "{n : Nat} \u2192 (q : Refpoly.V n) \u2192 Real \u2192 Set.{0} \u21a5(Refpoly.wsHyperplane q)",
+      "definition": "fun {n : Nat} (q : Refpoly.V n) (c : Real) =>\n  setOf.{0} fun (y : \u21a5(Refpoly.wsHyperplane q)) =>\n    And (Refpoly.IsLatticePoint \u2191y) (\u2200 (i : Fin n), LE.le.{0} (Neg.neg.{0} c) (\u2191y i))",
+      "dependencies": [
+        "And",
+        "Fin",
+        "LE.le",
+        "Membership.mem",
+        "Nat",
+        "Neg.neg",
+        "Pi.Function.module",
+        "Pi.addCommMonoid",
+        "Real",
+        "Real.instAddCommMonoid",
+        "Real.instLE",
+        "Real.instNeg",
+        "Real.semiring",
+        "Refpoly.IsLatticePoint",
+        "Refpoly.V",
+        "Refpoly.wsHyperplane",
+        "Semiring.toModule",
+        "Set",
+        "SetLike.instMembership",
+        "Submodule",
+        "Submodule.setLike",
+        "Subtype",
+        "Subtype.val",
+        "setOf"
+      ]
+    },
+    "Refpoly.wsPolytopeAt": {
+      "type": "{n : Nat} \u2192 (q : Refpoly.V n) \u2192 Real \u2192 Set.{0} \u21a5(Refpoly.wsHyperplane q)",
+      "definition": "fun {n : Nat} (q : Refpoly.V n) (c : Real) => (convexHull.{0, 0} Real) (Refpoly.wsLatticeGensAt q c)",
+      "dependencies": [
+        "ChainCompletePartialOrder.instOfCompleteLattice",
+        "ChainCompletePartialOrder.toPartialOrder",
+        "ClosureOperator",
+        "ClosureOperator.instFunLike",
+        "CompleteAtomicBooleanAlgebra.toCompleteBooleanAlgebra",
+        "CompleteBooleanAlgebra.toCompleteLattice",
+        "DFunLike.coe",
+        "Fin",
+        "Membership.mem",
+        "Nat",
+        "PartialOrder.toPreorder",
+        "Pi.Function.module",
+        "Pi.addCommMonoid",
+        "Real",
+        "Real.instAddCommMonoid",
+        "Real.partialOrder",
+        "Real.semiring",
+        "Refpoly.V",
+        "Refpoly.wsHyperplane",
+        "Refpoly.wsLatticeGensAt",
+        "Semiring.toModule",
+        "Set",
+        "Set.instCompleteAtomicBooleanAlgebra",
+        "SetLike.instMembership",
+        "Submodule",
+        "Submodule.addCommMonoid",
+        "Submodule.module",
+        "Submodule.setLike",
+        "Subtype",
+        "convexHull"
+      ]
+    }
+  }
+}

@@ -1,0 +1,9 @@
+.lake/
+*.olean
+*.olean.private
+*.olean.server
+*.ilean
+*.c
+*.o
+ci-output/
+__pycache__/

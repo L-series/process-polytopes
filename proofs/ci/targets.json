@@ -1,0 +1,46 @@
+{
+  "closed": [
+    "Refpoly.isLatticePoint_zero",
+    "Refpoly.GLEquiv.refl",
+    "Refpoly.GLEquiv.symm",
+    "Refpoly.GLEquiv.trans",
+    "Refpoly.KS.originCode_hull",
+    "Refpoly.KS.reflexive_zero",
+    "Refpoly.KS.reflexive_zero_unique",
+    "Refpoly.KS.classifies_of_contracts"
+  ],
+  "obligations": [
+    "Refpoly.KS.seed_bound",
+    "Refpoly.KS.circuit_basis",
+    "Refpoly.KS.weights_sound",
+    "Refpoly.KS.weights_complete",
+    "Refpoly.KS.assembly_sound",
+    "Refpoly.KS.assembly_complete",
+    "Refpoly.KS.kernel_bases",
+    "Refpoly.KS.geometric_containers",
+    "Refpoly.KS.container_points",
+    "Refpoly.KS.subpolytope_recovery",
+    "Refpoly.KS.image_eligible",
+    "Refpoly.KS.eligibility_check",
+    "Refpoly.KS.target_lattice",
+    "Refpoly.KS.finite_lattice_interval",
+    "Refpoly.KS.realizations_sound",
+    "Refpoly.KS.realizations_complete",
+    "Refpoly.KS.realization_equivalence",
+    "Refpoly.KS.reflexivity_check"
+  ],
+  "implementations": [
+    "Refpoly.KS.searchWeights",
+    "Refpoly.KS.assembleCWS",
+    "Refpoly.KS.integerKernelBasis",
+    "Refpoly.KS.containerLatticePoints",
+    "Refpoly.KS.eligibleCheck",
+    "Refpoly.KS.latticeRealizations",
+    "Refpoly.KS.reflexiveCheck"
+  ],
+  "derived": [
+    "Refpoly.KS.procedures",
+    "Refpoly.KS.contracts",
+    "Refpoly.KS.classifies_reflexive"
+  ]
+}
