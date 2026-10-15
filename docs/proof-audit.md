@@ -181,20 +181,20 @@ constructive KS endpoint by generic bounded-box enumeration. Abstract proofs
 may use approved standard classical foundations; scientific outputs may not be
 implemented by noncomputable choice.
 
-| Unit                                       | Source modules / deliverable                                                                                                  | Prerequisites and acceptance                                                                                                                                                                   |
-| ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 0: synthesis                               | This ledger and synchronized status docs                                                                                      | Current approved documentation chunk; all findings disposed, all 25 holes mapped, isolation debt explicit; no mathematical changes                                                             |
-| 1: foundations (ported)                    | Complete `Basic` and `ReflexiveDuality` (T-P1)                                                                                | Unit 0; faithful bodies, unchanged existing definitions/types; both modules build from landed imports and are imported by the umbrella/compiler audit                                          |
-| 2: weights and box tools (ported)          | Complete `WeightSystem` and `BoxReduction` (T-P2)                                                                             | Unit 1; both imported and compiler-audited; topology, component-lifting and normalization hypotheses preserved                                                                                 |
-| 3a: search support (ported)                | `Algorithm`, `WeightSystemFinite`, `GeometricCWS` (T-P3)                                                                      | Unit 2; distinguish reachability/finite sets from executable lists                                                                                                                             |
-| 3b: circuits (ported)                      | `CircuitGeometry`, `CircuitInterior`, `CircuitSpan` (T-P4)                                                                    | Unit 2; independent of 3a until combined downstream; preserve full relation-kernel spanning                                                                                                    |
-| 4: finite geometry and containers (ported) | `ReflexiveVolume`, `Finiteness`, `MaxMin`, `Minimal`, `Classification`, `CWSBasis`, `CWSContainer`, `CWSAssembly` (T-P5–T-P7) | Units 2, 3a, 3b; serialize coherent landed modules, not one large commit; keep weak legacy headlines scoped and retain stronger witnesses                                                      |
-| 5: scoped side results and donor guards    | `DegreeBound`, `Sylvester`, `PyramidLemma`, `BoxReductionAudit`, `CoverageAudit` (T-P8–T-P9)                                  | Side results require 2/3a; complete audit imports require unit 4 and all side results; preserve original target inventory and closed results                                                   |
-| 6: seed/circuit bridges                    | Bounded indexed minimal seeds, primitive circuit normalization, exact code transport                                          | Applicable unit 4 results; new proofs with existing contracts unchanged; no assumption that the eighteen holes are independent                                                                 |
-| 7: effective WS/CWS search                 | Weight search and exhaustive assembly with their four proofs                                                                  | Applicable 3a/4/5 support, exact arithmetic/checking from unit 8; finite branching and stopping must be constructive. Split shared arithmetic prerequisites before search if needed            |
-| 8: exact geometry and kernel algorithms    | Rational linear algebra/hull tools, integer kernel, container points, eligibility/reflexivity checks; image/endpoint proofs   | Applicable 1–4 support; kernel/point and hull/check portions can land separately; exact acceptance and full-lattice basis proofs; no dependency on completed unit 7 is required                |
-| 9: compatible lattices and reconstruction  | Finite interval, executable realizations, soundness/completeness                                                              | Unit 8 and endpoint geometry; finite-index proof and exact reconstruction, then compose with seed/search/recovery results                                                                      |
-| 10: endpoint and final audits              | All supporting contracts, concrete executable, fresh semantic/axiom/execution evidence                                        | Units 5–9 and recovery/equivalence bridges from unit 1; no direct/transitive `sorryAx`, no unexpected axioms; fresh full build and same-published-commit conditional/strict/CPU remote success |
+| Unit                                             | Source modules / deliverable                                                                                                  | Prerequisites and acceptance                                                                                                                                                                   |
+| ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0: synthesis                                     | This ledger and synchronized status docs                                                                                      | Current approved documentation chunk; all findings disposed, all 25 holes mapped, isolation debt explicit; no mathematical changes                                                             |
+| 1: foundations (ported)                          | Complete `Basic` and `ReflexiveDuality` (T-P1)                                                                                | Unit 0; faithful bodies, unchanged existing definitions/types; both modules build from landed imports and are imported by the umbrella/compiler audit                                          |
+| 2: weights and box tools (ported)                | Complete `WeightSystem` and `BoxReduction` (T-P2)                                                                             | Unit 1; both imported and compiler-audited; topology, component-lifting and normalization hypotheses preserved                                                                                 |
+| 3a: search support (ported)                      | `Algorithm`, `WeightSystemFinite`, `GeometricCWS` (T-P3)                                                                      | Unit 2; distinguish reachability/finite sets from executable lists                                                                                                                             |
+| 3b: circuits (ported)                            | `CircuitGeometry`, `CircuitInterior`, `CircuitSpan` (T-P4)                                                                    | Unit 2; independent of 3a until combined downstream; preserve full relation-kernel spanning                                                                                                    |
+| 4: finite geometry and containers (ported)       | `ReflexiveVolume`, `Finiteness`, `MaxMin`, `Minimal`, `Classification`, `CWSBasis`, `CWSContainer`, `CWSAssembly` (T-P5–T-P7) | Units 2, 3a, 3b; serialize coherent landed modules, not one large commit; keep weak legacy headlines scoped and retain stronger witnesses                                                      |
+| 5: scoped side results and donor guards (ported) | `DegreeBound`, `Sylvester`, `PyramidLemma`, `BoxReductionAudit`, `CoverageAudit` (T-P8–T-P9)                                  | Side results require 2/3a; complete audit imports require unit 4 and all side results; preserve original target inventory and closed results                                                   |
+| 6: seed/circuit bridges                          | Bounded indexed minimal seeds, primitive circuit normalization, exact code transport                                          | Applicable unit 4 results; new proofs with existing contracts unchanged; no assumption that the eighteen holes are independent                                                                 |
+| 7: effective WS/CWS search                       | Weight search and exhaustive assembly with their four proofs                                                                  | Applicable 3a/4/5 support, exact arithmetic/checking from unit 8; finite branching and stopping must be constructive. Split shared arithmetic prerequisites before search if needed            |
+| 8: exact geometry and kernel algorithms          | Rational linear algebra/hull tools, integer kernel, container points, eligibility/reflexivity checks; image/endpoint proofs   | Applicable 1–4 support; kernel/point and hull/check portions can land separately; exact acceptance and full-lattice basis proofs; no dependency on completed unit 7 is required                |
+| 9: compatible lattices and reconstruction        | Finite interval, executable realizations, soundness/completeness                                                              | Unit 8 and endpoint geometry; finite-index proof and exact reconstruction, then compose with seed/search/recovery results                                                                      |
+| 10: endpoint and final audits                    | All supporting contracts, concrete executable, fresh semantic/axiom/execution evidence                                        | Units 5–9 and recovery/equivalence bridges from unit 1; no direct/transitive `sorryAx`, no unexpected axioms; fresh full build and same-published-commit conditional/strict/CPU remote success |
 
 Units are dependency groups, not batch authorizations. Unit 4 and algorithm
 groups must be split into one-to-three logical commits per approved chunk.
@@ -204,14 +204,13 @@ inventory. New public interfaces, predicate meanings or changes to existing
 statement types require explicit approval and fresh affected two-way checks;
 never regenerate a lock merely to suppress a comparison failure.
 
-Units 1–4 are now ported and imported, including complete relation-kernel
-spanning, reflexive finiteness, minimal dual-seed extraction and finite abstract
-CWS container coverage. The approved units 3–4 batch is complete. The proposed
-next chunk is **unit 5**: `DegreeBound`, `Sylvester`, `PyramidLemma`,
-`BoxReductionAudit` and `CoverageAudit`, with their original scoped claims and
-closed-result guards. It requires separate approval. Units 6–10 still supply
-the new contract bridges and executable endpoint; the eighteen KS obligations
-and seven routines remain open.
+Units 1–5 are now ported and imported, including complete relation-kernel
+spanning, reflexive finiteness, minimal dual seeds, abstract CWS containers and
+scoped degree/pyramid results with donor axiom guards. The requester authorized
+units 5–7 as one batch. Units 6–7 remain in progress: bounded/normalized seed
+bridges, effective search and exhaustive assembly must preserve existing
+contracts. Exact arithmetic/IP decisions are prerequisites of effective search;
+classical finite sets and existential degree bounds are not implementations.
 Acceptance remains targeted builds from landed imports, full pinned build,
 conditional gate, strict gate with known incompleteness reported, CPU/lint
 checks and remote results. A clean donor blind-review packet remains a separate
@@ -597,6 +596,34 @@ required. Clean donor blind-review closure also remains outstanding. The next
 proposed chunk is unit 5's scoped side results and donor guard modules; stop
 pending approval. T-C0 still waits for the CPU descriptor port and T-O0 retains
 its prerequisites; neither is silently completed by this batch.
+
+### Scoped side results and donor guards: unit 5
+
+The approved units 5–7 batch begins with faithful ports of `DegreeBound`,
+`Sylvester`, `PyramidLemma`, `BoxReductionAudit` and `CoverageAudit`. All five
+match the reverified 29-file frozen source ledger after the first import;
+only attribution headers differ. The umbrella imports both audit modules,
+transitively importing all scoped results. There are 24 source results and
+50 compiler axiom guards. The inventory assigns 79 constants and 64 theorem
+declarations to the three mathematical modules; all use approved foundations
+and all theorem displays match the frozen donor after whitespace normalization.
+The two audit modules introduce guards rather than new mathematical constants.
+
+Targeted builds, full pinned build, conditional proof audit and all 19 policy
+regressions pass. Native lint passes; final strict/CPU and remote evidence will
+be reported for the complete published batch. No KS hole is closed by unit 5.
+The degree results prove existence, not an effective or sharp bound. Sylvester
+arithmetic does not certify IP of the candidate vectors or the value 3,263,442.
+The pyramid statements retain their exact dimension/normalized-family scope;
+the height obstruction is not itself a reflexivity theorem. No lock, pin,
+existing statement or target inventory changes.
+
+The applicable donor library is now ported. Unit 6 still needs the new $2d$
+seed bound, rational primitive geometric relations and exact encoding. Unit 7
+still needs effective search and assembly. The pinned library search found
+useful denominator/gcd tools but no ready minimal-positive-spanning $2d$ bound
+or theorem rationalizing the given real simplex coefficients. These are missing
+proof bridges, not a counterexample or an authorization to weaken the contracts.
 
 See [proof commands](../proofs/README.md),
 [statement policy](../proofs/STATEMENTS.md),

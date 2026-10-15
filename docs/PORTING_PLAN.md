@@ -118,8 +118,15 @@ coverage, explicit reached/padded blocks and forward-integral containers from a
 finite abstract catalogue. Container maps do not prove inverse integrality;
 noncomputable catalogues do not implement primitive integer search or lattice
 realizations. All units 3 and 4 are now ported and compiler-audited. The eighteen
-KS proof obligations and seven routines remain open. Unit 5 is next and needs
-separate approval; clean donor blind-review closure remains outstanding.
+KS proof obligations and seven routines remain open. Clean donor blind-review closure remains outstanding.
+The requester subsequently authorized units 5–7 as one batch.
+
+Unit 5 now ports the remaining five donor modules: `DegreeBound`, `Sylvester`,
+`PyramidLemma`, `BoxReductionAudit` and `CoverageAudit`. Their 24 source results
+and 50 axiom guards are imported and built. Degree bounds remain existential;
+no sharp numerical certificate or general pyramid normalization is claimed.
+The applicable donor library is now ported. Units 6–7 are authorized in the
+same batch and remain in progress; this prerequisite port closes no KS hole.
 
 The scoped interface review is separate from the donor audit and does not
 discharge its isolation debt.
@@ -158,9 +165,9 @@ authorize the next proof port, routine implementation or optimization chunk.
 The revised [dependency ledger](proof-audit.md#revised-dependency-ledger-and-acceptance-boundaries)
 preserves the donor import order and adds the effective search, integer-kernel,
 exact geometry and lattice-reconstruction prerequisites. Units 3 and 4 are
-now ported. The proposed next chunk is unit 5's `DegreeBound`, `Sylvester`,
-`PyramidLemma`, `BoxReductionAudit` and `CoverageAudit`, preserving their
-original degree/dimension/normalization scopes; it requires separate approval.
+now ported. Unit 5 has also landed; units 6–7 are authorized within the same
+batch. Effective weight search still depends on exact arithmetic and IP checking;
+seed/circuit bridges must preserve all existing contracts.
 Shared docs and Git
 remain integrator-owned, with one reusable porter for coupled implementation.
 

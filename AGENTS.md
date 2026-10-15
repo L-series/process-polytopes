@@ -27,7 +27,8 @@ headline classification result.
   `Algorithm`, `WeightSystemFinite`, `GeometricCWS`, `CircuitGeometry`,
   `CircuitInterior`, `CircuitSpan`, `ReflexiveVolume`, `Finiteness`, `MaxMin`,
   `Minimal`, `Classification`, `CWSBasis`, `CWSContainer` and `CWSAssembly`
-  ports are imported; the
+  ports are imported, together with `DegreeBound`, `Sylvester`, `PyramidLemma`
+  and both donor axiom-audit modules. All applicable donor modules are ported; the
   eighteen KS proof obligations and seven scientific routines remain open.
 - `docs/proof-audit.md`: source-to-contract map, audit dispositions, dependency
   ledger and outstanding donor blind-review isolation debt.

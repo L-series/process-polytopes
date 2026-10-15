@@ -32,6 +32,8 @@ reflexive polytopes arising from them.
   The three CWS modules add 20 faithful results on independent equations,
   reached blocks and finite abstract container coverage. Units 3 and 4 are
   ported; integer kernels, executable search and lattice reconstruction remain open.
+  Unit 5 completes the applicable donor library with 24 scoped side results and
+  50 axiom guards. New contract bridges and executable routines remain work in progress.
 
 The [long-term mathematical goal](docs/learning/THEORY_ROADMAP.md) is complete
 KS WS/CWS-based enumeration of **all reflexive polytopes** in every fixed

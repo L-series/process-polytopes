@@ -139,10 +139,17 @@ coverage, explicit reached/padded blocks and forward-integral containers from a
 finite abstract catalogue. Container maps do not prove inverse integrality;
 noncomputable catalogues do not implement primitive integer search or lattice
 realizations. All units 3 and 4 are now ported and compiler-audited. The eighteen
-KS proof obligations and seven routines remain open. Unit 5 is next and needs
-separate approval; clean donor blind-review closure remains outstanding.
+KS proof obligations and seven routines remain open. Clean donor blind-review closure remains outstanding.
+The requester subsequently authorized units 5–7 as one batch.
 
-The remaining donor port,
+Unit 5 now ports the remaining five donor modules: `DegreeBound`, `Sylvester`,
+`PyramidLemma`, `BoxReductionAudit` and `CoverageAudit`. Their 24 source results
+and 50 axiom guards are imported and built. Degree bounds remain existential;
+no sharp numerical certificate or general pyramid normalization is claimed.
+The applicable donor library is now ported. Units 6–7 are authorized in the
+same batch and remain in progress; this prerequisite port closes no KS hole.
+
+The subsequent bridge work,
 eighteen KS obligations and seven routines are unfinished; final optimization
 remains deferred. The separately
 approved first proof-CI chunk introduces a

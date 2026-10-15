@@ -30,6 +30,11 @@ The frozen identities recorded by the operating bootstrap are:
 | Original `Refpoly/CWSBasis.lean`           | `4ded32847f3aa5fd23052d21985a0b07d432ff27bfac9f63e26ff9f428413170` |
 | Original `Refpoly/CWSContainer.lean`       | `adc0f96f712f81cf184ffc3d6a9fce02aefa806685d22dfe3fbaf9eb818c1b85` |
 | Original `Refpoly/CWSAssembly.lean`        | `6d103cf8d2a507c1568629e3afc41bd8fe32d30f84476acaf13cab0858f30cbd` |
+| Original `Refpoly/DegreeBound.lean`        | `46819d084db5bf1ff03979773a72b7ae7ca9fc90c4bb6743cc93234909583103` |
+| Original `Refpoly/Sylvester.lean`          | `ae1c4efb04ed58b3ec54cd6f8c7f596ee423c73d1eaf04f8520eeb7da92f2856` |
+| Original `Refpoly/PyramidLemma.lean`       | `cb7603526f7d6b57f178346d2fc07d4c5d77b88890408aae1d9a97dc6b84027c` |
+| Original `Refpoly/BoxReductionAudit.lean`  | `25bed54977bac2c617f752e3f80a54c4621c0fe3d79b688c363f477fbd5e97ea` |
+| Original `Refpoly/CoverageAudit.lean`      | `891634c0dd7b8c00daf8980ddf2e421eb868a186a40be0c6ee59462384e9de59` |
 | Full dependency manifest                   | `0d6def3ad257f03d2d0301868135497e764c1121813de38a7edbf81903510c1f` |
 
 `Refpoly/Basic.lean` now ports the complete donor module after its original
@@ -114,3 +119,13 @@ separate approval; clean donor blind-review closure remains outstanding.
 Every declaration and proof after the first import matches the frozen donor.
 Only attribution headers differ; they state the real-space, forward-integral
 and noncomputable scope without changing the mathematical interfaces.
+
+Unit 5 now ports the remaining five donor modules: `DegreeBound`, `Sylvester`,
+`PyramidLemma`, `BoxReductionAudit` and `CoverageAudit`. Their 24 source results
+and 50 axiom guards are imported and built. Degree bounds remain existential;
+no sharp numerical certificate or general pyramid normalization is claimed.
+The applicable donor library is now ported. Units 6–7 are authorized in the
+same batch and remain in progress; this prerequisite port closes no KS hole.
+
+All five modules match the frozen donor after the first import; only attribution
+headers differ. Degree and pyramid scope restrictions remain explicit.
