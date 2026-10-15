@@ -22,6 +22,11 @@ The frozen identities recorded by the operating bootstrap are:
 | Original `Refpoly/CircuitGeometry.lean`    | `4a290977596325ffd7cc1400b6edf1a9140caa9dcf47b60593f59d5a85ffc9de` |
 | Original `Refpoly/CircuitInterior.lean`    | `fcc66c79d2b5751844b8533e7f32a52957a0d35815aa1889cd416a92b6d98678` |
 | Original `Refpoly/CircuitSpan.lean`        | `db8fb5bf5303cbd72fbbb4c1c138cae0ba3a0bef8299c0ba3be8d9510f771d77` |
+| Original `Refpoly/ReflexiveVolume.lean`    | `23d54cf6206a41b10bfaf206fde3e67bf532fb2c06207f785e3da3124781c589` |
+| Original `Refpoly/Finiteness.lean`         | `0152ac3597310ff9783b30665faf7fc49c4ddf3e3ad8af5bc83b9f6c02a222af` |
+| Original `Refpoly/MaxMin.lean`             | `cf4bf17f61a683564371093226ea904da42a5be6f9d0cf07183e0e826a74b6ef` |
+| Original `Refpoly/Minimal.lean`            | `6b933a310872bb3757d60d49fc804594918d2aa09079877751cfb8de1951390e` |
+| Original `Refpoly/Classification.lean`     | `7e7af6ebb7e278d80f8c20f0f8f78af880ac2a2ab3c4fab1345b576ebe908902` |
 | Full dependency manifest                   | `0d6def3ad257f03d2d0301868135497e764c1121813de38a7edbf81903510c1f` |
 
 `Refpoly/Basic.lean` now ports the complete donor module after its original
@@ -80,3 +85,16 @@ remain open; this port closes no KS obligation or scientific routine.
 
 Every declaration and proof after the first import matches the frozen donor;
 only attribution headers differ.
+
+The faithful volume/finiteness and minimal-seed ports add `ReflexiveVolume`,
+`Finiteness`, `MaxMin`, `Minimal` and `Classification`, with 35 source results.
+The weight-finiteness → volume → box/finiteness dependency remains noncircular.
+Bounds are existential and reflexive-only. Minimal structure gives one
+step, without the new $2d$ seed bound. Legacy simplex signatures still omit
+seed-to-weight witness connections; stronger geometric witnesses are required
+for the new contracts. All modules are imported and compiler-audited; no KS
+obligation or routine is closed.
+
+Every declaration and proof after the first import matches the frozen donor.
+Attribution headers qualify existential bounds, single-step structure and
+legacy classification prose without changing statements or proofs.

@@ -27,6 +27,8 @@ reflexive polytopes arising from them.
   witnessed geometric simplex blocks. Executable weight search remains open.
   The three circuit modules now add 24 faithful results, including complete
   real relation-kernel spanning; primitive integer encoding remains open.
+  Five volume/finiteness and minimal-seed modules add 35 faithful results.
+  Their existential bounds and legacy witness limitations remain explicit.
 
 The [long-term mathematical goal](docs/learning/THEORY_ROADMAP.md) is complete
 KS WS/CWS-based enumeration of **all reflexive polytopes** in every fixed

@@ -25,7 +25,8 @@ headline classification result.
 - `proofs/`: pinned Lean/Mathlib contract scaffold, obligations and CI audit tools.
   Complete donor `Basic`, `ReflexiveDuality`, `WeightSystem`, `BoxReduction`,
   `Algorithm`, `WeightSystemFinite`, `GeometricCWS`, `CircuitGeometry`,
-  `CircuitInterior` and `CircuitSpan` ports are imported; the
+  `CircuitInterior`, `CircuitSpan`, `ReflexiveVolume`, `Finiteness`, `MaxMin`,
+  `Minimal` and `Classification` ports are imported; the
   eighteen KS proof obligations and seven scientific routines remain open.
 - `docs/proof-audit.md`: source-to-contract map, audit dispositions, dependency
   ledger and outstanding donor blind-review isolation debt.

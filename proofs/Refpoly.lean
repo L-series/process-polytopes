@@ -1,3 +1,4 @@
+import Refpoly.Classification
 import Refpoly.CircuitSpan
 import Refpoly.WeightSystemFinite
 import Refpoly.GeometricCWS

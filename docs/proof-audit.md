@@ -206,8 +206,8 @@ never regenerate a lock merely to suppress a comparison failure.
 
 Units 1, 2, 3a and 3b are now ported and imported, including the complete
 relation-kernel spanning theorem. The requester approved units 3b and all of
-unit 4 as one batch. The next dependency groups within that authorization are
-`ReflexiveVolume`/`Finiteness`, then `MaxMin`/`Minimal`/`Classification`, then
+unit 4 as one batch. The volume/finiteness and minimal-seed
+groups are now ported. The remaining group within this authorization is
 `CWSBasis`/`CWSContainer`/`CWSAssembly`. Keep faithful reuse separate from
 interface repairs and executable behaviour. This approval does not include unit 5.
 Acceptance remains targeted builds from landed imports, full pinned build,
@@ -515,6 +515,33 @@ Circuit spanning retains the intrinsic-interior hypothesis and real normalized
 relations. Primitive integral normalization, exact code transport and the KS
 `circuit_basis` contract remain open. No KS obligation or routine is closed.
 The unit 4 ports remain authorized within this batch, followed by a stop.
+
+### Volume/finiteness and minimal seeds: units 4a–4b
+
+The approved batch adds complete faithful `ReflexiveVolume`, `Finiteness`,
+`MaxMin`, `Minimal` and `Classification` ports, with 35 source results.
+Every declaration and proof matches the verified donor after its first import;
+new attribution headers explicitly qualify legacy classification prose.
+`Refpoly.lean` imports `Classification` and its complete landed prerequisites.
+The compiler assigns 53 constants, including 48 exported theorem declarations,
+to these modules. All axiom closures use only approved foundations and all
+48 theorem type displays match the frozen donor after whitespace normalization.
+Targeted module builds and the full conditional gate with 19 regressions pass;
+batch-wide strict, CPU, lint and remote results follow final integration.
+
+The dependency direction is finite IP weights → reflexive volume → box and
+finiteness → maximal/minimal results. No downstream finiteness theorem is used
+to establish weight finiteness or the volume bound. Bounds are existential,
+reflexive-only, and give a finite GL-cover rather than an executable or unique
+classification. `minimal_structure` supplies a single decomposition step with
+relative minimality/rank data; iteration and the $2d$ seed bound remain missing.
+`classification_coverage` extracts an integral minimal dual seed and proves
+primal containment, but does not enumerate those seeds. S33/S44's signatures
+still omit the seed-to-weight connection; they remain scoped legacy results,
+not evidence for the new headline. Use the explicit geometric witnesses.
+
+No existing statement, semantic lock, pin or KS routine changes. No KS
+obligation is discharged. Unit 4c remains authorized in this batch.
 
 See [proof commands](../proofs/README.md),
 [statement policy](../proofs/STATEMENTS.md),

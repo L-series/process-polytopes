@@ -119,6 +119,15 @@ specified intrinsic-interior hypothesis. All three modules are imported and
 compiler-audited. Primitive integer normalization and the KS circuit contract
 remain open; this port closes no KS obligation or scientific routine.
 
+The faithful volume/finiteness and minimal-seed ports add `ReflexiveVolume`,
+`Finiteness`, `MaxMin`, `Minimal` and `Classification`, with 35 source results.
+The weight-finiteness → volume → box/finiteness dependency remains noncircular.
+Bounds are existential and reflexive-only. Minimal structure gives one
+step, without the new $2d$ seed bound. Legacy simplex signatures still omit
+seed-to-weight witness connections; stronger geometric witnesses are required
+for the new contracts. All modules are imported and compiler-audited; no KS
+obligation or routine is closed.
+
 Subsequent approved chunks port the remaining applicable source proofs and implement
 the missing search/lattice/recovery obligations. Keep faithful extraction,
 statement repair and new behaviour separate. T-C0 still concerns the implemented
