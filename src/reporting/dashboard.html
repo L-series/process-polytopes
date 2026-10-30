@@ -1,0 +1,527 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CWS performance history</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        font-family: system-ui, sans-serif;
+        background: #101824;
+        color: #e4edf6;
+      }
+      body {
+        max-width: 1250px;
+        margin: auto;
+        padding: 28px;
+      }
+      h1 {
+        font-size: 2rem;
+        margin-bottom: 8px;
+      }
+      p {
+        line-height: 1.6;
+        color: #b9c9d8;
+      }
+      a {
+        color: #78c4ff;
+      }
+      .controls,
+      .cards {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        margin: 22px 0;
+      }
+      label {
+        display: grid;
+        gap: 7px;
+        min-width: 0;
+        flex: 1 1 220px;
+        font-size: 0.85rem;
+      }
+      select {
+        box-sizing: border-box;
+        width: 100%;
+        min-width: 0;
+        padding: 10px;
+        background: #1b2b3d;
+        color: inherit;
+        border: 1px solid #47627b;
+        border-radius: 6px;
+        max-width: 100%;
+      }
+      .card {
+        background: #1b2b3d;
+        padding: 18px;
+        border-radius: 8px;
+        flex: 1;
+        min-width: 175px;
+      }
+      .card strong {
+        display: block;
+        font-size: 1.5rem;
+      }
+      .card span {
+        color: #b9c9d8;
+        font-size: 0.85rem;
+      }
+      svg {
+        width: 100%;
+        height: auto;
+        min-height: 250px;
+        background: #152234;
+        border-radius: 8px;
+      }
+      svg text {
+        fill: #b9c9d8;
+        font: 12px system-ui;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+      }
+      th,
+      td {
+        padding: 9px;
+        text-align: right;
+        border-bottom: 1px solid #2a3d51;
+      }
+      th:first-child,
+      td:first-child {
+        text-align: left;
+      }
+      th {
+        color: #9db6cf;
+      }
+      caption {
+        text-align: left;
+        padding: 15px 0;
+        font-weight: 600;
+      }
+      button {
+        border: 0;
+        background: none;
+        color: #78c4ff;
+        text-align: left;
+        padding: 0;
+        cursor: pointer;
+        font: inherit;
+      }
+      .scroll {
+        overflow: auto;
+        max-height: 540px;
+      }
+      details {
+        margin: 22px 0;
+      }
+      summary {
+        cursor: pointer;
+        color: #78c4ff;
+      }
+      .tag {
+        padding: 3px 7px;
+        border-radius: 4px;
+        background: #334a22;
+        color: #daefb6;
+      }
+      #status {
+        font-size: 0.9rem;
+      }
+      code {
+        word-break: break-word;
+      }
+      footer {
+        margin: 28px 0;
+        color: #9db6cf;
+        font-size: 0.8rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>CWS performance history</h1>
+    <p>
+      Instructions per function across source revisions. Native geometry time
+      and throughput use the complete 30,000-CWS testing corpus. Bounded
+      generation cases cover selection, enumeration and dual construction.
+    </p>
+    <div class="controls">
+      <label>Workload<select id="workload"></select></label
+      ><label>Compatible series<select id="series"></select></label
+      ><label>Function<select id="function"></select></label
+      ><label
+        >Metric<select id="metric">
+          <option value="self_instructions_per_cws">
+            Self instructions / CWS
+          </option>
+          <option value="inclusive_instructions_per_cws">
+            Inclusive instructions / CWS
+          </option>
+          <option value="self_instructions_per_call">
+            Self instructions / function call
+          </option>
+          <option value="inclusive_instructions_per_call">
+            Inclusive instructions / function call
+          </option>
+          <option value="self_ns_per_cws">Instrumented self ns / CWS</option>
+          <option value="inclusive_ns_per_call">
+            Instrumented inclusive ns / call
+          </option>
+          <option value="native.point_mean_ns_per_cws">
+            Native point enumeration ns / CWS
+          </option>
+          <option value="native.hull_mean_ns_per_cws">
+            Native hull/IP ns / CWS
+          </option>
+          <option value="native.point_cws_per_second">
+            Native point enumeration CWS / second
+          </option>
+          <option value="native.hull_cws_per_second">
+            Native hull/IP CWS / second
+          </option>
+          <option value="native.mean_ns">Native fixed-workload ns</option>
+          <option value="native.mean_ns_per_cws">Native ns / CWS</option>
+          <option value="native.cws_per_second">Native CWS / second</option>
+        </select></label
+      >
+    </div>
+    <div id="status"></div>
+    <div class="cards" id="cards"></div>
+    <table id="stages">
+      <caption>
+        Native geometry stages
+      </caption>
+      <thead>
+        <tr>
+          <th>Routine</th>
+          <th>Mean µs / CWS</th>
+          <th>CWS / second</th>
+        </tr>
+      </thead>
+      <tbody id="stage-rows"></tbody>
+    </table>
+    <svg
+      id="chart"
+      viewBox="0 0 1100 350"
+      role="img"
+      aria-label="Selected function metric by revision"
+    ></svg>
+    <p id="chart-caption"></p>
+    <div class="scroll">
+      <table>
+        <caption>
+          Latest compatible run · select a function to graph it
+        </caption>
+        <thead>
+          <tr>
+            <th>Function / source</th>
+            <th>Calls</th>
+            <th>Self instructions/CWS</th>
+            <th>Inclusive instructions/CWS</th>
+            <th>Instrumented self %</th>
+            <th>Instrumented self ns/call</th>
+          </tr>
+        </thead>
+        <tbody id="functions"></tbody>
+      </table>
+    </div>
+    <details open>
+      <summary>Measurement contract</summary>
+      <p id="boundary"></p>
+      <p>
+        Callgrind <code>Ir</code> counts executed user-space machine
+        instructions in the optimized build. Hardware-retired instruction totals
+        are a separate measurement when PMU access is available. Inclusive costs
+        contain descendants and overlap; self costs partition the collected
+        instruction stream. Inlined or optimized-away functions may lack a
+        separately attributable instruction count; an empty cell means
+        unavailable, not zero.
+      </p>
+      <p>
+        Per-function clock timings come from a separate instrumented build and
+        include profiler overhead. They are not production timings. Native
+        geometry stage times and throughput use the uninstrumented PALP build.
+        Geometry workloads check every point count, dimension, vertex count, IP
+        result and reflexivity label before a result is accepted. They omit dual
+        and normal-form construction.
+      </p>
+      <p>
+        Series are separated by workload hash, compiler, architecture, CPU,
+        flags, profiler version, timing harness, measurement protocol and worker configuration. Improvements and regressions
+        are both retained. A working-tree result is labelled explicitly; a
+        single baseline does not establish a trend.
+      </p>
+    </details>
+    <details>
+      <summary>Selected run provenance and hardware counts</summary>
+      <pre id="provenance"></pre>
+    </details>
+    <footer>
+      <a href="history.json">History JSON</a> ·
+      <a href="latest.json">Full profile JSON</a> ·
+      <a href="functions.csv">Per-function CSV</a> ·
+      <a href="callgraph.json">Full observed call graph</a>
+    </footer>
+    <script type="application/json" id="history">
+      __CWS_HISTORY__
+    </script>
+    <script>
+      "use strict";
+      const history = JSON.parse(
+          document.querySelector("#history").textContent,
+        ),
+        $ = (s) => document.querySelector(s);
+      const fmt = (x) =>
+        x == null
+          ? "—"
+          : Number(x).toLocaleString(undefined, { maximumFractionDigits: 2 });
+      const key = (f) => `${f.file}:${f.function}`,
+        options = (el, rows) => {
+          el.replaceChildren();
+          rows.forEach(([v, t]) => {
+            const o = document.createElement("option");
+            o.value = v;
+            o.textContent = t;
+            el.append(o);
+          });
+        };
+      const entries = () =>
+        history.flatMap((run) =>
+          run.cases
+            .filter(
+              (c) =>
+                c.name === $("#workload").value &&
+                c.compatibility === $("#series").value,
+            )
+            .map((c) => ({ run, c })),
+        );
+      const ns = "http://www.w3.org/2000/svg",
+        element = (name, attrs, text) => {
+          const e = document.createElementNS(ns, name);
+          Object.entries(attrs).forEach(([k, v]) => e.setAttribute(k, v));
+          if (text != null) e.textContent = text;
+          return e;
+        };
+      function draw() {
+        const data = entries(),
+          last = data.at(-1);
+        if (!last) return;
+        const metric = $("#metric").value,
+          functionKey = $("#function").value;
+        $("#status").textContent =
+          `${data.length} recorded run(s) · ${last.run.compiler} · ${last.run.cpu}${last.run.smoke_test ? " · SMOKE TEST" : ""}`;
+        const cards = [
+          ["CWS/s", last.c.native.cws_per_second],
+          ["Mean µs/CWS", last.c.native.mean_ns_per_cws / 1000],
+          ["CWS checked", last.c.rows],
+          ["Timing instrumentation slowdown", last.c.instrumentation_ratio],
+        ];
+        $("#cards").replaceChildren(
+          ...cards.map(([name, v]) => {
+            const d = document.createElement("div");
+            d.className = "card";
+            const s = document.createElement("strong");
+            s.textContent = fmt(v);
+            const l = document.createElement("span");
+            l.textContent = name;
+            d.append(s, l);
+            return d;
+          }),
+        );
+        $("#boundary").textContent =
+          "Measured boundary: " + last.c.boundary + ".";
+        $("#stages").hidden = last.c.kind !== "geometry";
+        $("#stage-rows").replaceChildren(
+          ...[
+            ["Make_CWS_Points", "point"],
+            ["IP_Check", "hull"],
+          ].map(([label, stage]) => {
+            const tr = document.createElement("tr");
+            for (const value of [
+              label,
+              fmt(last.c.native[stage + "_mean_ns_per_cws"] / 1000),
+              fmt(last.c.native[stage + "_cws_per_second"]),
+            ]) {
+              const td = document.createElement("td");
+              td.textContent = value;
+              tr.append(td);
+            }
+            return tr;
+          }),
+        );
+        $("#provenance").textContent = JSON.stringify(
+          {
+            commit: last.run.commit,
+            palp_commit: last.run.palp_commit,
+            working_tree: last.run.dirty,
+            created: last.run.created,
+            measurement: last.run.measurement ?? "legacy serial protocol; execution details unrecorded",
+            producer_sha256: last.run.harness_sha256?.["profile-cws.py"],
+            repetitions: last.run.repetitions,
+            warmups: last.run.warmups,
+            flags: last.run.flags,
+            valgrind: last.run.valgrind,
+            source_sha256: last.run.source_sha256,
+            hardware: last.c.hardware,
+          },
+          null,
+          2,
+        );
+        const values = data.map(({ run, c }) => ({
+          run,
+          value: metric.startsWith("native.")
+            ? c.native[metric.split(".")[1]]
+            : c.functions.find((f) => key(f) === functionKey)?.[metric],
+        }));
+        const chart = $("#chart");
+        chart.replaceChildren();
+        const known = values.filter((p) => p.value != null),
+          max = Math.max(1, ...known.map((p) => p.value)) * 1.1,
+          w = 970,
+          h = 245,
+          left = 90,
+          top = 20;
+        for (let i = 0; i <= 4; i++) {
+          const y = top + h - (i * h) / 4;
+          chart.append(
+            element("line", {
+              x1: left,
+              y1: y,
+              x2: left + w,
+              y2: y,
+              stroke: "#2a3d51",
+            }),
+            element(
+              "text",
+              { x: left - 10, y: y + 4, "text-anchor": "end" },
+              fmt((i * max) / 4),
+            ),
+          );
+        }
+        let path = "";
+        values.forEach((p, i) => {
+          const x =
+            left +
+            (values.length === 1 ? w / 2 : (i * w) / (values.length - 1));
+          if (p.value == null) {
+            path = "";
+            return;
+          }
+          const y = top + h - (p.value / max) * h;
+          if (path)
+            chart.append(
+              element("line", {
+                x1: path[0],
+                y1: path[1],
+                x2: x,
+                y2: y,
+                stroke: "#78c4ff",
+                "stroke-width": 2,
+              }),
+            );
+          path = [x, y];
+          const dot = element("circle", {
+            cx: x,
+            cy: y,
+            r: 5,
+            fill: "#8de2c0",
+          });
+          dot.append(
+            element(
+              "title",
+              {},
+              `${p.run.commit.slice(0, 8)}${p.run.dirty ? " (working tree)" : ""}\n${p.run.created}\n${fmt(p.value)}`,
+            ),
+          );
+          chart.append(dot);
+          if (values.length < 12 || i === 0 || i === values.length - 1)
+            chart.append(
+              element(
+                "text",
+                { x, y: top + h + 28, "text-anchor": "middle" },
+                p.run.commit.slice(0, 7) + (p.run.dirty ? "*" : ""),
+              ),
+            );
+        });
+        $("#chart-caption").textContent =
+          $("#metric").selectedOptions[0].textContent +
+          " · " +
+          (metric.startsWith("native.") ? "complete workload" : functionKey) +
+          (known.length === 1 ? " · baseline only" : "") +
+          " · * uncommitted working tree";
+        $("#functions").replaceChildren(
+          ...last.c.functions.map((f) => {
+            const tr = document.createElement("tr"),
+              name = document.createElement("td"),
+              b = document.createElement("button");
+            b.textContent = `${f.function} · ${f.file}`;
+            b.onclick = () => {
+              $("#function").value = key(f);
+              draw();
+            };
+            name.append(b);
+            tr.append(name);
+            for (const field of [
+              "instruction_calls",
+              "self_instructions_per_cws",
+              "inclusive_instructions_per_cws",
+              "self_time_percent",
+              "self_ns_per_call",
+            ]) {
+              const td = document.createElement("td");
+              td.textContent = fmt(f[field]);
+              tr.append(td);
+            }
+            return tr;
+          }),
+        );
+      }
+      function chooseFunctions() {
+        const found = new Map();
+        entries().forEach(({ c }) =>
+          c.functions.forEach((f) =>
+            found.set(key(f), f.function + " · " + f.file),
+          ),
+        );
+        options(
+          $("#function"),
+          [...found].sort((a, b) => a[1].localeCompare(b[1])),
+        );
+        const preferred = [...found].find(([k]) =>
+          k.endsWith(":Make_CWS_Points"),
+        );
+        if (preferred) $("#function").value = preferred[0];
+        draw();
+      }
+      function chooseSeries() {
+        const found = new Map();
+        history.forEach((run) =>
+          run.cases
+            .filter((c) => c.name === $("#workload").value)
+            .forEach((c) =>
+              found.set(
+                c.compatibility,
+                `${run.measurement?.machine ?? run.cpu} · ${run.compiler} · ${run.measurement?.methodology ?? "legacy-serial-v1"} · ${run.measurement?.execution?.workers ?? 1} worker(s) · ${c.compatibility.slice(0, 6)}`,
+              ),
+            ),
+        );
+        options($("#series"), [...found]);
+        $("#series").value = [...found.keys()].at(-1);
+        chooseFunctions();
+      }
+      options(
+        $("#workload"),
+        [...new Set(history.flatMap((r) => r.cases.map((c) => c.name)))].map(
+          (x) => [x, x],
+        ),
+      );
+      $("#workload").onchange = chooseSeries;
+      $("#series").onchange = chooseFunctions;
+      $("#function").onchange = draw;
+      $("#metric").onchange = draw;
+      chooseSeries();
+    </script>
+  </body>
+</html>

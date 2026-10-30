@@ -61,6 +61,22 @@ live in PALP. Standalone PALP retains its legacy CLI.
 See [the descriptor guide](docs/CWS_DESCRIPTORS.md) for output semantics,
 pruning fixes, existing regression tests and limitations.
 
+## CPU performance history
+
+The [profiling guide](docs/PROFILING.md) maps generation and geometry functions,
+records native timings/CWS per second on the 30,000-CWS corpus, and links the
+[interactive instruction history](docs/performance/index.html).
+Generate measurements on your own machine:
+
+```sh
+nix develop .#profiling -i -c python3 scripts/profile-cws.py --machine workstation --output /tmp/cws-profile
+```
+
+Detailed clocks use a separate instrumented build; native timings and instruction
+counts are recorded independently. Commit the locally generated results using
+the profiling guide. CI validates and publishes that history through Pages;
+GitHub runners do not perform performance measurements.
+
 ## Lean proofs
 
 With [elan](https://github.com/leanprover/elan) installed:

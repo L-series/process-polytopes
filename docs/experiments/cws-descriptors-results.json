@@ -1,0 +1,55 @@
+{
+  "binary": "/tmp/cws-port/PALP/cws-5d.x",
+  "binary_sha256": "d3408d0f8db0a8cd03878c4043cb31c13e6226dac2c9019d2d9ab813f64328eb",
+  "cpu": "AMD Ryzen 9 7950X3D 16-Core Processor",
+  "host_processes": 1,
+  "platform": "Linux-7.1.9-arch1-2-x86_64-with-glibc2.44",
+  "warmups": 1,
+  "boundary": "pool loading, selection, generation, IP, dual data, output to file; no NF",
+  "inputs": {
+    "2d.txt": "1be360574aa284f833e78ca661f4ba042bac51c7dcdba6eb11caea876b076b28",
+    "3d.txt": "e91d8cd286e1ffd6b823b72169def3dbcf7fcd0632245e2a8a32f88c870667db",
+    "4d.txt": "b8c20654d50bc1bc78c8b1c2bca794f6cabc7bb02e952771dd8b73dfee9c97ee"
+  },
+  "sources": {
+    "cws.c": "d15d5363eaf35be5bfb558330149a9ce4ce14a31a1e0d6bfdb49bc46ca55a404",
+    "cws_dim5.h": "e797f85044c55750e34998c185dd94e11f4d6da7ca4bfd37987eabe740731334",
+    "Coord.c": "e497a4ee99ae2cfe8fcd25b919799e5cfa99edb6f83d043e3c77379ba9152eef",
+    "Rat.c": "e25c51ff17e01a269dcf5a211c7d4799d4f68065f272440af819e675f4697875",
+    "Vertex.c": "ea516fdc9edf39a86051146931d702f0b081296c6499c8e7c5e6979ea0b16d90",
+    "Polynf.c": "44208c6193088bc8a74d5caf151551a34919b344125dc081ff1e450c135febad",
+    "LG.c": "da3bfd5acc0eefe639036f4c6a35ede3cc80d94694e8de348d0bb0202a11fdbc",
+    "Global.h": "1cdf92eb2cc4cb31dcd2502462ce8fe24e4b446d5c7ae948caaa9b4630a17fde",
+    "LG.h": "527a8b130a8e9d747f4835ded7fd00d0454520d3502582d3b72659daacd9dbb5",
+    "Rat.h": "2995815f17b2f566110025fe68cbdd2c6f73777387bfbdb1152791e9ca216e88",
+    "GNUmakefile": "401801d1e4d0ea78b01d3856ffc0286a3e117d32df1aa15f416c37a9c4acb29a"
+  },
+  "results": [
+    {
+      "type": 5,
+      "candidates": 285,
+      "accepted": 285,
+      "seconds": [
+        0.015212609898298979, 0.014455486903898418, 0.014381236978806555,
+        0.015015756944194436, 0.014493417926132679, 0.014763320097699761,
+        0.014511963934637606
+      ],
+      "median_seconds": 0.014511963934637606,
+      "candidate_cws_per_second": 19638.96832183776,
+      "output_sha256": "247cdb99c7932dbe91cc2bd41c2fb7c5e9acadbf0b65d179a480cc818c5c1431"
+    },
+    {
+      "type": 7,
+      "candidates": 63903,
+      "accepted": 28221,
+      "seconds": [
+        3.1313269840320572, 3.123717761016451, 3.1379130970453843,
+        3.1061630899785087, 3.0968968890374526, 3.129977507982403,
+        3.1481886859983206
+      ],
+      "median_seconds": 3.129977507982403,
+      "candidate_cws_per_second": 20416.440641195582,
+      "output_sha256": "30a3589b9cbb49e16a0bcf81969a061285386956ffbf7303754d5482d88ce2ab"
+    }
+  ]
+}

@@ -1,8 +1,11 @@
 # Experiment index
 
-This index contains no reproduced experiment records. Historical CPU and GPU
-notes remain on their archival branches; this index does not certify their
-results or introduce new speedup claims.
+The [CPU function-profiling baseline](../PROFILING.md) records full-corpus
+geometry timings, per-function instruction counts and the HTML history workflow.
+The [descriptor baseline](cws-descriptors.md) separately records generation
+throughput at its stated complete-work boundary. Historical CPU and GPU notes
+remain on their archival branches; these new records do not certify historical
+results or introduce comparative speedup claims.
 
 A reproducible record must identify the question, code/source revisions, correctness
 evidence, kept/optional/rejected/proposed decision, measured boundary, raw

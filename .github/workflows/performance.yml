@@ -1,0 +1,68 @@
+name: CWS performance reports
+
+on:
+  push:
+    paths:
+      - 'docs/performance/**'
+      - 'src/reporting/dashboard.html'
+      - 'scripts/*cws*profile*.py'
+      - 'scripts/cws_profile_format.py'
+      - '.github/workflows/performance.yml'
+  pull_request:
+    paths:
+      - 'docs/performance/**'
+      - 'src/reporting/dashboard.html'
+      - 'scripts/*cws*profile*.py'
+      - 'scripts/cws_profile_format.py'
+      - '.github/workflows/performance.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  report:
+    name: Render locally measured results
+    runs-on: ubuntu-24.04
+    env:
+      PYTHONDONTWRITEBYTECODE: "1"
+    steps:
+      - name: Check out reporting tools and local results
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Render locally measured history
+        run: |
+          python3 scripts/report-cws-profile.py --run docs/performance/latest.json \
+            --history docs/performance/history.json --output "$RUNNER_TEMP/pages"
+      - name: Save reviewable dashboard
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: cws-performance-site
+          path: ${{ runner.temp }}/pages
+          if-no-files-found: error
+
+  publish:
+    name: Publish locally measured history
+    needs: report
+    if: github.event_name != 'pull_request' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    runs-on: ubuntu-24.04
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - name: Download validated dashboard
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: cws-performance-site
+          path: ${{ runner.temp }}/pages
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: ${{ runner.temp }}/pages
+      - name: Deploy Pages
+        id: deploy
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0

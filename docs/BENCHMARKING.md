@@ -42,3 +42,15 @@ Report both GPU speedup against one CPU core and against your practical multicor
 For measurement, keep startup-inclusive time and steady-state throughput separate. Use host wall timing for the complete pipeline and CUDA events for kernel-level measurements. GPU launches are asynchronous, so stop the end-to-end timer only after all required device work and CPU completion have finished. NVIDIA documents these timing requirements in its CUDA performance measurement guidance (https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html#performance-metrics).
 
 Given our measurements, the initial suite should retain full 4D, add fixed 5D ranges with high rejection rates, and include expensive and overflow cases. Report each workload separately: the current small 5D fixtures have unusually high acceptance rates and could give a misleading aggregate score.
+
+The first [CPU descriptor baseline](experiments/cws-descriptors.md) records
+startup-inclusive candidate CWS/s for complete types 5 and 7, with raw repeated
+timings, code/input hashes and explicit correctness scope. Reproduce it with
+`python3 scripts/benchmark-cws-descriptors.py` after running root `make`.
+
+The [CPU profiling contract](PROFILING.md) adds full-corpus native geometry stage
+timings, instrumented function clocks, Callgrind instruction/call maps and optional
+hardware-retired instruction counts. Its [dashboard](performance/index.html)
+keeps incompatible workload/toolchain/CPU series separate and preserves measured
+regressions alongside improvements. Local measurement checks corpus results before recording a completed run.
+CI validates and publishes the committed local history without benchmarking its runners.
