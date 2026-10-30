@@ -7,11 +7,11 @@ The degree is the sum of the weights. Dimension means Newton polytope dimension,
 so a dimension-d row has d+1 weights. These are single IP weight systems, not
 combined weight systems or distinct polytope classes.
 
-| File | Weights per row | Systems |
-| ---- | --------------- | ------- |
-| [2d.txt](2d.txt) | 3 | 3 |
-| [3d.txt](3d.txt) | 4 | 95 |
-| [4d.txt](4d.txt) | 5 | 184,026 |
+| File             | Weights per row | Systems |
+| ---------------- | --------------- | ------- |
+| [2d.txt](2d.txt) | 3               | 3       |
+| [3d.txt](3d.txt) | 4               | 95      |
+| [4d.txt](4d.txt) | 5               | 184,026 |
 
 ## Provenance and checks
 
@@ -37,11 +37,11 @@ of weights. The complete 2D and 3D lists and the existing first-1,000-row 4D
 fixture are compared after removing their degree columns.
 
 The counts agree with Kreuzer and Skarke,
-[*Reflexive polyhedra, weights and toric Calabi–Yau fibrations*](https://arxiv.org/pdf/math/0001106),
+[_Reflexive polyhedra, weights and toric Calabi–Yau fibrations_](https://arxiv.org/pdf/math/0001106),
 Section 2.2, Lemma 5 (printed page 11): three systems with three weights,
 95 with four weights, and 184,026 with five weights. The 2D rows are exactly
 `1 1 1`, `1 1 2`, and `1 2 3`.
 Skarke's earlier
-[*Weight systems for toric Calabi-Yau varieties and reflexivity of Newton polyhedra*](https://arxiv.org/abs/alg-geom/9603007)
+[_Weight systems for toric Calabi-Yau varieties and reflexivity of Newton polyhedra_](https://arxiv.org/abs/alg-geom/9603007)
 also reports the 3D and 4D counts. Count agreement is a cross-check, not a
 formal proof of dataset completeness.

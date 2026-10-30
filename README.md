@@ -43,6 +43,24 @@ accepted CWS rows and vertex normal forms of the primal polytope, retaining
 multiplicities. See [tests/README.md](tests/README.md) for fixture provenance and
 the baseline-review policy.
 
+## Five-dimensional descriptor generation
+
+From the repository root:
+
+```sh
+make
+ulimit -s unlimited
+build/cws.x -n5 -s5 > type5.cws
+```
+
+Select historical descriptor IDs 2–47 with `-sID`. The default pools are the
+committed weight-only lists in `docs/data/single-weight-systems`; use
+`--weights-dir DIRECTORY` for a different location or bounded inputs.
+Project C sources live in [`src/`](src/README.md); reusable enumeration changes
+live in PALP. Standalone PALP retains its legacy CLI.
+See [the descriptor guide](docs/CWS_DESCRIPTORS.md) for output semantics,
+pruning fixes, existing regression tests and limitations.
+
 ## Lean proofs
 
 With [elan](https://github.com/leanprover/elan) installed:

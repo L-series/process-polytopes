@@ -82,3 +82,25 @@ nix develop -i -c python3 tests/record_cws_baseline.py --accept-current-palp
 ```
 
 The first command builds the binaries and compares the old baseline; after a changed result, review the failure before running the second command. The recorder requires committed PALP sources and updates the manifest and both fixture files for every case. Review their differences and rerun the tests before committing a new baseline.
+
+## Descriptor-driven 5D generation
+
+`python3 tests/test_dim5_descriptors.py` checks the compact catalogue against the
+frozen C02 descriptor table, all 46 types against an independent bounded exact
+oracle, every emitted point count, full legacy product equivalence and malformed
+pool/CLI failures. Run root `make` to build `build/cws.x` first; `--binary`, `--source-dir`,
+`--weights-dir` and `--fixtures` override paths. Existing CWS/NF goldens are
+unchanged. `descriptor-reference.json` is the reviewed descriptor list from
+`origin/integration/cws-5d-cpu` at `6d2541f`; `cws_reference.py` is the unchanged
+exact oracle from that snapshot.
+
+A direct native regression rejects an exchange of type 12's equal-sized first
+two slots and accepts type 3's genuine symmetry. Source-pool identity alone
+must never authorize slot-index ordering.
+
+The larger type-12 shared-prefix regression requires all 5,994 IP classes of
+the frozen bounded input. Earlier coefficient equality must be combined with
+matching future coordinate incidence before pruning a shared-coordinate order.
+
+These bounded regression tests do not establish full native implementation
+correctness or catalogue completeness.

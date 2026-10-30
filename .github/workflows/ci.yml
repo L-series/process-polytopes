@@ -41,3 +41,9 @@ jobs:
 
       - name: CWS regression tests
         run: nix develop -i -c ./scripts/test-cws.sh
+
+      - name: Build project CWS front end
+        run: nix develop -i -c make -j2
+
+      - name: Descriptor regression tests
+        run: nix develop -i -c python3 tests/test_dim5_descriptors.py

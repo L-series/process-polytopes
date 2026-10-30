@@ -17,6 +17,7 @@ esac
 cd "$repo_root"
 
 mapfile -d '' -t c_files < <(git -C "$palp_root" ls-files -z -- '*.c' '*.h')
+mapfile -d '' -t project_c_files < <(git ls-files -z -- '*.c' '*.h')
 mapfile -d '' -t root_markdown < <(git ls-files -z -- '*.md' '*.markdown')
 mapfile -d '' -t palp_markdown_paths < <(git -C "$palp_root" ls-files -z -- '*.md' '*.markdown' 'tests/README')
 mapfile -d '' -t root_shell < <(git ls-files -z -- '*.sh' '*.bash' '.githooks/commit-msg')
@@ -33,10 +34,12 @@ done
 
 if [[ "$mode" == --fix ]]; then
   (cd "$palp_root" && clang-format -i "${c_files[@]}")
+  clang-format -i "${project_c_files[@]}"
   prettier --parser markdown --write "${markdown[@]}"
   shfmt -w -i 2 "${shell_files[@]}"
 else
   (cd "$palp_root" && clang-format --dry-run --Werror "${c_files[@]}")
+  clang-format --dry-run --Werror "${project_c_files[@]}"
   prettier --parser markdown --check "${markdown[@]}"
   shfmt -d -i 2 "${shell_files[@]}"
 fi
