@@ -1,0 +1,35 @@
+{
+  "server": "bigbeautifulgpu.mtl.sfl",
+  "gpu": "NVIDIA RTX PRO 6000 Blackwell Workstation Edition",
+  "cuda_after": "13.4.92",
+  "architecture": "sm_120",
+  "source_sha256": "f0b53ba625071810d179bef8360bf99be4a012cd39f9b042de34748db93b6367",
+  "arguments": [
+    "--structure-id",
+    "3",
+    "--shard-count",
+    "4000",
+    "--shard-index",
+    "2600",
+    "--np-cap",
+    "8192",
+    "--chunk-capacity",
+    "8000000",
+    "--slice-capacity",
+    "100000"
+  ],
+  "generated": 2520772011,
+  "accepted": 227854,
+  "deferred": 0,
+  "identity_audited": true,
+  "before": {
+    "seconds": 10.0703,
+    "binary_sha256": "cb0bb6029f5c59869e08c45cb0aba1802a678d1ff699f623dfdfba6929e4f588"
+  },
+  "after": {
+    "seconds": 9.86077,
+    "binary_sha256": "7b0dc716222795a77b8a3e303436f1c3d5728e75384c101210c229e83db9f2cb"
+  },
+  "before_and_after_sorted_C_sha256": "91b1499b342f2f0dcfd00236a05c846928a4f69b1382c929dc6c65c135e111b9",
+  "after_sorted_fr_FR_UTF8_sha256": "61c95c595f9e896331cded4b43a4198cdd2888419d081c02164f4fe46b551e1c"
+}

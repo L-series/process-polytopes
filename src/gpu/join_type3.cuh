@@ -63,7 +63,7 @@ __device__ __forceinline__ unsigned int device_join_find(const JoinKey *keys, un
                                                          unsigned long long want) {
     unsigned int lo = b, hi = e;
     while (lo < hi) {
-        unsigned int m = (lo + hi) >> 1;
+        unsigned int m = lo + ((hi - lo) >> 1);
         if (keys[m].key < want) lo = m + 1; else hi = m;
     }
     return (lo < e && keys[lo].key == want) ? lo : 0xFFFFFFFFu;
