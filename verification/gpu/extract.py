@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Copy named declarations verbatim from src/gpu into one host header for CBMC.
 
-Only CUDA annotations are replaced (`__device__`, `__forceinline__`) and the
+Only CUDA annotations are replaced (`__device__`, `__forceinline__`,
+`__noinline__`), `atomicAdd` is a sequential stand-in, and the
 limits are declared `static const`; function bodies and record layouts are the
 production text.
 Usage: extract.py OUTPUT NAME...   (NAME: struct X | function marker text)
@@ -44,7 +45,10 @@ def main():
     # constexpr, so the fixed-width type and the four limits are spelled out.
     limits = common[common.index("static constexpr int kMaxSlots"):common.index("inline void check_cuda")]
     parts = ["#pragma once", "namespace std { typedef unsigned long uint64_t; }", '#include "catalogue_bridge.h"',
-             "#define __device__", "#define __forceinline__ inline",
+             "#define __device__", "#define __forceinline__ inline", "#define __noinline__",
+             "extern \"C\" double sqrt(double);",
+             "inline unsigned long long atomicAdd(unsigned long long *p, unsigned long long v) "
+             "{ unsigned long long old = *p; *p = old + v; return old; }",
              limits.replace("static constexpr int", "static const int")]
     for name in names:
         if name.startswith("struct "):

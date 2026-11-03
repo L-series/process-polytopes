@@ -11,6 +11,11 @@ int main() {
     GpuDescriptor g;
     __CPROVER_assert(GpuCatalogueDescriptor(CATALOGUE_ID, &g) == 1, "catalogue entry exists");
     DeviceDescriptor d;
+    for (int s = 0; s < kMaxSlots; ++s) {
+        d.simplex_sizes[s] = 0;
+        d.shared_counts[s] = 0;
+        for (int p = 0; p < kMaxSize; ++p) d.mappings[s][p] = 0;
+    }
     d.id = g.id;
     d.ambient_vertices = g.coordinate_count;
     d.simplex_count = g.row_count;

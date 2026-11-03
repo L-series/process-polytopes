@@ -1,17 +1,29 @@
 #!/usr/bin/env bash
-# CBMC equivalence of the GPU generation predicates with the verified CPU ones.
+# Equivalence of the GPU generation stages with the verified CPU generator:
+# exhaustive host checks on the production pools, then CBMC queries.
 # Run inside `nix develop .#gpu-verify`. Every query must verify, including its
 # unwinding assertions; tool failures are fatal.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
-checks=(--bounds-check --pointer-check --signed-overflow-check --div-by-zero-check --unwind 7 --unwinding-assertions)
+checks=(--bounds-check --pointer-check --signed-overflow-check --div-by-zero-check --unwinding-assertions)
 cflags=(-DPOLY_Dmax=5 -IPALP -Isrc/cws -Isrc/gpu)
 
+# Host stage: selection pools and slot order, exhaustively on the production
+# pools (needs nvcc for the host code and `make` for the PALP objects).
+make -s build/palp-Coord.o build/palp-Rat.o build/palp-Vertex.o build/palp-Polynf.o build/palp-LG.o \
+  build/project-weight_pool.o build/project-catalogue.o build/gpu-catalogue_bridge.o
+cc "${cflags[@]}" -O1 -c verification/gpu/cpu_reference.c -o "$work/cpu_reference.o"
+${NVCC:-nvcc} -std=c++17 -Isrc/gpu ${NVCCFLAGS:-} verification/gpu/generation_host.cu "$work/cpu_reference.o" \
+  build/palp-Coord.o build/palp-Rat.o build/palp-Vertex.o build/palp-Polynf.o build/palp-LG.o \
+  build/project-weight_pool.o build/project-catalogue.o build/gpu-catalogue_bridge.o -o "$work/generation_host"
+"$work/generation_host"
+
 python3 verification/gpu/extract.py "$work/gpu_extract.h" "struct SelectedEntry" "struct DeviceDescriptor" \
+  "struct DeviceScanStats" "struct DeviceCwsCandidate" "__device__ int device_next_permutation(" \
   "__device__ int device_weight_at_coordinate(" "__device__ int device_slot_uses_coordinate(" \
-  "__device__ int device_prefix_is_canonical("
+  "__device__ int device_prefix_is_canonical(" "__device__ __noinline__ void device_store_candidate("
 for c in src/cws/catalogue.c src/gpu/catalogue_bridge.c verification/gpu/cpu_reference.c; do
   goto-cc "${cflags[@]}" -c "$c" -o "$work/$(basename "$c" .c).gb"
 done
@@ -23,7 +35,7 @@ for id in ${GEN_IDS:-$(seq 2 47)}; do
     goto-cc -I"$work" "${cflags[@]}" -DCATALOGUE_ID="$id" -DSLOT="$slot" -c verification/gpu/prefix_canonical.cpp \
       -o "$work/h.gb"
     goto-cc "$work/h.gb" "$work/catalogue.gb" "$work/catalogue_bridge.gb" "$work/cpu_reference.gb" -o "$work/q.gb"
-    if ! cbmc "${checks[@]}" "$work/q.gb" > "$work/log" 2>&1 || ! grep -q "VERIFICATION SUCCESSFUL" "$work/log"; then
+    if ! cbmc "${checks[@]}" --unwind 7 "$work/q.gb" > "$work/log" 2>&1 || ! grep -q "VERIFICATION SUCCESSFUL" "$work/log"; then
       tail -30 "$work/log"
       echo "FAIL: shared-prefix test, structure $id slot $slot" >&2
       exit 1
@@ -39,10 +51,28 @@ for probe in "12 0" "3 1" "42 1"; do
   set -- $probe
   goto-cc -I"$work" "${cflags[@]}" -DPROBE -DCATALOGUE_ID="$1" -DSLOT="$2" -c verification/gpu/prefix_canonical.cpp -o "$work/h.gb"
   goto-cc "$work/h.gb" "$work/catalogue.gb" "$work/catalogue_bridge.gb" "$work/cpu_reference.gb" -o "$work/q.gb"
-  if cbmc "${checks[@]}" "$work/q.gb" > "$work/log" 2>&1 || ! grep -q "probe: the GPU test never rejects: FAILURE" "$work/log"; then
+  if cbmc "${checks[@]}" --unwind 7 "$work/q.gb" > "$work/log" 2>&1 || ! grep -q "probe: the GPU test never rejects: FAILURE" "$work/log"; then
     tail -20 "$work/log"
     echo "FAIL: probe did not find a rejection for structure $1 slot $2" >&2
     exit 1
   fi
 done
 echo "Probes: the shared-prefix test rejects where pruning applies"
+
+# One query: compile HARNESS with DEFINES, link the CPU references, verify.
+query() {
+  local harness=$1 label=$2 unwind=$3; shift 3
+  goto-cc -I"$work" "${cflags[@]}" "$@" -c "verification/gpu/$harness" -o "$work/h.gb"
+  goto-cc "$work/h.gb" "$work/catalogue.gb" "$work/catalogue_bridge.gb" "$work/cpu_reference.gb" -o "$work/q.gb"
+  if ! cbmc "${checks[@]}" --unwind "$unwind" "$work/q.gb" > "$work/log" 2>&1 || ! grep -q "VERIFICATION SUCCESSFUL" "$work/log"; then
+    tail -30 "$work/log"
+    echo "FAIL: $label" >&2
+    exit 1
+  fi
+}
+for u in 2 3 4 5; do query permutation.cpp "permutation step, $u values" 7 -DU="$u"; done
+echo "GPU permutation step equals NextPrefixPermutation for 2-5 values"
+for id in ${GEN_IDS:-$(seq 2 47)}; do query store.cpp "stored candidate, structure $id" 12 -DCATALOGUE_ID="$id"; done
+echo "Stored candidates equal EmbedWeightInCWS rows"
+# Tuple and pair index decoding: proved in Lean (proofs/Refpoly/GpuDecode.lean);
+# symbolic 64-bit division and multiplication are out of CBMC's reach here.
