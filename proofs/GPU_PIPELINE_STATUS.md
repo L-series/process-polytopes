@@ -1,106 +1,140 @@
-# GPU correctness checkpoint
+# GPU correctness checkpoint and handoff
 
-Branch: `integration/cws-5d-gpu`.
+Branch: `integration/cws-5d-gpu`, pushed to `origin` on 2026-11-03 with the user's approval for the
+production run.
 
-**The full source-level no-omissions proof is not complete.** The general join's
-search loop is proved complete and duplicate-free. Leaf/verdict source checks,
-checked count arithmetic, shared-value state invariants and an abstract CWS
-rejection bridge are now proved, but their remaining table/fibre-to-mask
-interface facts still need to be assembled. The fused type-3 join also remains
-open. The detailed boundaries below distinguish source checks from conditional
-semantic bridges; passing the regression gate does not close those boundaries.
+**The end-to-end source-level proof is still incomplete.** The current Lean
+model theorems compile, but two source/interface assemblies below remain open.
+Do not equate a source hash check or a conditional model theorem with a proved
+CUDA-to-CWS refinement. The user requested this checkpoint for another model.
 
-## What decides a candidate, and why it is sound
+## Completed verification pieces
 
-| Stage | Verdict | Soundness argument |
-| --- | --- | --- |
-| Generation | which candidates exist | CBMC: prefix test, permutation step and stored rows equal PALP's (149 slots, 46 descriptors). Exhaustive: selection pools (5,871,755 entries, shared prefixes sorted) and slot order (179 pairs). Exhaustive emission over all rank-fixed order types (12,528,582 cases), covering all positive weights by `agree_on_positive` (GpuEmission.lean), whose premises are CBMC order-invariance of both comparing primitives and a clang audit that the GPU and PALP recursions only copy weights. Lean: tuple and pair decoding, pair-space size, shard partition. Fused type 3: exhaustive equality with the general generator. |
-| Join | reject (np < 6, coordinate/pair certificate); exact np for the walk | Lean: rejection rules, binary searches, packed ranges. Search loop: source transcription proved complete and duplicate-free (`crun_perm_full`); each emitted tuple has a leaf state holding its chosen key fields (`crun_leaf_values`). Leaf counts: source-pinned checked product/sum guards, exact abstract point count (`leafCounts_points`). CBMC: all leaf mask bits (1..5 rows, symbolic layouts/masks, unit counts), verdict (1..10 coordinates), and weight-based prefix matching (0..4 positions, arbitrary signed weights, including repeats). Builder: every row enumeration validated and counted against the proved `row_solution_count` DP. Position-index validator source-pinned and proved a sorted permutation (`JoinIndexValidator.lean`). **Open: assembly of the remaining leaf interface facts and the fused type-3 join (item 1).** |
-| Walk | point set, or reject by coordinate/pair certificate | Basis rows certified in the kernel and of full rank (mod-2 witness, CBMC on all parity matrices). Points validated inside the certified int32 box, strictly increasing (hence distinct), on the weight equations (`kernel_rows_preserve_weights`). Completeness from count equality with the join's exact np (`checked_walk_complete`); no count means defer. |
-| IP check | accept or reject | Hull construction untrusted. Reject only with a checked supporting inequality (reasons 1 and 4, `sourceSupportingCertificate_sound`). Accept only with a checked positive-spanning certificate (`sourceAcceptance_sound`, source-pinned). Checked 64-bit arithmetic everywhere (source-generated guards; clang audit); overflow defers. |
-| Routing and output | no loss or duplication | Identity tags and ownership transitions audited per chunk; receipts. Lean: output-audit model coverage and uniqueness. |
-| CPU completion | deferred rows | PALP (proof deferred, as agreed); every deferred row must be decided. |
+- Generation: the existing CBMC, exhaustive emission/pool/catalogue checks and
+  `GpuEmission.lean`; fused generation agrees with general generation.
+- General search: `JoinLoopSource.crun_perm_full`, with the source pinned by
+  `check_join_loop_model.py`. `crun_leaf_values` proves every emitted tuple has
+  a source state holding all chosen shared fields.
+- Leaf arithmetic: `JoinLeafCount.lean` proves exact checked products/sums and
+  overflow/zero-count failure, pinned by `check_join_leaf_model.py`. All 25
+  general leaf mask queries and the verdict passed; nonvacuity and mutation
+  controls passed. No symbolic uint64 division is needed in CBMC.
+- Fibre validator: `JoinFibreValidator.lean`, source-pinned together with its
+  caller builder by `check_join_fibre_model.py`. Accepted count-sized chunks
+  are exactly their canonical key's points; stored counts, decoded fields,
+  class nibbles and private-pair bits have exact list-level meanings. Complete
+  row solutions follow from the pinned DP (`JoinRowCount.lean`).
+- Index validator: `JoinIndexValidator.lean` and `check_join_index_model.py`:
+  sorted permutation, bounds, distinct targets, decoded fields, no missing index.
+- Walk validator: `GpuWalkValidator.lean`, `check_walk_validator_model.py`, and
+  `ci/GpuWalkValidatorAudit.lean`. Accepted point bounds/order, distinctness,
+  kernel weight equations and coordinate/pair occupancy are proved under the
+  explicit certified root-box and embedding inputs.
+- Row/tuple interfaces: `JoinTupleBridge.lean` and
+  `JoinCandidateCertificate.lean` derive row-equation equivalence from a checked
+  prefix bijection, unchanged private coefficients, support and row solutions.
+  `JoinValidatedFibres.lean` constructs finite row functions and proves the
+  accepted global row-solution equation. Its per-key adapter is NOT finished.
+- Mask theory: `JoinMaskAssembly.lean` proves shared/private class union,
+  shared-coordinate constants, independent factors, same-row joint summaries,
+  accumulated functional sides and model rejection soundness.
+- Point-to-search coverage: `JoinSourceCoverage.crun_covers_layout_point`
+  derives a source-emitted tuple for every Layout point, using normal key-set
+  representations and shared-coordinate geometry. The emitted-event wrapper
+  described below is NOT finished.
+- Fused type 3: `JoinType3.lean` proves safe midpoint, exact lookup, remapping,
+  matched-pair completeness/uniqueness, uint64 count headroom and capped keep.
+  `JoinType3Search.lean` and `JoinType3Filters.lean` cover both shorter-side
+  iterations, candidate-order presence checks, wrapped Bloom hashes and checked
+  filter completeness. `JoinType3Geometry.lean` derives coverage/compatibility
+  and values from the fixed descriptor. `JoinType3Sound.lean` and
+  `JoinType3Refinement.lean` derive model counts, masks and CWS rejection.
+  **Their public scan still uses fibre-derived `eventSummary`; the raw stored
+  count and row-mask substitution is the open boundary below.**
+  `check_join_type3_model.py` pins the source, builder and layout guard, while
+  `test-gpu-join-type3.py` passed PACK, PERM and CERT (including arbitrary prior
+  mask bits). This is not yet the full fused source proof.
+- Existing IP rejection/acceptance certificates, routing/identity audits and
+  CPU-defer handling remain unchanged.
 
-## Measured cost (type 3, shard 2600/4000, fused binary)
+## Finish next (in order)
 
-Accepted set identical to the pre-verification build (same sorted sha256),
-nothing deferred. GPU time 7.6 s before the verification work and 10.1 s now.
-The first verified build was much slower, mostly from an atomic per checked
-operation and a sort in the walk validator. Those are removed; the remaining
-overhead is the IP check's checked arithmetic (about 1.2 s) and the walk
-validator (about 0.8 s).
+1. **Validator chunks to Layout fibres.** Extend `JoinValidatedFibres.lean`:
+   use `accepted_chunk_rows_exact` to identify each finite-function fibre with
+   its decoded chunk. Prove its card equals stored `g.count`, nonemptiness,
+   shared fields, and raw cats/pairs bits using `checkedChunk_shared_field`,
+   `checkedChunk_cat_class`, `checkedChunk_pair_low/high`. The base finite
+   decode, injectivity, rowSol membership and row equation already compile.
+2. **Fused raw-source summary adapter.** `FibreFacts.count_bound` in
+   `JoinType3Refinement.lean` is only a bound. CUDA adds stored
+   `kl.count * kr.count`, while public `hsource` scans `eventSummary.count =`
+   a product of Layout fibre cards. Likewise its sides are fibre-derived while
+   CUDA reads `cat_a`, `cat_b`, and `pair`. Add explicit stored fields and the
+   validator-derived equalities; define a raw source summary and prove it equals
+   `eventSummary` on matched keys. Lift that equality through `sourceScan`.
+   Then update the public left/right checked-source endpoints to take the raw
+   scan, not the already-substituted semantic scan. The counts, remapping,
+   filters, geometric coverage and conditional CWS theorem are already proved.
+3. **General emitted-event assembly.** Compose `crun_leaf_values`,
+   `sourceTableTuple`, the new per-key facts and source/Layout coordinate map to
+   derive `Values` and compatibility for each emitted tuple. Derive valid
+   decoded tuple/event uniqueness and its set from `crun_perm_full` and strict
+   table keys. `crun_covers_layout_point` supplies the reverse point coverage.
+   Use `source_leaf_count_product` and `leafCounts_exact` to identify the sum
+   with `index_card`; use `accumulated_masks_exact` and
+   `RowCertificate.equations`, then call `leaf_spec_rejection_sound`. The current
+   generic `source_rejection_sound` still takes event/coverage interfaces.
+4. Update this checkpoint after those links are actually discharged. Keep the
+   existing trusted-frontend boundary explicit: source pins/translators are
+   reviewed, not a verified C++ semantics. CUDA/compiler/memory, OS/filesystem
+   and PALP CPU completion remain trusted as previously agreed.
 
-## Regression gate
+## GPU change and measured validation
 
-`.github/workflows/gpu-verification.yml` runs `scripts/test-gpu-correctness.sh`
-in two parts on every push: `proofs` (Lean modules, source pins, axiom audits)
-and `source` (CBMC queries, clang audits, sanitizer harnesses, CPU completion
-and scheduler tests, in `nix develop .#gpu-verify`). No GPU is needed; the CUDA
-compile runs only where a toolkit is present.
+`device_join_find` now uses `lo + ((hi - lo) >> 1)`: the previous uint32 sum
+could overflow. `legacy_midpoint_counterexample` proves the concrete old failure
+and `midpoint_exact`/`midpoint_u32` prove the replacement. No other kernel code
+changed. Both GPU binaries built on the server (now CUDA 13.4.92; the documented
+13.3 path is absent).
 
-### Validation checkpoint (2026-11-03)
+On `bigbeautifulgpu.mtl.sfl`, structure 3, shard 2600/4000, np cap 8192:
 
-- The complete new standalone leaf suite passed: 25 mask queries, the verdict,
-  the `ffs` shim, nonvacuity and the deliberate mask mutation. The standalone
-  prefix matcher query also passed.
-- The final `scripts/test-gpu-correctness.sh proofs` gate passed: 116 GPU/join,
-  44 IP and 10 walk theorem axiom closures, foundational axioms only.
-- The final `source` gate passed the arithmetic/source audits, sanitizer
-  harnesses, CPU completion and scheduler tests, matcher and prefix checks.
-  The user requested stopping tests during its repeat of the leaf queries;
-  **the full final source gate was not completed**. Its later walk/search,
-  generation and CUDA-build steps were not reached in that run.
-- No kernel source changed; no new GPU timing measurement was required.
+- Both binaries: 2,520,772,011 candidates, 227,854 accepted, 0 deferred.
+- Saved binary: 10.0703 s; changed binary: 9.86077 s (single measurements).
+- Identical sorted output; expected server-locale SHA256:
+  `61c95c595f9e896331cded4b43a4198cdd2888419d081c02164f4fe46b551e1c`.
+- C-locale sorted SHA256 for both:
+  `91b1499b342f2f0dcfd00236a05c846928a4f69b1382c929dc6c65c135e111b9`.
+- Binary identities and arguments: `verification/gpu/results/type3-midpoint-20261103.json`.
+- Server outputs: `~/cws-bench/gpu-int2/build/verify-midpoint-20261103/`.
 
-## Remaining formal boundaries
+The new focused type-3 CBMC queries and module builds passed. The expanded
+GPU proof/axiom audit is included in the handoff. Long regression suites were
+not restarted, per the user's instruction to stop repeating tests. The earlier
+full proofs gate passed; the earlier full source gate was stopped during its
+repeat leaf checks after sanitizer/CPU/matcher/prefix checks passed.
 
-1. **Join leaf and verdict; fused join.** The search loop itself is proved:
-   `crun_perm_full` (JoinLoopSource.lean, source-pinned) shows
-   `device_gjoin_decide` visits every compatible key tuple exactly once.
-   The leaf/verdict boundary now has the following checked pieces:
-   - `test-gpu-join-leaf.py`: extracted source, 25 mask queries (five mask
-     groups at each of 1..5 rows), the verdict, and an independently checked
-     32-bit `ffs` shim. Counts are fixed to one and the previous count to zero;
-     successful-path mask statements never read counts. Nonvacuity and a
-     deliberately corrupted `tz` update produce the expected counterexamples.
-   - `JoinLeafCount.lean`: `leafCount_iff` proves success iff all factors are
-     nonzero and the exact sum fits, including every intermediate product.
-     `leafCounts_exact` proves accumulation over any ordered list of leaves.
-     `check_join_leaf_model.py` pins the full leaf, verdict and caller,
-     including failure-to-keep routing. No symbolic 64-bit division in CBMC.
-   - `JoinLeafPoints.lean`: gluing is injective as well as onto; `point_card`
-     and `leafCounts_points` connect the sum of products to the actual point
-     count for a complete duplicate-free list of compatible tuples.
-   - `JoinLeafMasks.lean`: the plain leaf low/high formulas equal the proved
-     class formulas; class occupancies recover exact integer pair thresholds
-     for nonempty independent factors. The verdict equals `decideExactJoin 5`.
-   - `JoinLeafState.lean`: the actual source step preserves prefix key fields,
-     even through failed matches and backtracking; `crun_leaf_values` attaches
-     a state with all key fields to every emitted tuple. Packed bounded fibre
-     values equal decoded key fields. A weight-preserving bijection preserves
-     row equations (`matched_weights_equation`). The extracted prefix matcher
-     constructs such a bijection on its full supported finite shape domain
-     (`test-gpu-join-prefix.py`).
-   - `JoinLeafVerdict.lean`: `leaf_spec_rejection_sound` feeds an exact count,
-     exact functional sides and a row-equation equivalence into
-     `cws_join_rejection_sound_all_dimensions`. **These are explicit premises**;
-     this theorem does not yet prove the complete CUDA-to-CWS refinement.
+## Pre-production benchmark (2026-11-03, branch head before push)
 
-   Still to assemble: the source tuple/slot representation with the validated
-   fibre counts; the candidate/table row-equation equivalence using the checked
-   prefix bijection and unchanged private positions; and the accumulated
-   source masks with `functionalSides`, using `JoinPoints` occupancy lemmas,
-   shared-coordinate constants, private-factor independence and the fibre
-   summaries. The fibre validator is still not source-pinned. The entire
-   fused type-3 join (`join_type3.cuh`) remains open; its execution path has
-   not been replaced by the slower general join.
-2. **Trusted frontends.** Source pins and generated models are small reviewed
-   translators (scripts/generate_ip_*.py, check_*_model.py), not a verified
-   C++ semantics. The CUDA compiler, atomics and memory model, CUB, the OS and
-   the filesystem are trusted. `validate_gjoin_index` is now source-pinned to
-   `JoinIndexValidator.lean`: decoded fields, strict ordering, target bounds,
-   distinctness and complete index coverage are proved. The walk validator
-   and the fibre validator are tested and audited, but not source-pinned.
-3. **PALP** (CPU completion of deferred rows) is trusted, as agreed.
-4. **Production execution.** All eight type-3 shard receipts, structure 1's
-   artifacts and the final audit must still be produced and checked.
+`bigbeautifulgpu.mtl.sfl` (RTX PRO 6000 Blackwell, CUDA 13.4, `sm_120`), arguments
+`--np-cap 8192 --chunk-capacity 8000000 --slice-capacity 100000`:
+
+| run | generated | accepted | deferred | GPU s | wall s |
+| --- | --- | --- | --- | --- | --- |
+| fused binary, structure 3 shard 2600/4000 | 2,520,772,011 | 227,854 | 0 | 9.86 | 14.3 |
+| general binary, same shard | 2,520,772,011 | 227,854 | 0 | 18.48 | 27.4 |
+
+Both type-3 outputs sort to `61c95c595f9e…` (server locale), as before. The
+general join's latest source changes (one-key lookup ranges, extracted leaf and
+verdict) ran on the GPU here for the first time. Structures 2, 4, 7, 8 and 10
+(general join, full runs) generated 184,026 / 5,506,794 / 63,903 / 49,970 /
+267,379 candidates with 184,026 / 1,828,179 / 28,221 / 2,755 / 16,040 accepted
+and none deferred; their IP sets equal the PALP-verified 43-type results row for
+row (weights compared after removing PALP's trailing polytope data).
+
+## Scope
+
+The user explicitly selected formal verification plus the required GPU
+measurement. The separate production campaign (eight type-3 shard receipts,
+structure-1 artifacts and final production audit) is outside this handoff task.
+Never read or ship `.env`. No commits have been pushed.
