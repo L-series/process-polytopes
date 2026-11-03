@@ -35,26 +35,112 @@ struct HostIpResult {
     DeviceIpStats stats{};
     std::uint64_t candidates = 0;
     double seconds = 0.0;
+    std::uint64_t scanned_selections = 0;
 };
 
 inline void accumulate(HostIpResult *total, const HostIpResult &chunk) {
-    const unsigned long long *from = &chunk.stats.point_fail;
-    unsigned long long *to = &total->stats.point_fail;
-    for (std::size_t i = 0; i < sizeof(DeviceIpStats) / sizeof(unsigned long long); ++i) to[i] += from[i];
-    total->candidates += chunk.candidates;
+#define CWS_ACCUMULATE(field) total->stats.field = checked_add(total->stats.field, chunk.stats.field)
+    CWS_ACCUMULATE(point_fail); CWS_ACCUMULATE(degenerate); CWS_ACCUMULATE(certified);
+    CWS_ACCUMULATE(deferred); CWS_ACCUMULATE(rank_deficient); CWS_ACCUMULATE(inci_fail);
+    CWS_ACCUMULATE(rejected); CWS_ACCUMULATE(accepted); CWS_ACCUMULATE(np_mismatch);
+#undef CWS_ACCUMULATE
+    total->candidates = checked_add(total->candidates, chunk.candidates);
+    total->scanned_selections = checked_add(total->scanned_selections, chunk.scanned_selections);
     total->seconds += chunk.seconds;
 }
 
 inline std::uint64_t outcome_sum(const DeviceIpStats &s) {  // np_mismatch is part of deferred
-    return s.point_fail + s.degenerate + s.certified + s.deferred + s.rank_deficient + s.inci_fail + s.rejected +
-           s.accepted;
+    std::uint64_t sum = 0;
+    for (auto value : {s.point_fail, s.degenerate, s.certified, s.deferred, s.rank_deficient,
+                       s.inci_fail, s.rejected, s.accepted}) sum = checked_add(sum, value);
+    return sum;
 }
 
 // np_out values written by the point stage.
 static constexpr int kNpDecided = -1;  // counted already (deferred or certified); not IP-checked
 
+// Chunk-local ownership states. Auditing identities (not merely totals) makes
+// lost/duplicated CUB selections, permutations and output records fail closed.
+static constexpr int kRouteGenerated = 0, kRouteSurvivor = 1, kRouteDeferred = 2,
+                     kRouteRejected = 3, kRoutePoint = 4, kRouteAccepted = 5,
+                     kRouteAcceptedStored = 6, kRouteDeferredStored = 7, kRouteIp = 8;
+
+__device__ bool device_same_candidate(const DeviceCwsCandidate &a, const DeviceCwsCandidate &b) {
+    if (a.structure_id != b.structure_id || a.nw != b.nw || a.ambient_vertices != b.ambient_vertices)
+        return false;
+    if (a.nw < 1 || a.nw > kMaxSlots || a.ambient_vertices < 1 || a.ambient_vertices > 10) return false;
+    for (int r = 0; r < a.nw; ++r) {
+        if (a.degree[r] != b.degree[r] || a.sel_index[r] != b.sel_index[r]) return false;
+        for (int c = 0; c < a.ambient_vertices; ++c)
+            if (a.weights[r][c] != b.weights[r][c]) return false;
+    }
+    return true;
+}
+
+__device__ bool device_route(const DeviceCwsCandidate &c, int from, int to,
+                             int *routes, unsigned long long original_count, int *error) {
+    const auto id = c.pipeline_id;
+    if (id >= original_count || atomicCAS(routes + id, from, to) != from) {
+        atomicExch(error, 1);
+        return false;
+    }
+    return true;
+}
+
+__global__ void initialize_routes_kernel(DeviceCwsCandidate *rows, unsigned long long count,
+                                         bool joined, int *routes) {
+    for (unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x; i < count;
+         i += blockDim.x * gridDim.x) {
+        rows[i].pipeline_id = i;
+        routes[i] = joined ? kRouteSurvivor : kRouteGenerated;
+    }
+}
+
+__global__ void audit_selected_kernel(const DeviceCwsCandidate *rows, unsigned long long count,
+                                      const DeviceCwsCandidate *original, unsigned long long original_count,
+                                      const unsigned char *keep, int *routes, int *error) {
+    for (unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x; i < count;
+         i += blockDim.x * gridDim.x) {
+        const auto id = rows[i].pipeline_id;
+        if (id >= original_count || !keep[id] || !device_same_candidate(rows[i], original[id])) {
+            atomicExch(error, 1); continue;
+        }
+        device_route(rows[i], kRouteGenerated, kRouteSurvivor, routes, original_count, error);
+    }
+}
+
+__global__ void audit_compaction_kernel(const unsigned char *keep, const int *routes,
+                                        unsigned long long count, int *error) {
+    for (unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x; i < count;
+         i += blockDim.x * gridDim.x)
+        if ((keep[i] && routes[i] != kRouteSurvivor) ||
+            (!keep[i] && routes[i] != kRouteRejected && routes[i] != kRouteDeferred)) atomicExch(error, 1);
+}
+
+__global__ void audit_output_kernel(const DeviceCwsCandidate *rows, unsigned long long count,
+                                    const DeviceCwsCandidate *original, unsigned long long original_count,
+                                    int from, int to, int *routes, int *error) {
+    for (unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x; i < count;
+         i += blockDim.x * gridDim.x) {
+        const auto id = rows[i].pipeline_id;
+        if (id >= original_count || !device_same_candidate(rows[i], original[id])) {
+            atomicExch(error, 1); continue;
+        }
+        device_route(rows[i], from, to, routes, original_count, error);
+    }
+}
+
+__global__ void audit_terminal_kernel(const int *routes, unsigned long long count, int *error) {
+    for (unsigned long long i = blockIdx.x * blockDim.x + threadIdx.x; i < count;
+         i += blockDim.x * gridDim.x)
+        if (routes[i] != kRouteRejected && routes[i] != kRouteAcceptedStored && routes[i] != kRouteDeferredStored)
+            atomicExch(error, 1);
+}
+
 __device__ void device_defer(const DeviceCwsCandidate &candidate, DeviceIpStats *stats, DeviceCwsCandidate *deferred,
-                             unsigned long long *deferred_count, unsigned long long capacity) {
+                             unsigned long long *deferred_count, unsigned long long capacity,
+                             int *routes, unsigned long long original_count, int *error, int from = kRoutePoint) {
+    device_route(candidate, from, kRouteDeferred, routes, original_count, error);
     atomicAdd(&stats->deferred, 1ULL);
     const unsigned long long slot = atomicAdd(deferred_count, 1ULL);
     if (slot < capacity) deferred[slot] = candidate;
@@ -68,7 +154,8 @@ __global__ void __launch_bounds__(256, 3) point_enum_kernel(const DeviceCwsCandi
                                                             long long *points, int *np_out, DeviceIpStats *stats,
                                                             DeviceCwsCandidate *deferred,
                                                             unsigned long long *deferred_count,
-                                                            unsigned long long deferred_capacity) {
+                                                            unsigned long long deferred_capacity, int *routes,
+                                                            unsigned long long original_count, int *error) {
     for (unsigned long long index = blockIdx.x * blockDim.x + threadIdx.x; index < candidate_count;
          index += blockDim.x * gridDim.x) {
         const DeviceCwsCandidate &candidate = candidates[index];
@@ -77,7 +164,7 @@ __global__ void __launch_bounds__(256, 3) point_enum_kernel(const DeviceCwsCandi
         // join does not cover) there is nothing to check it against.
         if (candidate.join_np <= 0) {
             np_out[index] = kNpDecided;
-            device_defer(candidate, stats, deferred, deferred_count, deferred_capacity);
+            device_defer(candidate, stats, deferred, deferred_count, deferred_capacity, routes, original_count, error);
             continue;
         }
         long long *slot = points + index * static_cast<unsigned long long>(np_cap) * 5ULL;
@@ -88,15 +175,17 @@ __global__ void __launch_bounds__(256, 3) point_enum_kernel(const DeviceCwsCandi
         if (mismatch) atomicAdd(&stats->np_mismatch, 1ULL);
         if (status < 0 || mismatch) {
             np_out[index] = kNpDecided;
-            device_defer(candidate, stats, deferred, deferred_count, deferred_capacity);
+            device_defer(candidate, stats, deferred, deferred_count, deferred_capacity, routes, original_count, error);
         } else if (status == 0) {
             np_out[index] = kNpDecided;
-            atomicAdd(&stats->point_fail, 1ULL);
+            device_defer(candidate, stats, deferred, deferred_count, deferred_capacity, routes, original_count, error);
         } else if (np < 6) {
             np_out[index] = kNpDecided;
+            device_route(candidate, kRoutePoint, kRouteRejected, routes, original_count, error);
             atomicAdd(&stats->degenerate, 1ULL);
         } else if (!ip_possible) {
             np_out[index] = kNpDecided;
+            device_route(candidate, kRoutePoint, kRouteRejected, routes, original_count, error);
             atomicAdd(&stats->certified, 1ULL);
         } else {
             np_out[index] = np;
@@ -111,14 +200,16 @@ __global__ void join_filter_kernel(DeviceCwsCandidate *candidates, unsigned long
                                    const SelectedEntry *entries, GJoinPlan plan, int np_cap, unsigned char *keep,
                                    DeviceIpStats *stats, DeviceCwsCandidate *deferred,
                                    unsigned long long *deferred_count, unsigned long long deferred_capacity,
-                                   GJoinCensus *census) {
+                                   GJoinCensus *census, int *routes, unsigned long long original_count, int *error) {
     for (unsigned long long index = blockIdx.x * blockDim.x + threadIdx.x; index < candidate_count;
          index += blockDim.x * gridDim.x) {
         const DeviceCwsCandidate &c = candidates[index];
         keep[index] = 0;
         long long x_upper[10] = {0};
         if (!device_candidate_basic_precheck(c, x_upper)) {
-            atomicAdd(&stats->point_fail, 1ULL);
+            if (!census) device_defer(c, stats, deferred, deferred_count, deferred_capacity,
+                                      routes, original_count, error, kRouteGenerated);
+            else atomicAdd(&stats->point_fail, 1ULL);
             continue;
         }
         unsigned long long np = 0;
@@ -133,11 +224,13 @@ __global__ void join_filter_kernel(DeviceCwsCandidate *candidates, unsigned long
                 if (np > static_cast<unsigned long long>(np_cap)) atomicAdd(&census->kept_over_cap, 1ULL);
             }
         } else if (verdict == 0) {
+            device_route(c, kRouteGenerated, kRouteRejected, routes, original_count, error);
             atomicAdd(&stats->degenerate, 1ULL);
         } else if (verdict == 1) {
+            device_route(c, kRouteGenerated, kRouteRejected, routes, original_count, error);
             atomicAdd(&stats->certified, 1ULL);
         } else if (np > static_cast<unsigned long long>(np_cap)) {
-            device_defer(c, stats, deferred, deferred_count, deferred_capacity);
+            device_defer(c, stats, deferred, deferred_count, deferred_capacity, routes, original_count, error, kRouteGenerated);
         } else {
             keep[index] = 1;
             candidates[index].join_np = static_cast<int>(np);
@@ -165,7 +258,7 @@ static constexpr int kVolKeyBits = 16;
 
 inline int np_key_bits(int np_cap) {
     int bits = 1;
-    while ((1 << bits) <= np_cap) ++bits;
+    while (bits < 31 && (1u << bits) <= static_cast<unsigned int>(np_cap)) ++bits;
     return bits;
 }
 
@@ -190,10 +283,17 @@ __global__ void np_key_kernel(const int *np_out, unsigned long long count, int *
 }
 
 __global__ void gather_candidates_kernel(const DeviceCwsCandidate *src, const int *perm, unsigned long long count,
-                                         DeviceCwsCandidate *dst) {
+                                         DeviceCwsCandidate *dst, int *routes,
+                                         unsigned long long original_count, int *error) {
     for (unsigned long long index = blockIdx.x * blockDim.x + threadIdx.x; index < count;
-         index += blockDim.x * gridDim.x)
-        dst[index] = src[perm[index]];
+         index += blockDim.x * gridDim.x) {
+        const int source = perm[index];
+        if (source < 0 || static_cast<unsigned long long>(source) >= count) {
+            atomicExch(error, 1); continue;
+        }
+        dst[index] = src[source];
+        device_route(dst[index], kRouteSurvivor, kRoutePoint, routes, original_count, error);
+    }
 }
 
 // IP stage over the np-sorted candidates with 6..np_cap points. Scratch is per
@@ -203,25 +303,31 @@ __global__ void ip_check_kernel(const DeviceCwsCandidate *candidates, const long
                                 DeviceIpScratch *scratch_workspace, DeviceIpStats *stats,
                                 DeviceCwsCandidate *accepted, unsigned long long *accepted_count,
                                 unsigned long long accepted_capacity, DeviceCwsCandidate *deferred,
-                                unsigned long long *deferred_count, unsigned long long deferred_capacity) {
+                                unsigned long long *deferred_count, unsigned long long deferred_capacity,
+                                unsigned long long slice_count, int *routes, unsigned long long original_count,
+                                int *error) {
     const unsigned long long tid = blockIdx.x * blockDim.x + threadIdx.x;
     DeviceIpScratch *scratch = scratch_workspace + tid;
     for (unsigned long long j = tid; j < valid_count; j += blockDim.x * gridDim.x) {
-        const unsigned long long index = static_cast<unsigned long long>(valid_index[j]);
+        const int selected = valid_index[j];
+        if (selected < 0 || static_cast<unsigned long long>(selected) >= slice_count || np_out[selected] < 6 || np_out[selected] > np_cap) {
+            atomicExch(error, 1); continue;
+        }
+        const unsigned long long index = static_cast<unsigned long long>(selected);
+        if (!device_route(candidates[index], kRoutePoint, kRouteIp, routes, original_count, error)) continue;
         const long long *slot = points + index * static_cast<unsigned long long>(np_cap) * 5ULL;
         int reason = 0;
         if (device_ip_check(slot, np_out[index], scratch, &reason)) {
+            device_route(candidates[index], kRouteIp, kRouteAccepted, routes, original_count, error);
             atomicAdd(&stats->accepted, 1ULL);
             const unsigned long long a = atomicAdd(accepted_count, 1ULL);
             if (a < accepted_capacity) accepted[a] = candidates[index];
-        } else if (reason == 1) {
-            atomicAdd(&stats->rank_deficient, 1ULL);
-        } else if (reason == 2) {
-            atomicAdd(&stats->inci_fail, 1ULL);
-        } else if (reason == 3) {
-            device_defer(candidates[index], stats, deferred, deferred_count, deferred_capacity);
-        } else {
+        } else if (reason == 4) {
+            device_route(candidates[index], kRouteIp, kRouteRejected, routes, original_count, error);
             atomicAdd(&stats->rejected, 1ULL);
+        } else {
+            device_defer(candidates[index], stats, deferred, deferred_count, deferred_capacity,
+                         routes, original_count, error, kRouteIp);
         }
     }
 }
@@ -260,6 +366,8 @@ struct Workspace {
     std::uint64_t capacity = 0, slice = 0;
     DeviceCwsCandidate *candidates = nullptr, *survivors = nullptr, *accepted = nullptr, *deferred = nullptr;
     unsigned char *keep = nullptr;
+    int *routes = nullptr, *audit_error = nullptr;
+    std::uint64_t audit_count = 0;
     int *num_selected = nullptr;
     void *select_temp = nullptr;
     std::size_t select_temp_bytes = 0;
@@ -278,18 +386,20 @@ struct Workspace {
         : capacity(options.chunk_capacity), slice(std::min(options.chunk_capacity, options.slice_capacity)) {
         const std::uint64_t threads = static_cast<std::uint64_t>(options.blocks) * options.threads;
         for (DeviceCwsCandidate **buffer : {&candidates, &survivors, &accepted, &deferred})
-            check_cuda(cudaMalloc(buffer, capacity * sizeof(DeviceCwsCandidate)), "cudaMalloc candidate buffer");
+            check_cuda(cudaMalloc(buffer, checked_mul(capacity, sizeof(DeviceCwsCandidate))), "cudaMalloc candidate buffer");
+        check_cuda(cudaMalloc(&routes, checked_mul(capacity, sizeof(int))), "cudaMalloc ownership states");
+        check_cuda(cudaMalloc(&audit_error, sizeof(int)), "cudaMalloc ownership error");
         check_cuda(cudaMalloc(&keep, capacity), "cudaMalloc keep");
         check_cuda(cudaMalloc(&num_selected, sizeof(int)), "cudaMalloc selected");
         check_cuda(cub::DeviceSelect::Flagged(nullptr, select_temp_bytes, candidates, keep, survivors, num_selected,
                                               static_cast<int>(capacity)), "cub select size");
         check_cuda(cudaMalloc(&select_temp, std::max<std::size_t>(select_temp_bytes, 1)), "cudaMalloc select temp");
-        check_cuda(cudaMalloc(&points, slice * options.np_cap * 5ULL * sizeof(long long)), "cudaMalloc points");
+        check_cuda(cudaMalloc(&points, checked_mul(checked_mul(slice, options.np_cap), 5ULL * sizeof(long long))), "cudaMalloc points");
         for (int **buffer : {&np_out, &valid_index, &keys, &perm, &iota, &np_keys, &keys_sorted})
-            check_cuda(cudaMalloc(buffer, slice * sizeof(int)), "cudaMalloc index buffer");
-        check_cuda(cudaMalloc(&sorted, slice * sizeof(DeviceCwsCandidate)), "cudaMalloc sorted");
+            check_cuda(cudaMalloc(buffer, checked_mul(slice, sizeof(int))), "cudaMalloc index buffer");
+        check_cuda(cudaMalloc(&sorted, checked_mul(slice, sizeof(DeviceCwsCandidate))), "cudaMalloc sorted");
         check_cuda(cudaMalloc(&counts, 3 * sizeof(unsigned long long)), "cudaMalloc counts");
-        check_cuda(cudaMalloc(&scratch, threads * sizeof(DeviceIpScratch)), "cudaMalloc IP scratch");
+        check_cuda(cudaMalloc(&scratch, checked_mul(threads, sizeof(DeviceIpScratch))), "cudaMalloc IP scratch");
         check_cuda(cudaMalloc(&stats, sizeof(DeviceIpStats)), "cudaMalloc stats");
         check_cuda(cudaMalloc(&census, sizeof(GJoinCensus)), "cudaMalloc census");
         std::size_t vol_bytes = 0, np_bytes = 0;
@@ -307,13 +417,19 @@ struct Workspace {
                         static_cast<void *>(keys_sorted), static_cast<void *>(np_keys), static_cast<void *>(iota),
                         static_cast<void *>(perm), static_cast<void *>(keys), static_cast<void *>(valid_index),
                         static_cast<void *>(np_out), static_cast<void *>(points), select_temp,
-                        static_cast<void *>(num_selected), static_cast<void *>(keep), static_cast<void *>(deferred),
+                        static_cast<void *>(num_selected), static_cast<void *>(routes), static_cast<void *>(audit_error), static_cast<void *>(keep), static_cast<void *>(deferred),
                         static_cast<void *>(accepted), static_cast<void *>(survivors), static_cast<void *>(candidates)})
             cudaFree(p);
     }
     Workspace(const Workspace &) = delete;
     Workspace &operator=(const Workspace &) = delete;
 };
+
+inline void require_identity_audit(Workspace &ws) {
+    int error = 0;
+    check_cuda(cudaMemcpy(&error, ws.audit_error, sizeof(error), cudaMemcpyDeviceToHost), "copy identity audit");
+    if (error) throw std::runtime_error("candidate identity audit failed: duplicate, missing or changed record");
+}
 
 inline void copy_rows(const DeviceCwsCandidate *device_rows, unsigned long long count, std::ostream &out) {
     if (!count) return;
@@ -333,9 +449,12 @@ inline void classify_slice(DeviceCwsCandidate *candidates, std::uint64_t count, 
     std::size_t temp = ws.sort_temp_bytes;
     check_cuda(cub::DeviceRadixSort::SortPairs(ws.sort_temp, temp, ws.keys, ws.keys_sorted, ws.iota, ws.perm, items, 0,
                                                kVolKeyBits), "cub volume sort");
-    gather_candidates_kernel<<<blocks, threads>>>(candidates, ws.perm, count, ws.sorted);
+    gather_candidates_kernel<<<blocks, threads>>>(candidates, ws.perm, count, ws.sorted,
+                                                    ws.routes, ws.audit_count, ws.audit_error);
+    check_cuda(cudaGetLastError(), "gather audited candidates");
+    require_identity_audit(ws);
     point_enum_kernel<<<blocks, threads>>>(ws.sorted, count, options.np_cap, ws.points, ws.np_out, ws.stats,
-                                           ws.deferred, ws.counts + 2, ws.capacity);
+                                           ws.deferred, ws.counts + 2, ws.capacity, ws.routes, ws.audit_count, ws.audit_error);
     check_cuda(cudaGetLastError(), "point_enum_kernel launch");
     check_cuda(cudaMemset(ws.counts, 0, sizeof(unsigned long long)), "cudaMemset valid count");
     np_key_kernel<<<blocks, threads>>>(ws.np_out, count, ws.np_keys, ws.counts);
@@ -344,11 +463,12 @@ inline void classify_slice(DeviceCwsCandidate *candidates, std::uint64_t count, 
                                                items, 0, np_key_bits(options.np_cap)), "cub np sort");
     unsigned long long valid = 0;
     check_cuda(cudaMemcpy(&valid, ws.counts, sizeof(valid), cudaMemcpyDeviceToHost), "cudaMemcpy valid count");
+    if (valid > count) throw std::runtime_error("IP selection count exceeds slice size");
     if (valid) {
         ip_check_kernel<<<blocks, threads>>>(ws.sorted, ws.points, ws.np_out, options.np_cap,
                                              ws.valid_index + (count - valid), valid, ws.scratch, ws.stats,
                                              ws.accepted, ws.counts + 1, ws.capacity, ws.deferred, ws.counts + 2,
-                                             ws.capacity);
+                                             ws.capacity, count, ws.routes, ws.audit_count, ws.audit_error);
         check_cuda(cudaGetLastError(), "ip_check_kernel launch");
     }
     check_cuda(cudaDeviceSynchronize(), "classify slice");
@@ -361,6 +481,11 @@ inline HostIpResult classify_chunk(std::uint64_t count, bool joined, const Pipel
     HostIpResult result;
     result.candidates = count;
     if (count == 0) return result;
+    if (count > ws.capacity) throw std::runtime_error("chunk exceeds allocated capacity");
+    ws.audit_count = count;
+    check_cuda(cudaMemset(ws.audit_error, 0, sizeof(int)), "clear identity audit");
+    initialize_routes_kernel<<<options.blocks, options.threads>>>(ws.candidates, count, joined, ws.routes);
+    check_cuda(cudaGetLastError(), "initialize candidate identities");
     auto start = std::chrono::steady_clock::now();
     check_cuda(cudaMemset(ws.stats, 0, sizeof(DeviceIpStats)), "cudaMemset stats");
     check_cuda(cudaMemset(ws.counts, 0, 3 * sizeof(unsigned long long)), "cudaMemset counts");
@@ -372,15 +497,24 @@ inline HostIpResult classify_chunk(std::uint64_t count, bool joined, const Pipel
         join_filter_kernel<<<options.blocks, options.threads>>>(ws.candidates, count, join.entries, join.plan,
                                                                 options.np_cap, ws.keep, ws.stats, ws.deferred,
                                                                 ws.counts + 2, ws.capacity,
-                                                                options.census ? ws.census : nullptr);
+                                                                options.census ? ws.census : nullptr, ws.routes, count, ws.audit_error);
         check_cuda(cudaGetLastError(), "join_filter_kernel launch");
         std::size_t temp = ws.select_temp_bytes;
         check_cuda(cub::DeviceSelect::Flagged(ws.select_temp, temp, ws.candidates, ws.keep, ws.survivors,
                                               ws.num_selected, static_cast<int>(count)), "cub join compaction");
         int selected = 0;
         check_cuda(cudaMemcpy(&selected, ws.num_selected, sizeof(int), cudaMemcpyDeviceToHost), "cudaMemcpy survivors");
+        if (selected < 0 || static_cast<std::uint64_t>(selected) > count)
+            throw std::runtime_error("compacted candidate count exceeds input");
         survivor_rows = ws.survivors;
         survivors = static_cast<std::uint64_t>(selected);
+        if (!options.census) {
+            audit_selected_kernel<<<options.blocks, options.threads>>>(survivor_rows, survivors, ws.candidates,
+                count, ws.keep, ws.routes, ws.audit_error);
+            audit_compaction_kernel<<<options.blocks, options.threads>>>(ws.keep, ws.routes, count, ws.audit_error);
+            check_cuda(cudaGetLastError(), "audit join compaction");
+            require_identity_audit(ws);
+        }
     }
     for (std::uint64_t first = 0; first < survivors; first += ws.slice)
         classify_slice(survivor_rows + first, std::min<std::uint64_t>(ws.slice, survivors - first), options, ws);
@@ -408,6 +542,13 @@ inline HostIpResult classify_chunk(std::uint64_t count, bool joined, const Pipel
     if (outcome_sum(result.stats) != count || counts[1] != result.stats.accepted || counts[2] != result.stats.deferred ||
         counts[1] > ws.capacity || counts[2] > ws.capacity)
         throw std::runtime_error("chunk accounting failed: outcomes do not add up to the candidate count");
+    audit_output_kernel<<<options.blocks, options.threads>>>(ws.accepted, counts[1], ws.candidates, count,
+        kRouteAccepted, kRouteAcceptedStored, ws.routes, ws.audit_error);
+    audit_output_kernel<<<options.blocks, options.threads>>>(ws.deferred, counts[2], ws.candidates, count,
+        kRouteDeferred, kRouteDeferredStored, ws.routes, ws.audit_error);
+    audit_terminal_kernel<<<options.blocks, options.threads>>>(ws.routes, count, ws.audit_error);
+    check_cuda(cudaGetLastError(), "audit terminal candidate identities");
+    require_identity_audit(ws);
     copy_rows(ws.accepted, counts[1], accepted_out);
     copy_rows(ws.deferred, counts[2], deferred_out);
     return result;
@@ -425,8 +566,9 @@ inline HostIpResult run_shard(const DeviceDescriptor &descriptor, const JoinCont
     Workspace ws(options);
     std::uint64_t span = std::max<std::uint64_t>(1, options.chunk_capacity / max_prefix_variants_per_selection(descriptor));
     *generated = 0;
-    for (std::uint64_t position = shard_start; position < shard_start + shard_size;) {
-        const std::uint64_t count = std::min(span, shard_start + shard_size - position);
+    const std::uint64_t shard_end = checked_add(shard_start, shard_size);
+    for (std::uint64_t position = shard_start; position < shard_end;) {
+        const std::uint64_t count = std::min(span, shard_end - position);
         bool joined = false;
 #if CWS_GPU_FUSED_TYPE3
         joined = join.type3 != nullptr;
@@ -446,19 +588,23 @@ inline HostIpResult run_shard(const DeviceDescriptor &descriptor, const JoinCont
             continue;
         }
         if (scan.scanned_tuples != count) throw std::runtime_error("the scan visited a different number of tuples");
-        const std::uint64_t decided = scan.join_degenerate + scan.join_certified;
-        if (scan.stored_candidate_count + decided != scan.prefix_candidates)
+        const std::uint64_t decided = checked_add(scan.join_degenerate, scan.join_certified);
+        if (checked_add(scan.stored_candidate_count, decided) != scan.prefix_candidates)
             throw std::runtime_error("generation stored a different number of candidates than it counted");
-        *generated += scan.prefix_candidates;
+        *generated = checked_add(*generated, scan.prefix_candidates);
         HostIpResult chunk = classify_chunk(scan.stored_candidate_count, joined, options, join, ws, census_total,
                                             accepted_out, deferred_out);
-        chunk.candidates += decided;
-        chunk.stats.degenerate += scan.join_degenerate;
-        chunk.stats.certified += scan.join_certified;
+        chunk.scanned_selections = scan.scanned_tuples;
+        chunk.candidates = checked_add(chunk.candidates, decided);
+        chunk.stats.degenerate = checked_add(chunk.stats.degenerate, scan.join_degenerate);
+        chunk.stats.certified = checked_add(chunk.stats.certified, scan.join_certified);
         accumulate(&total, chunk);
         position += count;
-        if (scan.stored_candidate_count * 4 < options.chunk_capacity) span = std::min<std::uint64_t>(span * 2, shard_size);
+        if (scan.stored_candidate_count * 4 < options.chunk_capacity) span = span > shard_size / 2 ? shard_size : span * 2;
     }
+    if (total.scanned_selections != shard_size || total.candidates != *generated ||
+        (!options.census && outcome_sum(total.stats) != *generated))
+        throw std::runtime_error("shard completion accounting mismatch");
     return total;
 }
 

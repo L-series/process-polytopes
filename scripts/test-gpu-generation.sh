@@ -15,7 +15,7 @@ cflags=(-DPOLY_Dmax=5 -IPALP -Isrc/cws -Isrc/gpu)
 make -s build/palp-Coord.o build/palp-Rat.o build/palp-Vertex.o build/palp-Polynf.o build/palp-LG.o \
   build/project-weight_pool.o build/project-catalogue.o build/gpu-catalogue_bridge.o
 cc "${cflags[@]}" -O1 -c verification/gpu/cpu_reference.c -o "$work/cpu_reference.o"
-${NVCC:-nvcc} -std=c++17 -Isrc/gpu ${NVCCFLAGS:-} verification/gpu/generation_host.cu "$work/cpu_reference.o" \
+${NVCC:-nvcc} -ccbin "${CXX:-g++}" -std=c++17 -Isrc/gpu ${NVCCFLAGS:-} verification/gpu/generation_host.cu "$work/cpu_reference.o" \
   build/palp-Coord.o build/palp-Rat.o build/palp-Vertex.o build/palp-Polynf.o build/palp-LG.o \
   build/project-weight_pool.o build/project-catalogue.o build/gpu-catalogue_bridge.o -o "$work/generation_host"
 "$work/generation_host"

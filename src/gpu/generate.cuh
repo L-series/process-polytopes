@@ -175,6 +175,7 @@ __device__ __noinline__ void device_store_candidate(const DeviceDescriptor &desc
         out->degree[slot] = 0;
         for (int coordinate = 0; coordinate < 10; ++coordinate) out->weights[slot][coordinate] = 0;
     }
+    out->pipeline_id = 0;
     out->join_np = 0;
 
     for (int slot = 0; slot < descriptor.simplex_count; ++slot) {
@@ -349,8 +350,8 @@ __device__ unsigned long long device_pair_left_from_linear(unsigned long long pa
 }
 
 inline std::uint64_t triangular_count(std::uint64_t count) {
-    if ((count & 1ULL) == 0) return (count / 2ULL) * (count + 1ULL);
-    return count * ((count + 1ULL) / 2ULL);
+    if ((count & 1ULL) == 0) return checked_mul(count / 2ULL, checked_add(count, 1ULL));
+    return checked_mul(count, checked_add(count, 1ULL) / 2ULL);
 }
 
 inline bool use_pair_scan(const DeviceDescriptor &descriptor) {
@@ -385,13 +386,16 @@ inline void descriptor_shard_range(const DeviceDescriptor &descriptor,
                             std::uint64_t *shard_start,
                             std::uint64_t *shard_count) {
     std::uint64_t scan_space = descriptor_scan_space(descriptor);
-    // floor(S i / k) for i = 0..k partitions [0, S); checked_mul rejects S k >= 2^64.
-    std::uint64_t start =
-        checked_mul(scan_space, static_cast<std::uint64_t>(shard_index)) /
-        static_cast<std::uint64_t>(shard_count_total);
-    std::uint64_t end =
-        checked_mul(scan_space, static_cast<std::uint64_t>(shard_index + 1)) /
-        static_cast<std::uint64_t>(shard_count_total);
+    if (shard_count_total <= 0 || shard_index < 0 || shard_index >= shard_count_total)
+        throw std::runtime_error("invalid descriptor shard range");
+    // floor(S*i/k), without the overflowing S*i intermediate. i<=k<=INT_MAX
+    // also bounds the remainder product by (INT_MAX-1)*INT_MAX.
+    const auto shards = static_cast<std::uint64_t>(shard_count_total);
+    auto boundary = [&](std::uint64_t index) {
+        return (scan_space / shards) * index + ((scan_space % shards) * index) / shards;
+    };
+    const std::uint64_t start = boundary(static_cast<std::uint64_t>(shard_index));
+    const std::uint64_t end = boundary(static_cast<std::uint64_t>(shard_index) + 1ULL);
     *shard_start = start;
     *shard_count = end - start;
 }

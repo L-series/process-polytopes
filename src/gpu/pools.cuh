@@ -152,7 +152,9 @@ inline PoolArray build_all_pools(const std::string &weights_dir) {
 
 inline std::vector<SelectedEntry> flatten_pools(const PoolArray &pools) {
     std::uint64_t total = 0;
-    for (const PoolInfo &pool : pools) total += static_cast<std::uint64_t>(pool.entries.size());
+    for (const PoolInfo &pool : pools) total = checked_add(total, static_cast<std::uint64_t>(pool.entries.size()));
+    if (total > static_cast<std::uint64_t>(std::numeric_limits<int>::max()))
+        throw std::runtime_error("flattened pools exceed signed candidate index capacity");
     std::vector<SelectedEntry> flat;
     flat.reserve(static_cast<std::size_t>(total));
     for (const PoolInfo &pool : pools) {

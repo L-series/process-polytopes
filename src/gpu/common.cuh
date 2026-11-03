@@ -26,6 +26,12 @@ inline std::uint64_t checked_mul(std::uint64_t left, std::uint64_t right) {
     return left * right;
 }
 
+inline std::uint64_t checked_add(std::uint64_t left, std::uint64_t right) {
+    if (left > std::numeric_limits<std::uint64_t>::max() - right)
+        throw std::runtime_error("uint64 overflow while accumulating pipeline counts");
+    return left + right;
+}
+
 // One weight system from a pool file; degree is the sum of the weights.
 struct BaseWeight {
     int degree = 0;
@@ -77,6 +83,7 @@ struct DeviceCwsCandidate {
     int degree[kMaxSlots] = {0, 0, 0, 0, 0};
     int weights[kMaxSlots][kMaxCoordinates] = {};
     int sel_index[kMaxSlots] = {0, 0, 0, 0, 0};  // flattened pool entry per slot
+    unsigned long long pipeline_id = 0; // chunk-local identity, audited through every routing stage
     int join_np = 0;  // exact point count from the join (0 = not joined)
 };
 

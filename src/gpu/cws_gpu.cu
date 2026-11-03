@@ -15,6 +15,8 @@
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
+#include <filesystem>
+#include <limits>
 
 namespace cwsgpu {
 namespace {
@@ -42,6 +44,19 @@ long parse_long(const std::string &value) {
     return parsed;
 }
 
+int parse_int(const std::string &value) {
+    const long parsed = parse_long(value);
+    if (parsed < std::numeric_limits<int>::min() || parsed > std::numeric_limits<int>::max())
+        throw std::runtime_error("integer option exceeds signed 32-bit range");
+    return static_cast<int>(parsed);
+}
+
+std::uint64_t parse_capacity(const std::string &value) {
+    const long parsed = parse_long(value);
+    if (parsed <= 0) throw std::runtime_error("capacity must be positive");
+    return static_cast<std::uint64_t>(parsed);
+}
+
 void usage(const char *argv0) {
     std::cerr << "Usage: " << argv0 << " --structure-id ID [options]\n"
               << "  --weights-dir DIR   pool files 2d.txt 3d.txt 4d.txt (default docs/data/single-weight-systems)\n"
@@ -67,18 +82,18 @@ Config parse_args(int argc, char **argv) {
             if (i + 1 >= argc) throw std::runtime_error("missing value for " + arg);
             return argv[++i];
         };
-        if (arg == "--structure-id") config.structure_id = static_cast<int>(parse_long(value()));
+        if (arg == "--structure-id") config.structure_id = parse_int(value());
         else if (arg == "--weights-dir") config.weights_dir = value();
-        else if (arg == "--shard-count") config.shard_count = static_cast<int>(parse_long(value()));
-        else if (arg == "--shard-index") config.shard_index = static_cast<int>(parse_long(value()));
-        else if (arg == "--cuda-device") config.cuda_device = static_cast<int>(parse_long(value()));
-        else if (arg == "--blocks") config.blocks = static_cast<int>(parse_long(value()));
-        else if (arg == "--threads") config.threads = static_cast<int>(parse_long(value()));
+        else if (arg == "--shard-count") config.shard_count = parse_int(value());
+        else if (arg == "--shard-index") config.shard_index = parse_int(value());
+        else if (arg == "--cuda-device") config.cuda_device = parse_int(value());
+        else if (arg == "--blocks") config.blocks = parse_int(value());
+        else if (arg == "--threads") config.threads = parse_int(value());
         else if (arg == "--count-only") config.count_only = true;
-        else if (arg == "--np-cap") config.np_cap = static_cast<int>(parse_long(value()));
+        else if (arg == "--np-cap") config.np_cap = parse_int(value());
         else if (arg == "--census") config.census = true;
-        else if (arg == "--chunk-capacity") config.chunk_capacity = static_cast<std::uint64_t>(parse_long(value()));
-        else if (arg == "--slice-capacity") config.slice_capacity = static_cast<std::uint64_t>(parse_long(value()));
+        else if (arg == "--chunk-capacity") config.chunk_capacity = parse_capacity(value());
+        else if (arg == "--slice-capacity") config.slice_capacity = parse_capacity(value());
         else if (arg == "--accepted-output") config.accepted_path = value();
         else if (arg == "--deferred-output") config.deferred_path = value();
         else if (arg == "-h" || arg == "--help") { usage(argv[0]); std::exit(0); }
@@ -87,13 +102,21 @@ Config parse_args(int argc, char **argv) {
     if (config.structure_id < 2 || config.structure_id > 47) throw std::runtime_error("--structure-id must be in 2..47");
     if (config.shard_count <= 0 || config.shard_index < 0 || config.shard_index >= config.shard_count)
         throw std::runtime_error("--shard-index must be in [0, --shard-count)");
-    if (config.threads <= 0 || config.threads > 1024 || (config.threads & (config.threads - 1)))
-        throw std::runtime_error("--threads must be a power of two no larger than 1024");
+    if (config.threads <= 0 || config.threads > 256 || (config.threads & (config.threads - 1)))
+        throw std::runtime_error("--threads must be a power of two no larger than 256");
     if (!config.count_only && !config.census && (config.accepted_path.empty() || config.deferred_path.empty()))
         throw std::runtime_error("--accepted-output and --deferred-output are required (or --count-only / --census)");
+    if (config.blocks < 0 || config.cuda_device < 0) throw std::runtime_error("blocks/device must be nonnegative");
     if (config.np_cap < 6 || config.chunk_capacity == 0 || config.chunk_capacity > 0x7FFFFFFF ||
         config.slice_capacity == 0)
         throw std::runtime_error("--np-cap must be >= 6, --chunk-capacity in 1..2^31-1, --slice-capacity >= 1");
+    if (!config.count_only && !config.census) {
+        const auto accepted = std::filesystem::weakly_canonical(config.accepted_path);
+        const auto deferred = std::filesystem::weakly_canonical(config.deferred_path);
+        if (accepted == deferred || (std::filesystem::exists(accepted) && std::filesystem::exists(deferred) &&
+                                     std::filesystem::equivalent(accepted, deferred)))
+            throw std::runtime_error("accepted and deferred outputs must be different files");
+    }
     return config;
 }
 
@@ -104,6 +127,9 @@ int run(const Config &config) {
     cudaDeviceProp properties{};
     check_cuda(cudaGetDeviceProperties(&properties, config.cuda_device), "cudaGetDeviceProperties");
     const int blocks = config.blocks ? config.blocks : properties.multiProcessorCount * 16;
+    if (blocks <= 0 || checked_mul(static_cast<std::uint64_t>(blocks), config.threads) >
+                           std::numeric_limits<unsigned int>::max())
+        throw std::runtime_error("launch dimensions exceed the exact CUDA grid-stride arithmetic range");
 
     const GpuDescriptor catalogue = catalogue_descriptor(config.structure_id);
     const PoolArray pools = build_all_pools(config.weights_dir);
@@ -119,6 +145,9 @@ int run(const Config &config) {
 
     std::uint64_t shard_start = 0, shard_size = 0;
     descriptor_shard_range(descriptor, config.shard_count, config.shard_index, &shard_start, &shard_size);
+    bool completed_classification = false;
+    HostIpResult completion;
+    std::uint64_t completion_generated = 0;
     if (config.count_only) {
         const HostScanResult result = scan_descriptor_range(descriptor, device_entries, device_stats, nullptr, 0,
                                                             blocks, config.threads, shard_start, shard_size);
@@ -146,6 +175,8 @@ int run(const Config &config) {
 #endif
         std::ofstream accepted_out, deferred_out;
         if (!config.census) {
+            accepted_out.exceptions(std::ios::badbit | std::ios::failbit);
+            deferred_out.exceptions(std::ios::badbit | std::ios::failbit);
             accepted_out.open(config.accepted_path);
             deferred_out.open(config.deferred_path);
             if (!accepted_out || !deferred_out) throw std::runtime_error("cannot open the output files");
@@ -176,22 +207,40 @@ int run(const Config &config) {
                       << descriptor.id << ',' << generated << ',' << s.accepted << ',' << s.deferred << ','
                       << s.rejected << ',' << s.certified << ',' << s.degenerate << ',' << s.rank_deficient << ','
                       << s.inci_fail << ',' << s.point_fail << ',' << s.np_mismatch << ',' << r.seconds << '\n';
+            completed_classification = true;
+            completion = r;
+            completion_generated = generated;
             if (s.np_mismatch) std::cerr << "warning: " << s.np_mismatch << " walk/join point-count mismatches (deferred)\n";
         }
         for (HostGJoinTable &t : tables) {
             cudaFree(t.d_keys);
             cudaFree(t.d_offsets);
+            cudaFree(t.d_covered);
             for (GJoinIdx *p : t.d_pidx) cudaFree(p);
         }
 #if CWS_GPU_FUSED_TYPE3
         for (void *p : {static_cast<void *>(type3_tables.d_keys), static_cast<void *>(type3_tables.d_offsets),
-                        static_cast<void *>(type3_tables.d_masks), static_cast<void *>(type3_tables.d_bloom)})
+                        static_cast<void *>(type3_tables.d_masks), static_cast<void *>(type3_tables.d_bloom),
+                        static_cast<void *>(type3_tables.d_covered)})
             cudaFree(p);
 #endif
     }
 
-    cudaFree(device_stats);
-    cudaFree(device_entries);
+    check_cuda(cudaFree(device_stats), "free scan stats");
+    check_cuda(cudaFree(device_entries), "free entries");
+    if (completed_classification) {
+        const auto &s = completion.stats;
+        const auto rejected = outcome_sum(s) - s.accepted - s.deferred;
+        std::cerr << "CWS_GPU_COMPLETION_V1 {\"structure_id\":" << config.structure_id
+                  << ",\"shard_count\":" << config.shard_count << ",\"shard_index\":" << config.shard_index
+                  << ",\"scan_space\":" << descriptor_scan_space(descriptor)
+                  << ",\"range_start\":" << shard_start << ",\"range_count\":" << shard_size
+                  << ",\"scanned_selections\":" << completion.scanned_selections
+                  << ",\"generated\":" << completion_generated << ",\"processed\":" << completion.candidates
+                  << ",\"accepted\":" << s.accepted << ",\"rejected\":" << rejected
+                  << ",\"deferred\":" << s.deferred << ",\"identity_audited\":true}\n";
+        if (!std::cerr) throw std::runtime_error("failed to write completion receipt");
+    }
     return 0;
 }
 
