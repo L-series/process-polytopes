@@ -142,6 +142,83 @@ __device__ bool device_gjoin_match_key(unsigned long long key, int k,
     return true;
 }
 
+// Running sums and occupancy masks of the join's leaves (bit A: coordinate A).
+// tz/t2: some point has X_A == 0 / X_A >= 2. LO[A]/HI[A] bit B: some point has
+// X_A + X_B <= 1 / >= 3, from class combinations of different factors; LS/HS
+// the same for two private coordinates of one row, from that row's fibre.
+struct GJoinAcc {
+    unsigned long long np;
+    unsigned int tz, t2, m3_all;
+    unsigned int LO[10], HI[10], LS[10], HS[10];
+};
+
+// One leaf: the block of the chosen keys, with the shared values in val.
+// False when a count is zero or a sum cannot be represented (inconclusive).
+__device__ bool device_gjoin_leaf(const GJoinPlan &plan, const unsigned long long chosen[kMaxSlots],
+                                  const int val[10], GJoinAcc &acc) {
+    const int R = plan.nrows;
+    unsigned long long cnt = 1;
+    unsigned int m0 = 0, m1 = 0, m2 = 0, m3 = 0;
+    for (unsigned int sm = plan.shared_mask; sm; sm &= sm - 1) {
+        const int A = __ffs(sm) - 1;
+        const unsigned int b = 1u << A;
+        const int v = val[A];
+        m0 |= v == 0 ? b : 0u; m1 |= v == 1 ? b : 0u; m2 |= v == 2 ? b : 0u; m3 |= v >= 3 ? b : 0u;
+    }
+    for (int j = 0; j < R; ++j) {
+        const int sj = plan.order[j];
+        const GJoinKey g = plan.table[sj].keys[chosen[j]];
+        // Zero counts violate the nonempty-factor invariant. Arithmetic
+        // that cannot be represented must remain inconclusive as well.
+        if (g.count == 0 || cnt > (~0ULL) / g.count) return false;
+        cnt *= g.count;
+        const int k = plan.shared[sj];
+        const int npriv = plan.size[sj] - k;
+        for (int t = 0; t < npriv; ++t) {
+            const unsigned int b = 1u << plan.coord[sj][k + t];
+            const unsigned int cl = (g.cats >> (4 * t)) & 15u;
+            m0 |= (cl & 1u) ? b : 0u; m1 |= (cl & 2u) ? b : 0u; m2 |= (cl & 4u) ? b : 0u; m3 |= (cl & 8u) ? b : 0u;
+        }
+        int u = 0;
+        for (int t1 = 0; t1 < npriv; ++t1)
+            for (int t2i = t1 + 1; t2i < npriv; ++t2i, ++u) {
+                int a = plan.coord[sj][k + t1], bb = plan.coord[sj][k + t2i];
+                if (a > bb) { const int tmp = a; a = bb; bb = tmp; }
+                if ((g.pairs >> (2 * u)) & 1u) acc.LS[a] |= 1u << bb;
+                if ((g.pairs >> (2 * u + 1)) & 1u) acc.HS[a] |= 1u << bb;
+            }
+    }
+    if (acc.np > (~0ULL) - cnt) return false;
+    acc.np += cnt;
+    acc.tz |= m0;
+    acc.t2 |= m2 | m3;
+    acc.m3_all |= m3;
+    const unsigned int ge1 = m1 | m2 | m3;
+    for (unsigned int x = m0; x; x &= x - 1) acc.LO[__ffs(x) - 1] |= m0 | m1;
+    for (unsigned int x = m1; x; x &= x - 1) acc.LO[__ffs(x) - 1] |= m0;
+    for (unsigned int x = m3; x; x &= x - 1) acc.HI[__ffs(x) - 1] = 0x3FFu;
+    for (unsigned int x = m2; x; x &= x - 1) acc.HI[__ffs(x) - 1] |= ge1;
+    for (unsigned int x = ge1; x; x &= x - 1) acc.HI[__ffs(x) - 1] |= m2;
+    return true;
+}
+
+// 0 = degenerate (np < 6), 1 = a coordinate or pair functional is one-sided
+// and non-constant (certified non-IP), 2 = keep.
+__device__ int device_gjoin_verdict(const GJoinAcc &acc, const GJoinPlan &plan) {
+    const int N = plan.ambient;
+    if (acc.np < 6) return 0;
+    const unsigned int all = (1u << N) - 1u;
+    if ((acc.tz ^ acc.t2) & all) return 1;
+    for (int A = 0; A < N; ++A) {
+        const unsigned int upper = all & ~((2u << A) - 1u);   // B > A
+        const unsigned int same = plan.same_row[A];
+        const unsigned int lo = ((acc.LO[A] & ~same) | (acc.LS[A] & same)) & upper;
+        const unsigned int hi = (((acc.HI[A] | acc.m3_all) & ~same) | (acc.HS[A] & same)) & upper;
+        if (lo ^ hi) return 1;
+    }
+    return 2;
+}
+
 // Returns 0 = degenerate (np < 6), 1 = certified non-IP, 2 = keep; *np_out is
 // the exact point count. Layouts the tables do not cover return 2 with
 // *np_out = 0; callers must defer these candidates for exact CPU completion.
@@ -180,9 +257,7 @@ __device__ int device_gjoin_decide(const DeviceCwsCandidate &c, const SelectedEn
     unsigned long long it[kMaxSlots], end[kMaxSlots];
     int pstar[kMaxSlots];
     unsigned long long chosen[kMaxSlots];
-    unsigned long long np = 0;
-    unsigned int tz = 0, t2 = 0, m3_all = 0;
-    unsigned int LO[10] = {}, HI[10] = {}, LS[10] = {}, HS[10] = {};
+    GJoinAcc acc = {};
 
     int depth = 0;
     device_gjoin_begin_level(0, plan, epos_coord, val, kb, ke, it, end, pstar);
@@ -207,61 +282,10 @@ __device__ int device_gjoin_decide(const DeviceCwsCandidate &c, const SelectedEn
             continue;
         }
         // Leaf: one block {s} x prod_r F_r(s).
-        unsigned long long cnt = 1;
-        unsigned int m0 = 0, m1 = 0, m2 = 0, m3 = 0;
-        for (unsigned int sm = plan.shared_mask; sm; sm &= sm - 1) {
-            const int A = __ffs(sm) - 1;
-            const unsigned int b = 1u << A;
-            const int v = val[A];
-            m0 |= v == 0 ? b : 0u; m1 |= v == 1 ? b : 0u; m2 |= v == 2 ? b : 0u; m3 |= v >= 3 ? b : 0u;
-        }
-        for (int j = 0; j < R; ++j) {
-            const int sj = plan.order[j];
-            const GJoinKey g = plan.table[sj].keys[chosen[j]];
-            // Zero counts violate the nonempty-factor invariant. Arithmetic
-            // that cannot be represented must remain inconclusive as well.
-            if (g.count == 0 || cnt > (~0ULL) / g.count) return 2;
-            cnt *= g.count;
-            const int k = plan.shared[sj];
-            const int npriv = plan.size[sj] - k;
-            for (int t = 0; t < npriv; ++t) {
-                const unsigned int b = 1u << plan.coord[sj][k + t];
-                const unsigned int cl = (g.cats >> (4 * t)) & 15u;
-                m0 |= (cl & 1u) ? b : 0u; m1 |= (cl & 2u) ? b : 0u; m2 |= (cl & 4u) ? b : 0u; m3 |= (cl & 8u) ? b : 0u;
-            }
-            int u = 0;
-            for (int t1 = 0; t1 < npriv; ++t1)
-                for (int t2i = t1 + 1; t2i < npriv; ++t2i, ++u) {
-                    int a = plan.coord[sj][k + t1], bb = plan.coord[sj][k + t2i];
-                    if (a > bb) { const int tmp = a; a = bb; bb = tmp; }
-                    if ((g.pairs >> (2 * u)) & 1u) LS[a] |= 1u << bb;
-                    if ((g.pairs >> (2 * u + 1)) & 1u) HS[a] |= 1u << bb;
-                }
-        }
-        if (np > (~0ULL) - cnt) return 2;
-        np += cnt;
-        tz |= m0;
-        t2 |= m2 | m3;
-        m3_all |= m3;
-        const unsigned int ge1 = m1 | m2 | m3;
-        for (unsigned int x = m0; x; x &= x - 1) LO[__ffs(x) - 1] |= m0 | m1;
-        for (unsigned int x = m1; x; x &= x - 1) LO[__ffs(x) - 1] |= m0;
-        for (unsigned int x = m3; x; x &= x - 1) HI[__ffs(x) - 1] = 0x3FFu;
-        for (unsigned int x = m2; x; x &= x - 1) HI[__ffs(x) - 1] |= ge1;
-        for (unsigned int x = ge1; x; x &= x - 1) HI[__ffs(x) - 1] |= m2;
+        if (!device_gjoin_leaf(plan, chosen, val, acc)) return 2;
     }
-    *np_out = np;
-    if (np < 6) return 0;
-    const unsigned int all = (1u << N) - 1u;
-    if ((tz ^ t2) & all) return 1;
-    for (int A = 0; A < N; ++A) {
-        const unsigned int upper = all & ~((2u << A) - 1u);   // B > A
-        const unsigned int same = plan.same_row[A];
-        const unsigned int lo = ((LO[A] & ~same) | (LS[A] & same)) & upper;
-        const unsigned int hi = (((HI[A] | m3_all) & ~same) | (HS[A] & same)) & upper;
-        if (lo ^ hi) return 1;
-    }
-    return 2;
+    *np_out = acc.np;
+    return device_gjoin_verdict(acc, plan);
 }
 
 // Device copy of one pool's table; freed with the process.

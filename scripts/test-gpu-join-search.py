@@ -39,7 +39,8 @@ def main():
                         'struct GJoinKey', 'struct GJoinIdx', 'struct GJoinTable', 'struct GJoinPlan',
                         '__device__ void device_gjoin_begin_level(',
                         '__device__ bool device_gjoin_match_key(',
-                        '__device__ int device_gjoin_decide('], check=True)
+                        'struct GJoinAcc', '__device__ bool device_gjoin_leaf(',
+                        '__device__ int device_gjoin_verdict(', '__device__ int device_gjoin_decide('], check=True)
         source = Path(directory) / 'check.cpp'
         # C linkage avoids CBMC loop IDs containing commas from C++ signatures.
         # The bodies remain verbatim; the two intrinsics use C linkage as well.
@@ -73,7 +74,7 @@ def main():
                 raise SystemExit('Cannot identify production DFS loop for bounded unwinding')
             final_line = source.read_text().split('    for (int A = 0; A < N; ++A) {')[0].count('\n') + 1
             final = [name for name, line in re.findall(
-                r'Loop (.*):\n  file .* line (\d+) function device_gjoin_decide', loops)
+                r'Loop (.*):\n  file .* line (\d+) function device_gjoin_verdict', loops)
                 if int(line) == final_line]
             if len(final) != 1:
                 raise SystemExit('Cannot identify production verdict loop')
