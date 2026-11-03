@@ -23,6 +23,10 @@
         profiling = pkgs.mkShell {
           packages = [ pkgs.gcc pkgs.binutils pkgs.python3 pkgs.git pkgs.valgrind ];
         };
+        # Model checking of the CUDA sources (verification/gpu) with CBMC.
+        gpu-verify = pkgs.mkShell {
+          packages = with pkgs; [ gcc gnumake python3 git cbmc ];
+        };
       };
     };
 }
