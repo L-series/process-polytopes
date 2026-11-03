@@ -9,7 +9,7 @@ PROJECT_SOURCES = main catalogue weight_pool
 OBJECTS = $(addprefix $(BUILD_DIR)/palp-,$(addsuffix .o,$(PALP_SOURCES))) \
           $(addprefix $(BUILD_DIR)/project-,$(addsuffix .o,$(PROJECT_SOURCES)))
 
-.PHONY: all clean gpu
+.PHONY: all clean gpu gpu-type3
 all: $(BUILD_DIR)/cws.x
 
 # CUDA front end (src/gpu). Not part of `all`: it needs nvcc. Set CUDA_ARCH for
@@ -23,6 +23,13 @@ gpu: $(BUILD_DIR)/cws-gpu.x
 $(BUILD_DIR)/cws-gpu.x: src/gpu/cws_gpu.cu $(wildcard src/gpu/*.cuh) src/gpu/catalogue_bridge.h $(GPU_OBJECTS)
 	$(NVCC) $(NVCCFLAGS) -gencode arch=compute_$(CUDA_ARCH:sm_%=%),code=$(CUDA_ARCH) -Isrc/gpu \
 	  -o $@ src/gpu/cws_gpu.cu $(GPU_OBJECTS)
+
+# Same front end with the fused type-3 join (structure 3 only differs).
+gpu-type3: $(BUILD_DIR)/cws-gpu-type3.x
+
+$(BUILD_DIR)/cws-gpu-type3.x: src/gpu/cws_gpu.cu $(wildcard src/gpu/*.cuh) src/gpu/catalogue_bridge.h $(GPU_OBJECTS)
+	$(NVCC) $(NVCCFLAGS) -DCWS_GPU_FUSED_TYPE3=1 -gencode arch=compute_$(CUDA_ARCH:sm_%=%),code=$(CUDA_ARCH) \
+	  -Isrc/gpu -o $@ src/gpu/cws_gpu.cu $(GPU_OBJECTS)
 
 $(BUILD_DIR)/gpu-%.o: src/gpu/%.c $(BUILD_DIR)/config | $(BUILD_DIR)
 	$(CC) $(CPPFLAGS) -Isrc/gpu $(CFLAGS) -MMD -MP -c $< -o $@
@@ -52,6 +59,6 @@ $(BUILD_DIR)/config: FORCE | $(BUILD_DIR)
 
 clean:
 	rm -f $(OBJECTS) $(OBJECTS:.o=.d) $(BUILD_DIR)/cws.x $(BUILD_DIR)/config
-	rm -f $(GPU_OBJECTS) $(GPU_OBJECTS:.o=.d) $(BUILD_DIR)/cws-gpu.x
+	rm -f $(GPU_OBJECTS) $(GPU_OBJECTS:.o=.d) $(BUILD_DIR)/cws-gpu.x $(BUILD_DIR)/cws-gpu-type3.x
 
 -include $(OBJECTS:.o=.d) $(GPU_OBJECTS:.o=.d)

@@ -20,6 +20,7 @@ Descriptors come from `src/cws/catalogue.c` and pools from the same
 | `lattice.cuh` | Integer kernel basis and LLL + Fincke-Pohst lattice-point walk. |
 | `ip_check.cuh` | Port of PALP `IP_Check` with 64-entry lists. |
 | `pipeline.cuh` | Chunks, join, survivor slices, outputs and accounting. |
+| `join_type3.cuh` | Optional (`make gpu-type3`, `build/cws-gpu-type3.x`): structure 3 generated and joined in one kernel; about 2x faster on structure 3. |
 
 Every candidate ends in exactly one outcome and each chunk checks that they
 add up. **Accepted** rows are IP according to the GPU. **Deferred** rows have

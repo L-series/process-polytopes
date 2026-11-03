@@ -65,6 +65,8 @@ struct DeviceScanStats {
     unsigned long long canonical_selection_tuples = 0;
     unsigned long long prefix_candidates = 0;
     unsigned long long stored_candidate_count = 0;
+    unsigned long long join_degenerate = 0;  // decided during generation (fused type-3 join)
+    unsigned long long join_certified = 0;
 };
 
 // One generated CWS: degree and weights of every row in ambient coordinates.
@@ -85,6 +87,8 @@ struct HostScanResult {
     std::uint64_t canonical_selection_tuples = 0;
     std::uint64_t prefix_candidates = 0;
     std::uint64_t stored_candidate_count = 0;
+    std::uint64_t join_degenerate = 0;
+    std::uint64_t join_certified = 0;
     double seconds = 0.0;
 };
 

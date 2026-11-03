@@ -129,7 +129,20 @@ int run(const Config &config) {
         std::array<HostGJoinTable, kPoolKeyStride * kPoolKeyStride> tables;
         JoinContext join;
         join.entries = device_entries;
+#if CWS_GPU_FUSED_TYPE3
+        HostJoinTables type3_tables;
+        if (config.structure_id == 3 && !config.census) {
+            if (!type3_layout_supported(catalogue)) throw std::runtime_error("structure 3 layout not supported by the fused join");
+            const PoolInfo &pool = pools[pool_key(5, 3)];
+            build_join_table(flat, device_entries, static_cast<int>(pool.device_offset),
+                             static_cast<int>(pool.entries.size()), 5, 3, type3_tables);
+            join.type3 = &type3_tables.view;
+        } else {
+            join.plan = build_gjoin_plan(catalogue, pools, tables);
+        }
+#else
         join.plan = build_gjoin_plan(catalogue, pools, tables);
+#endif
         std::ofstream accepted_out, deferred_out;
         if (!config.census) {
             accepted_out.open(config.accepted_path);
@@ -169,6 +182,11 @@ int run(const Config &config) {
             cudaFree(t.d_offsets);
             for (GJoinIdx *p : t.d_pidx) cudaFree(p);
         }
+#if CWS_GPU_FUSED_TYPE3
+        for (void *p : {static_cast<void *>(type3_tables.d_keys), static_cast<void *>(type3_tables.d_offsets),
+                        static_cast<void *>(type3_tables.d_masks), static_cast<void *>(type3_tables.d_bloom)})
+            cudaFree(p);
+#endif
     }
 
     cudaFree(device_stats);
