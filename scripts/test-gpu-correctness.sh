@@ -25,6 +25,7 @@ python3 tests/pipeline/test_production_scheduler.py
 python3 scripts/test-gpu-join-match.py
 python3 scripts/test-gpu-join-match.py --nonvacuity
 python3 scripts/test-gpu-join-prefix.py
+python3 scripts/test-gpu-join-type3.py
 python3 scripts/test-gpu-join-leaf.py
 python3 scripts/test-gpu-join-leaf.py --nonvacuity
 python3 scripts/test-gpu-join-leaf.py --mutation

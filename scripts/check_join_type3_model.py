@@ -20,6 +20,11 @@ join-leaf queries. count_u64 proves no count wrap for uint32 factors while the
 prior count is at most a nonnegative signed-int cap. The incomplete cap branch
 always keeps. Builder normal return, supported type-3 layout and source word
 widths are the interpretation preconditions, not exact-count/mask assumptions.
+OPEN composition boundary: the checked source uses stored JoinKey.count,
+whereas the public Lean endpoint currently scans eventSummary's fibre-card
+counts. The validator-to-Layout equality and raw row-mask adapters must be
+composed before this pin is an end-to-end source refinement. A passing hash
+check freezes the reviewed source; it does not discharge that obligation.
 This is a reviewed transcription/CBMC split, not a verified C++ frontend.
 """
 import hashlib
