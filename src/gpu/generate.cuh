@@ -175,6 +175,7 @@ __device__ __noinline__ void device_store_candidate(const DeviceDescriptor &desc
         out->degree[slot] = 0;
         for (int coordinate = 0; coordinate < 10; ++coordinate) out->weights[slot][coordinate] = 0;
     }
+    out->join_np = 0;
 
     for (int slot = 0; slot < descriptor.simplex_count; ++slot) {
         out->degree[slot] = entries[slot].degree;

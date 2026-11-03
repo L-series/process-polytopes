@@ -6,6 +6,7 @@
 
 #include "generate.cuh"
 #include "ip_check.cuh"
+#include "join.cuh"
 
 #include <cub/cub.cuh>
 
@@ -24,6 +25,7 @@ struct DeviceIpStats {
     unsigned long long inci_fail = 0;       // IP check: initial simplex facet with < 5 incidences
     unsigned long long rejected = 0;        // IP check: a valid inequality with constant < 1
     unsigned long long accepted = 0;        // IP
+    unsigned long long np_mismatch = 0;     // of the deferred: walk count != join count (must stay 0)
 };
 
 struct HostIpResult {
@@ -40,7 +42,7 @@ inline void accumulate(HostIpResult *total, const HostIpResult &chunk) {
     total->seconds += chunk.seconds;
 }
 
-inline std::uint64_t outcome_sum(const DeviceIpStats &s) {
+inline std::uint64_t outcome_sum(const DeviceIpStats &s) {  // np_mismatch is part of deferred
     return s.point_fail + s.degenerate + s.certified + s.deferred + s.rank_deficient + s.inci_fail + s.rejected +
            s.accepted;
 }
@@ -71,7 +73,12 @@ __global__ void __launch_bounds__(256, 3) point_enum_kernel(const DeviceCwsCandi
         int np = 0;
         int ip_possible = 1;
         const int status = device_make_points_fp(candidate, slot, np_cap, &np, &ip_possible);
-        if (status < 0) {
+        // A joined candidate carries its exact point count, and the walk must
+        // find exactly that many points; otherwise the GPU verdict would rest on
+        // an incomplete walk, so the candidate is deferred.
+        const bool mismatch = candidate.join_np > 0 && status >= 0 && np != candidate.join_np;
+        if (mismatch) atomicAdd(&stats->np_mismatch, 1ULL);
+        if (status < 0 || mismatch) {
             np_out[index] = kNpDecided;
             device_defer(candidate, stats, deferred, deferred_count, deferred_capacity);
         } else if (status == 0) {
@@ -85,6 +92,47 @@ __global__ void __launch_bounds__(256, 3) point_enum_kernel(const DeviceCwsCandi
             atomicAdd(&stats->certified, 1ULL);
         } else {
             np_out[index] = np;
+        }
+    }
+}
+
+// Join stage: keep[i] = 1 for candidates the walk must still process. Decided
+// candidates are counted here; kept ones carry their exact point count, and
+// those with more than np_cap points are deferred. With a census only counts.
+__global__ void join_filter_kernel(DeviceCwsCandidate *candidates, unsigned long long candidate_count,
+                                   const SelectedEntry *entries, GJoinPlan plan, int np_cap, unsigned char *keep,
+                                   DeviceIpStats *stats, DeviceCwsCandidate *deferred,
+                                   unsigned long long *deferred_count, unsigned long long deferred_capacity,
+                                   GJoinCensus *census) {
+    for (unsigned long long index = blockIdx.x * blockDim.x + threadIdx.x; index < candidate_count;
+         index += blockDim.x * gridDim.x) {
+        const DeviceCwsCandidate &c = candidates[index];
+        keep[index] = 0;
+        long long x_upper[10] = {0};
+        if (!device_candidate_basic_precheck(c, x_upper)) {
+            atomicAdd(&stats->point_fail, 1ULL);
+            continue;
+        }
+        unsigned long long np = 0;
+        const int verdict = device_gjoin_decide(c, entries, plan, &np);
+        if (census) {
+            atomicMax(&census->max_np_all, np);
+            if (verdict == 0) atomicAdd(&census->degenerate, 1ULL);
+            else if (verdict == 1) atomicAdd(&census->certified, 1ULL);
+            else {
+                atomicAdd(&census->kept, 1ULL);
+                atomicMax(&census->max_np_kept, np);
+                if (np > static_cast<unsigned long long>(np_cap)) atomicAdd(&census->kept_over_cap, 1ULL);
+            }
+        } else if (verdict == 0) {
+            atomicAdd(&stats->degenerate, 1ULL);
+        } else if (verdict == 1) {
+            atomicAdd(&stats->certified, 1ULL);
+        } else if (np > static_cast<unsigned long long>(np_cap)) {
+            device_defer(c, stats, deferred, deferred_count, deferred_capacity);
+        } else {
+            keep[index] = 1;
+            candidates[index].join_np = static_cast<int>(np);
         }
     }
 }
@@ -185,34 +233,56 @@ struct PipelineOptions {
     int blocks = 0;
     int threads = 128;
     int np_cap = 1024;
-    std::uint64_t chunk_capacity = 0;  // candidates per chunk
+    std::uint64_t chunk_capacity = 0;  // candidates generated per chunk
+    std::uint64_t slice_capacity = 0;  // join survivors walked and IP-checked at once
+    bool census = false;               // join only: exact point-count maxima, nothing written
 };
 
-// Device buffers of one chunk, allocated once per run.
+struct JoinContext {
+    const SelectedEntry *entries = nullptr;
+    GJoinPlan plan;
+};
+
+// Device buffers, allocated once per run. Candidate-sized buffers hold a chunk;
+// point and index buffers hold one slice of join survivors.
 struct Workspace {
-    std::uint64_t capacity = 0;
+    std::uint64_t capacity = 0, slice = 0;
+    DeviceCwsCandidate *candidates = nullptr, *survivors = nullptr, *accepted = nullptr, *deferred = nullptr;
+    unsigned char *keep = nullptr;
+    int *num_selected = nullptr;
+    void *select_temp = nullptr;
+    std::size_t select_temp_bytes = 0;
     long long *points = nullptr;
     int *np_out = nullptr, *valid_index = nullptr, *keys = nullptr, *perm = nullptr, *iota = nullptr;
     int *np_keys = nullptr, *keys_sorted = nullptr;
-    DeviceCwsCandidate *sorted = nullptr, *accepted = nullptr, *deferred = nullptr;
+    DeviceCwsCandidate *sorted = nullptr;
     unsigned long long *counts = nullptr;  // [0] valid, [1] accepted, [2] deferred
     DeviceIpScratch *scratch = nullptr;
     DeviceIpStats *stats = nullptr;
+    GJoinCensus *census = nullptr;
     void *sort_temp = nullptr;
     std::size_t sort_temp_bytes = 0;
 
-    Workspace(std::uint64_t chunk, const PipelineOptions &options) : capacity(chunk) {
+    explicit Workspace(const PipelineOptions &options)
+        : capacity(options.chunk_capacity), slice(std::min(options.chunk_capacity, options.slice_capacity)) {
         const std::uint64_t threads = static_cast<std::uint64_t>(options.blocks) * options.threads;
-        check_cuda(cudaMalloc(&points, chunk * options.np_cap * 5ULL * sizeof(long long)), "cudaMalloc points");
+        for (DeviceCwsCandidate **buffer : {&candidates, &survivors, &accepted, &deferred})
+            check_cuda(cudaMalloc(buffer, capacity * sizeof(DeviceCwsCandidate)), "cudaMalloc candidate buffer");
+        check_cuda(cudaMalloc(&keep, capacity), "cudaMalloc keep");
+        check_cuda(cudaMalloc(&num_selected, sizeof(int)), "cudaMalloc selected");
+        check_cuda(cub::DeviceSelect::Flagged(nullptr, select_temp_bytes, candidates, keep, survivors, num_selected,
+                                              static_cast<int>(capacity)), "cub select size");
+        check_cuda(cudaMalloc(&select_temp, std::max<std::size_t>(select_temp_bytes, 1)), "cudaMalloc select temp");
+        check_cuda(cudaMalloc(&points, slice * options.np_cap * 5ULL * sizeof(long long)), "cudaMalloc points");
         for (int **buffer : {&np_out, &valid_index, &keys, &perm, &iota, &np_keys, &keys_sorted})
-            check_cuda(cudaMalloc(buffer, chunk * sizeof(int)), "cudaMalloc index buffer");
-        for (DeviceCwsCandidate **buffer : {&sorted, &accepted, &deferred})
-            check_cuda(cudaMalloc(buffer, chunk * sizeof(DeviceCwsCandidate)), "cudaMalloc candidate buffer");
+            check_cuda(cudaMalloc(buffer, slice * sizeof(int)), "cudaMalloc index buffer");
+        check_cuda(cudaMalloc(&sorted, slice * sizeof(DeviceCwsCandidate)), "cudaMalloc sorted");
         check_cuda(cudaMalloc(&counts, 3 * sizeof(unsigned long long)), "cudaMalloc counts");
         check_cuda(cudaMalloc(&scratch, threads * sizeof(DeviceIpScratch)), "cudaMalloc IP scratch");
         check_cuda(cudaMalloc(&stats, sizeof(DeviceIpStats)), "cudaMalloc stats");
+        check_cuda(cudaMalloc(&census, sizeof(GJoinCensus)), "cudaMalloc census");
         std::size_t vol_bytes = 0, np_bytes = 0;
-        const int items = static_cast<int>(chunk);
+        const int items = static_cast<int>(slice);
         check_cuda(cub::DeviceRadixSort::SortPairs(nullptr, vol_bytes, keys, keys_sorted, iota, perm, items, 0,
                                                    kVolKeyBits), "cub sort size");
         check_cuda(cub::DeviceRadixSort::SortPairs(nullptr, np_bytes, np_keys, keys_sorted, iota, valid_index, items, 0,
@@ -221,10 +291,14 @@ struct Workspace {
         check_cuda(cudaMalloc(&sort_temp, sort_temp_bytes), "cudaMalloc sort temp");
     }
     ~Workspace() {
-        cudaFree(sort_temp); cudaFree(stats); cudaFree(scratch); cudaFree(counts);
-        cudaFree(deferred); cudaFree(accepted); cudaFree(sorted);
-        cudaFree(keys_sorted); cudaFree(np_keys); cudaFree(iota); cudaFree(perm); cudaFree(keys);
-        cudaFree(valid_index); cudaFree(np_out); cudaFree(points);
+        for (void *p : {static_cast<void *>(sort_temp), static_cast<void *>(census), static_cast<void *>(stats),
+                        static_cast<void *>(scratch), static_cast<void *>(counts), static_cast<void *>(sorted),
+                        static_cast<void *>(keys_sorted), static_cast<void *>(np_keys), static_cast<void *>(iota),
+                        static_cast<void *>(perm), static_cast<void *>(keys), static_cast<void *>(valid_index),
+                        static_cast<void *>(np_out), static_cast<void *>(points), select_temp,
+                        static_cast<void *>(num_selected), static_cast<void *>(keep), static_cast<void *>(deferred),
+                        static_cast<void *>(accepted), static_cast<void *>(survivors), static_cast<void *>(candidates)})
+            cudaFree(p);
     }
     Workspace(const Workspace &) = delete;
     Workspace &operator=(const Workspace &) = delete;
@@ -239,27 +313,20 @@ inline void copy_rows(const DeviceCwsCandidate *device_rows, unsigned long long 
     if (!out) throw std::runtime_error("failed to write output rows");
 }
 
-// Points, certificates and IP check for `count` stored candidates.
-inline HostIpResult classify_chunk(DeviceCwsCandidate *candidates, std::uint64_t count, const PipelineOptions &options,
-                                   Workspace &ws, std::ostream &accepted_out, std::ostream &deferred_out) {
-    HostIpResult result;
-    result.candidates = count;
-    if (count == 0) return result;
+// Points, certificates and IP check for one slice of join survivors.
+inline void classify_slice(DeviceCwsCandidate *candidates, std::uint64_t count, const PipelineOptions &options,
+                           Workspace &ws) {
     const int blocks = options.blocks, threads = options.threads, items = static_cast<int>(count);
-    auto start = std::chrono::steady_clock::now();
-    check_cuda(cudaMemset(ws.stats, 0, sizeof(DeviceIpStats)), "cudaMemset stats");
-    check_cuda(cudaMemset(ws.counts, 0, 3 * sizeof(unsigned long long)), "cudaMemset counts");
-
     iota_kernel<<<blocks, threads>>>(ws.iota, count);
     vol_key_kernel<<<blocks, threads>>>(candidates, count, ws.keys);
     std::size_t temp = ws.sort_temp_bytes;
     check_cuda(cub::DeviceRadixSort::SortPairs(ws.sort_temp, temp, ws.keys, ws.keys_sorted, ws.iota, ws.perm, items, 0,
                                                kVolKeyBits), "cub volume sort");
     gather_candidates_kernel<<<blocks, threads>>>(candidates, ws.perm, count, ws.sorted);
-
     point_enum_kernel<<<blocks, threads>>>(ws.sorted, count, options.np_cap, ws.points, ws.np_out, ws.stats,
                                            ws.deferred, ws.counts + 2, ws.capacity);
     check_cuda(cudaGetLastError(), "point_enum_kernel launch");
+    check_cuda(cudaMemset(ws.counts, 0, sizeof(unsigned long long)), "cudaMemset valid count");
     np_key_kernel<<<blocks, threads>>>(ws.np_out, count, ws.np_keys, ws.counts);
     temp = ws.sort_temp_bytes;
     check_cuda(cub::DeviceRadixSort::SortPairs(ws.sort_temp, temp, ws.np_keys, ws.keys_sorted, ws.iota, ws.valid_index,
@@ -273,12 +340,51 @@ inline HostIpResult classify_chunk(DeviceCwsCandidate *candidates, std::uint64_t
                                              ws.capacity);
         check_cuda(cudaGetLastError(), "ip_check_kernel launch");
     }
+    check_cuda(cudaDeviceSynchronize(), "classify slice");
+}
+
+// Join, then points and IP check of the survivors, for one generated chunk.
+inline HostIpResult classify_chunk(std::uint64_t count, const PipelineOptions &options, const JoinContext &join,
+                                   Workspace &ws, GJoinCensus *census_total, std::ostream &accepted_out,
+                                   std::ostream &deferred_out) {
+    HostIpResult result;
+    result.candidates = count;
+    if (count == 0) return result;
+    auto start = std::chrono::steady_clock::now();
+    check_cuda(cudaMemset(ws.stats, 0, sizeof(DeviceIpStats)), "cudaMemset stats");
+    check_cuda(cudaMemset(ws.counts, 0, 3 * sizeof(unsigned long long)), "cudaMemset counts");
+    if (options.census) check_cuda(cudaMemset(ws.census, 0, sizeof(GJoinCensus)), "cudaMemset census");
+    join_filter_kernel<<<options.blocks, options.threads>>>(ws.candidates, count, join.entries, join.plan,
+                                                            options.np_cap, ws.keep, ws.stats, ws.deferred,
+                                                            ws.counts + 2, ws.capacity,
+                                                            options.census ? ws.census : nullptr);
+    check_cuda(cudaGetLastError(), "join_filter_kernel launch");
+    std::size_t temp = ws.select_temp_bytes;
+    check_cuda(cub::DeviceSelect::Flagged(ws.select_temp, temp, ws.candidates, ws.keep, ws.survivors,
+                                          ws.num_selected, static_cast<int>(count)), "cub join compaction");
+    int survivors = 0;
+    check_cuda(cudaMemcpy(&survivors, ws.num_selected, sizeof(int), cudaMemcpyDeviceToHost), "cudaMemcpy survivors");
+    for (std::uint64_t first = 0; first < static_cast<std::uint64_t>(survivors); first += ws.slice)
+        classify_slice(ws.survivors + first, std::min<std::uint64_t>(ws.slice, survivors - first), options, ws);
     check_cuda(cudaDeviceSynchronize(), "classify chunk");
     result.seconds = std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count();
 
     unsigned long long counts[3] = {0, 0, 0};
     check_cuda(cudaMemcpy(counts, ws.counts, sizeof(counts), cudaMemcpyDeviceToHost), "cudaMemcpy counts");
     check_cuda(cudaMemcpy(&result.stats, ws.stats, sizeof(DeviceIpStats), cudaMemcpyDeviceToHost), "cudaMemcpy stats");
+    if (options.census) {
+        GJoinCensus c{};
+        check_cuda(cudaMemcpy(&c, ws.census, sizeof(c), cudaMemcpyDeviceToHost), "cudaMemcpy census");
+        census_total->degenerate += c.degenerate;
+        census_total->certified += c.certified;
+        census_total->kept += c.kept;
+        census_total->kept_over_cap += c.kept_over_cap;
+        census_total->max_np_all = std::max(census_total->max_np_all, c.max_np_all);
+        census_total->max_np_kept = std::max(census_total->max_np_kept, c.max_np_kept);
+        if (c.degenerate + c.certified + c.kept + result.stats.point_fail != count)
+            throw std::runtime_error("census accounting failed");
+        return result;
+    }
     // Accounting: every candidate has exactly one outcome and every accepted or
     // deferred row fits its buffer, so nothing is lost silently.
     if (outcome_sum(result.stats) != count || counts[1] != result.stats.accepted || counts[2] != result.stats.deferred ||
@@ -290,40 +396,35 @@ inline HostIpResult classify_chunk(DeviceCwsCandidate *candidates, std::uint64_t
 }
 
 // Generates and classifies a shard in chunks. A chunk that would not fit the
-// buffer is halved and retried, so no candidate is truncated.
-inline HostIpResult run_shard(const DeviceDescriptor &descriptor, const SelectedEntry *device_entries,
-                              DeviceScanStats *device_stats, std::uint64_t shard_start, std::uint64_t shard_size,
-                              const PipelineOptions &options, std::ostream &accepted_out, std::ostream &deferred_out,
-                              std::uint64_t *generated) {
+// buffer is halved and retried, so no candidate is truncated. Because the join
+// removes most candidates before the point buffers, a chunk that stays under a
+// quarter full doubles its span.
+inline HostIpResult run_shard(const DeviceDescriptor &descriptor, const JoinContext &join, DeviceScanStats *device_stats,
+                              std::uint64_t shard_start, std::uint64_t shard_size, const PipelineOptions &options,
+                              std::ostream &accepted_out, std::ostream &deferred_out, std::uint64_t *generated,
+                              GJoinCensus *census_total) {
     HostIpResult total;
-    Workspace ws(options.chunk_capacity, options);
-    DeviceCwsCandidate *candidates = nullptr;
-    check_cuda(cudaMalloc(&candidates, options.chunk_capacity * sizeof(DeviceCwsCandidate)), "cudaMalloc candidates");
+    Workspace ws(options);
     std::uint64_t span = std::max<std::uint64_t>(1, options.chunk_capacity / max_prefix_variants_per_selection(descriptor));
     *generated = 0;
     for (std::uint64_t position = shard_start; position < shard_start + shard_size;) {
         const std::uint64_t count = std::min(span, shard_start + shard_size - position);
-        const HostScanResult scan = scan_descriptor_range(descriptor, device_entries, device_stats, candidates,
+        const HostScanResult scan = scan_descriptor_range(descriptor, join.entries, device_stats, ws.candidates,
                                                           options.chunk_capacity, options.blocks, options.threads,
                                                           position, count);
         if (scan.stored_candidate_count > options.chunk_capacity) {
-            if (count == 1) {
-                cudaFree(candidates);
-                throw std::runtime_error("one selection exceeds the chunk capacity; raise --chunk-capacity");
-            }
+            if (count == 1) throw std::runtime_error("one selection exceeds the chunk capacity; raise --chunk-capacity");
             span = std::max<std::uint64_t>(1, count / 2);
             continue;
         }
-        if (scan.stored_candidate_count != scan.prefix_candidates) {
-            cudaFree(candidates);
+        if (scan.stored_candidate_count != scan.prefix_candidates)
             throw std::runtime_error("generation stored a different number of candidates than it counted");
-        }
         *generated += scan.prefix_candidates;
-        accumulate(&total, classify_chunk(candidates, scan.stored_candidate_count, options, ws, accepted_out,
+        accumulate(&total, classify_chunk(scan.stored_candidate_count, options, join, ws, census_total, accepted_out,
                                           deferred_out));
         position += count;
+        if (scan.stored_candidate_count * 4 < options.chunk_capacity) span = std::min<std::uint64_t>(span * 2, shard_size);
     }
-    cudaFree(candidates);
     return total;
 }
 

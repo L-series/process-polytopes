@@ -2,9 +2,11 @@
 //
 //   build/cws-gpu.x --structure-id ID --accepted-output FILE --deferred-output FILE [options]
 //   build/cws-gpu.x --structure-id ID --count-only [options]
+//   build/cws-gpu.x --structure-id ID --census [options]
 //
 // Generates the candidates of one structure (the same pools and pruning as
-// `build/cws.x -n5 -sID`), enumerates their lattice points and IP-checks them.
+// `build/cws.x -n5 -sID`), decides most of them with the join, and enumerates
+// the lattice points of the rest and IP-checks them.
 // Accepted IP CWS and deferred CWS (no GPU verdict, for the CPU) are written
 // one per line in PALP CWS format.
 #include "descriptor.cuh"
@@ -26,8 +28,10 @@ struct Config {
     int blocks = 0;
     int threads = 128;
     bool count_only = false;
+    bool census = false;
     int np_cap = 1024;
-    std::uint64_t chunk_capacity = 500000;
+    std::uint64_t chunk_capacity = 4000000;
+    std::uint64_t slice_capacity = 100000;
     std::string accepted_path, deferred_path;
 };
 
@@ -48,7 +52,9 @@ void usage(const char *argv0) {
               << "  --threads N         CUDA threads per block (default 128)\n"
               << "  --count-only        only count the generated candidates\n"
               << "  --np-cap N          largest point set checked on the GPU; larger ones are deferred (default 1024)\n"
-              << "  --chunk-capacity N  candidates per chunk (default 500000; memory ~ N * np-cap * 40 bytes)\n"
+              << "  --census            only join: exact largest point counts, nothing written\n"
+              << "  --chunk-capacity N  candidates generated per chunk (default 4000000, ~1 KiB each)\n"
+              << "  --slice-capacity N  join survivors walked at once (default 100000; ~ N * np-cap * 40 bytes)\n"
               << "  --accepted-output F write accepted IP CWS here\n"
               << "  --deferred-output F write CWS without a GPU verdict here (for the CPU)\n";
 }
@@ -70,7 +76,9 @@ Config parse_args(int argc, char **argv) {
         else if (arg == "--threads") config.threads = static_cast<int>(parse_long(value()));
         else if (arg == "--count-only") config.count_only = true;
         else if (arg == "--np-cap") config.np_cap = static_cast<int>(parse_long(value()));
+        else if (arg == "--census") config.census = true;
         else if (arg == "--chunk-capacity") config.chunk_capacity = static_cast<std::uint64_t>(parse_long(value()));
+        else if (arg == "--slice-capacity") config.slice_capacity = static_cast<std::uint64_t>(parse_long(value()));
         else if (arg == "--accepted-output") config.accepted_path = value();
         else if (arg == "--deferred-output") config.deferred_path = value();
         else if (arg == "-h" || arg == "--help") { usage(argv[0]); std::exit(0); }
@@ -81,10 +89,11 @@ Config parse_args(int argc, char **argv) {
         throw std::runtime_error("--shard-index must be in [0, --shard-count)");
     if (config.threads <= 0 || config.threads > 1024 || (config.threads & (config.threads - 1)))
         throw std::runtime_error("--threads must be a power of two no larger than 1024");
-    if (!config.count_only && (config.accepted_path.empty() || config.deferred_path.empty()))
-        throw std::runtime_error("--accepted-output and --deferred-output are required (or use --count-only)");
-    if (config.np_cap < 6 || config.chunk_capacity == 0 || config.chunk_capacity > 0x7FFFFFFF)
-        throw std::runtime_error("--np-cap must be >= 6 and --chunk-capacity in 1..2^31-1");
+    if (!config.count_only && !config.census && (config.accepted_path.empty() || config.deferred_path.empty()))
+        throw std::runtime_error("--accepted-output and --deferred-output are required (or --count-only / --census)");
+    if (config.np_cap < 6 || config.chunk_capacity == 0 || config.chunk_capacity > 0x7FFFFFFF ||
+        config.slice_capacity == 0)
+        throw std::runtime_error("--np-cap must be >= 6, --chunk-capacity in 1..2^31-1, --slice-capacity >= 1");
     return config;
 }
 
@@ -117,25 +126,49 @@ int run(const Config &config) {
                   << result.structure_id << ',' << result.scanned_tuples << ',' << result.canonical_selection_tuples
                   << ',' << result.prefix_candidates << ',' << result.seconds << '\n';
     } else {
-        std::ofstream accepted_out(config.accepted_path), deferred_out(config.deferred_path);
-        if (!accepted_out || !deferred_out) throw std::runtime_error("cannot open the output files");
+        std::array<HostGJoinTable, kPoolKeyStride * kPoolKeyStride> tables;
+        JoinContext join;
+        join.entries = device_entries;
+        join.plan = build_gjoin_plan(catalogue, pools, tables);
+        std::ofstream accepted_out, deferred_out;
+        if (!config.census) {
+            accepted_out.open(config.accepted_path);
+            deferred_out.open(config.deferred_path);
+            if (!accepted_out || !deferred_out) throw std::runtime_error("cannot open the output files");
+        }
         PipelineOptions options;
         options.blocks = blocks;
         options.threads = config.threads;
         options.np_cap = config.np_cap;
         options.chunk_capacity = config.chunk_capacity;
+        options.slice_capacity = config.slice_capacity;
+        options.census = config.census;
         std::uint64_t generated = 0;
-        const HostIpResult r = run_shard(descriptor, device_entries, device_stats, shard_start, shard_size, options,
-                                         accepted_out, deferred_out, &generated);
-        accepted_out.close();
-        deferred_out.close();
-        if (!accepted_out || !deferred_out) throw std::runtime_error("failed to write the output files");
+        GJoinCensus census{};
+        const HostIpResult r = run_shard(descriptor, join, device_stats, shard_start, shard_size, options,
+                                         accepted_out, deferred_out, &generated, &census);
         const DeviceIpStats &s = r.stats;
-        std::cout << "structure,candidates,accepted,deferred,rejected,certified,degenerate,rank_deficient,inci_fail,"
-                     "point_fail,seconds\n"
-                  << descriptor.id << ',' << generated << ',' << s.accepted << ',' << s.deferred << ',' << s.rejected
-                  << ',' << s.certified << ',' << s.degenerate << ',' << s.rank_deficient << ',' << s.inci_fail << ','
-                  << s.point_fail << ',' << r.seconds << '\n';
+        if (config.census) {
+            std::cout << "structure,candidates,degenerate,certified,kept,kept_over_np_cap,max_np_all,max_np_kept\n"
+                      << descriptor.id << ',' << generated << ',' << census.degenerate << ',' << census.certified << ','
+                      << census.kept << ',' << census.kept_over_cap << ',' << census.max_np_all << ','
+                      << census.max_np_kept << '\n';
+        } else {
+            accepted_out.close();
+            deferred_out.close();
+            if (!accepted_out || !deferred_out) throw std::runtime_error("failed to write the output files");
+            std::cout << "structure,candidates,accepted,deferred,rejected,certified,degenerate,rank_deficient,"
+                         "inci_fail,point_fail,np_mismatch,seconds\n"
+                      << descriptor.id << ',' << generated << ',' << s.accepted << ',' << s.deferred << ','
+                      << s.rejected << ',' << s.certified << ',' << s.degenerate << ',' << s.rank_deficient << ','
+                      << s.inci_fail << ',' << s.point_fail << ',' << s.np_mismatch << ',' << r.seconds << '\n';
+            if (s.np_mismatch) std::cerr << "warning: " << s.np_mismatch << " walk/join point-count mismatches (deferred)\n";
+        }
+        for (HostGJoinTable &t : tables) {
+            cudaFree(t.d_keys);
+            cudaFree(t.d_offsets);
+            for (GJoinIdx *p : t.d_pidx) cudaFree(p);
+        }
     }
 
     cudaFree(device_stats);

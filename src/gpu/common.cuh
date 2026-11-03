@@ -75,6 +75,7 @@ struct DeviceCwsCandidate {
     int degree[kMaxSlots] = {0, 0, 0, 0, 0};
     int weights[kMaxSlots][kMaxCoordinates] = {};
     int sel_index[kMaxSlots] = {0, 0, 0, 0, 0};  // flattened pool entry per slot
+    int join_np = 0;  // exact point count from the join (0 = not joined)
 };
 
 struct HostScanResult {
