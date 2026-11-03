@@ -20,22 +20,31 @@ ${NVCC:-nvcc} -std=c++17 -Isrc/gpu ${NVCCFLAGS:-} verification/gpu/generation_ho
   build/project-weight_pool.o build/project-catalogue.o build/gpu-catalogue_bridge.o -o "$work/generation_host"
 "$work/generation_host"
 
-python3 verification/gpu/extract.py "$work/gpu_extract.h" "struct SelectedEntry" "struct DeviceDescriptor" \
-  "struct DeviceScanStats" "struct DeviceCwsCandidate" "__device__ int device_next_permutation(" \
-  "__device__ int device_weight_at_coordinate(" "__device__ int device_slot_uses_coordinate(" \
-  "__device__ int device_prefix_is_canonical(" "__device__ __noinline__ void device_store_candidate(" \
-  "__device__ __forceinline__ bool device_type3_prefix_ok(" "__device__ unsigned long long device_count_prefixes(" \
-  "__device__ unsigned long long device_count_last_slot(" "__device__ unsigned long long device_count_after_slot0(" \
-  "__device__ void device_emit_prefixes(" "__device__ void device_emit_last_slot(" \
-  "__device__ void device_emit_after_slot0(" "__device__ unsigned long long device_count_small_prefixes(" \
-  "__device__ void device_emit_small_prefixes("
+# The generation functions, copied verbatim from src/gpu (extract.py).
+generation=("struct SelectedEntry" "struct DeviceDescriptor" "struct DeviceScanStats" "struct DeviceCwsCandidate"
+  "__device__ int device_next_permutation(" "__device__ int device_weight_at_coordinate("
+  "__device__ int device_slot_uses_coordinate(" "__device__ int device_prefix_is_canonical("
+  "__device__ __noinline__ void device_store_candidate(" "__device__ __forceinline__ bool device_type3_prefix_ok("
+  "__device__ unsigned long long device_count_prefixes(" "__device__ unsigned long long device_count_last_slot("
+  "__device__ unsigned long long device_count_after_slot0(" "__device__ void device_emit_prefixes("
+  "__device__ void device_emit_last_slot(" "__device__ void device_emit_after_slot0("
+  "__device__ unsigned long long device_count_small_prefixes(" "__device__ void device_emit_small_prefixes(")
+python3 verification/gpu/extract.py "$work/gpu_extract.h" "${generation[@]}"
 
-# Emission recursion: exhaustive over every per-slot weight order type (the
-# reduction is argued in the harness header).
+# Emission recursion and the fused structure-3 kernel: exhaustive over every
+# per-slot weight order type (the reduction is argued in emission_host.cpp).
 ${CXX:-g++} -O2 -I"$work" "${cflags[@]}" verification/gpu/emission_host.cpp "$work/cpu_reference.o" \
   build/palp-Coord.o build/palp-Rat.o build/palp-Vertex.o build/palp-Polynf.o build/palp-LG.o \
   build/project-weight_pool.o build/project-catalogue.o build/gpu-catalogue_bridge.o -o "$work/emission_host"
 "$work/emission_host"
+mkdir "$work/fused"
+python3 verification/gpu/extract.py "$work/fused/gpu_extract.h" "${generation[@]}" "struct JoinKey" "struct JoinTables" \
+  "__device__ unsigned long long device_first_pair_for_left(" \
+  "__device__ __forceinline__ unsigned long long device_pair_left_closed(" "__global__ void type3_join_scan_kernel("
+${CXX:-g++} -O2 -I"$work/fused" "${cflags[@]}" verification/gpu/type3_fused_host.cpp build/project-catalogue.o \
+  build/gpu-catalogue_bridge.o -lm -o "$work/type3_fused_host"
+"$work/type3_fused_host"
+
 for c in src/cws/catalogue.c src/gpu/catalogue_bridge.c verification/gpu/cpu_reference.c; do
   goto-cc "${cflags[@]}" -c "$c" -o "$work/$(basename "$c" .c).gb"
 done

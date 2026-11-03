@@ -1,7 +1,8 @@
 // Exhaustive host checks of the GPU generation inputs against the CPU
 // generator, on the production pool files:
 //  * every (size, shared count) selection pool equals PALP MakeSelections'
-//    stream, entry by entry and in order;
+//    stream, entry by entry and in order, with each shared prefix
+//    nondecreasing (the fused structure-3 kernel relies on it);
 //  * on all 46 descriptors two slots are ordered by pool index on the GPU
 //    exactly when CWSGenerate orders them (same pool stream and a
 //    descriptor-preserving transposition).
@@ -39,9 +40,9 @@ int main(int argc, char **argv) {
                     return 1;
                 }
                 for (int p = 0; p < n; ++p)
-                    if (gpu[i].w[p] != w[p]) {
+                    if (gpu[i].w[p] != w[p] || (p + 1 < shared && w[p] > w[p + 1])) {
                         std::cerr << "selection pool size " << size << " shared " << shared << " entry " << i
-                                  << " position " << p << " differs\n";
+                                  << " position " << p << " differs or breaks the shared order\n";
                         return 1;
                     }
                 ++i;
