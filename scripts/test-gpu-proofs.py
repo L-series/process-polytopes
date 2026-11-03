@@ -18,7 +18,7 @@ for path in files:
         errors.append(f"{path.name}: forbidden tokens {sorted(forbidden)}")
 if errors:
     raise SystemExit("\n".join(errors))
-subprocess.run(["lake", "build", "Refpoly.JoinStack", "Refpoly.GpuDecode", "Refpoly.GpuPipeline"], cwd=PROOFS, check=True)
+subprocess.run(["lake", "build", "Refpoly.JoinStack", "Refpoly.GpuDecode", "Refpoly.GpuPipeline", "Refpoly.GpuEmission"], cwd=PROOFS, check=True)
 expected = 0
 closures = []
 empty = 0

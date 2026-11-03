@@ -9,8 +9,9 @@
 // coordinate) and otherwise copy them. Weights are positive, so a map that is
 // strictly increasing on each slot's values separately commutes with both
 // functions. Each slot's weights can therefore be replaced by their order
-// type: a tuple over 1..n whose values form {1..m}. All such tuples per slot,
-// in every combination, are run. Degrees are copied only and get sentinels.
+// type (its rank tuple). All rank-fixed tuples per slot, in every combination,
+// are run; agree_on_positive (GpuEmission.lean) then covers all positive
+// weights. Degrees are copied only and get sentinels.
 #include "gpu_extract.h"
 
 #include <cstdio>
@@ -19,16 +20,23 @@
 extern "C" int cpu_enumerate_buffers(int id, const void *weights, const void *degrees, void *out_degrees,
                                      void *out_weights, int capacity);
 
-// Order types of n positions: tuples over 1..n whose value set is {1..m}.
+// Order types of n positions, as RankFixed in GpuEmission.lean: tuples over
+// 1..n equal to their own rank tuple, rank(t, x) = 1 + #{distinct v in t : v < x}.
 static std::vector<std::vector<int>> order_types(int n) {
     std::vector<std::vector<int>> out;
     std::vector<int> t(n, 1);
     while (true) {
-        int seen = 0;
-        for (int v : t) seen |= 1 << v;
-        int m = 0;
-        while (seen & (1 << (m + 1))) ++m;
-        if (seen == ((1 << (m + 1)) - 2)) out.push_back(t);
+        bool fixed = true;
+        for (int i = 0; i < n && fixed; ++i) {
+            int below = 0;
+            for (int v = 1; v < t[i]; ++v) {
+                bool present = false;
+                for (int x : t) present |= x == v;
+                below += present;
+            }
+            fixed = t[i] == below + 1;
+        }
+        if (fixed) out.push_back(t);
         int p = n - 1;
         while (p >= 0 && t[p] == n) t[p--] = 1;
         if (p < 0) break;

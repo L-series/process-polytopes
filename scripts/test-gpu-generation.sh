@@ -97,5 +97,18 @@ for id in ${GEN_IDS:-$(seq 2 47)}; do query store.cpp "stored candidate, structu
 echo "Stored candidates equal EmbedWeightInCWS rows"
 query type3_prefix.cpp "fused structure-3 prefix test" 7
 echo "Fused structure-3 prefix test equals the general one"
+# Order-type reduction of the emission check (GpuEmission.lean, agree_on_positive):
+# the two comparing primitives are order-invariant, the rest only copies weights.
+for u in 2 3 4 5; do query order_invariance.cpp "order-invariant permutation step, $u values" 7 -DPERMUTATION -DU="$u"; done
+slots=0
+for id in ${GEN_IDS:-$(seq 2 47)}; do
+  rows=$(python3 -c "import json; print(len(next(d for d in json.load(open('tests/descriptor-reference.json')) if d['id']==$id)['blocks']))")
+  for slot in $(seq 0 $((rows - 1))); do
+    query order_invariance.cpp "order-invariant prefix test, structure $id slot $slot" 7 -DCATALOGUE_ID="$id" -DSLOT="$slot"
+    slots=$((slots + 1))
+  done
+done
+echo "Permutation step and shared-prefix test are order-invariant ($slots slots)"
+python3 scripts/audit_generation_copies.py
 # Tuple and pair index decoding: proved in Lean (proofs/Refpoly/GpuDecode.lean);
 # symbolic 64-bit division and multiplication are out of CBMC's reach here.

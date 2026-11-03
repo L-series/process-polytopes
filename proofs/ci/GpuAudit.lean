@@ -1,4 +1,5 @@
 import Refpoly.GpuPipeline
+import Refpoly.GpuEmission
 import Refpoly.GpuDecode
 
 #print axioms Refpoly.GpuDecode.decode_spec
@@ -27,3 +28,9 @@ import Refpoly.GpuDecode
 
 #print axioms Refpoly.GpuPipeline.auditOutputs_stored_absent
 #print axioms Refpoly.GpuPipeline.auditOutputs_unique
+
+#print axioms Refpoly.GpuEmission.emit_equivariant
+#print axioms Refpoly.GpuEmission.agree_on_relabelling
+#print axioms Refpoly.GpuEmission.exists_order_type
+#print axioms Refpoly.GpuEmission.rank_tuple_fixed
+#print axioms Refpoly.GpuEmission.agree_on_positive
