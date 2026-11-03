@@ -51,7 +51,74 @@ Oracle enumerate_direct(const DeviceCwsCandidate &c) {
     return out;
 }
 
+template<class F> void must_reject_table(F operation) {
+    bool failed = false;
+    try { operation(); } catch (const std::runtime_error &) { failed = true; }
+    assert(failed);
+}
+
+void test_table_checks() {
+    SelectedEntry e;
+    e.size = 2; e.w[0] = e.w[1] = 1; e.degree = 2;
+    std::vector<std::array<int, 5>> pts = {{{0,2,0,0,0}}, {{1,1,0,0,0}}, {{2,0,0,0,0}}};
+    std::vector<GJoinKey> fibres = {{0,1,4,0,0}, {1,1,2,0,0}, {2,1,1,0,0}};
+    validate_gjoin_fibres(e, 2, 1, pts, fibres);
+    for (int corruption = 0; corruption < 5; ++corruption) {
+        auto bad = fibres;
+        if (corruption == 0) ++bad[0].count;
+        if (corruption == 1) bad[1].key = 0;
+        if (corruption == 2) bad[0].cats = 1;
+        if (corruption == 3) bad[0].pairs = 1;
+        if (corruption == 4) bad.pop_back();
+        must_reject_table([&] { validate_gjoin_fibres(e, 2, 1, pts, bad); });
+    }
+    auto bad_points = pts; bad_points[1] = pts[0];
+    must_reject_table([&] { validate_gjoin_fibres(e, 2, 1, bad_points, fibres); });
+    bad_points = pts; ++bad_points[0][1];
+    must_reject_table([&] { validate_gjoin_fibres(e, 2, 1, bad_points, fibres); });
+    std::vector<GJoinKey> keys = {{2,1,0,0,0}, {65537,1,0,0,0}, {131072,1,0,0,0}};
+    std::vector<GJoinIdx> index = {{2,2,0}, {65537,1,0}, {131072,0,0}};
+    validate_gjoin_index(keys, index, 0, 3, 2, 1);
+    for (int corruption = 0; corruption < 4; ++corruption) {
+        auto bad = index;
+        if (corruption == 0) bad[0].idx = 3;
+        if (corruption == 1) bad[1].idx = bad[0].idx;
+        if (corruption == 2) std::swap(bad[0], bad[1]);
+        if (corruption == 3) ++bad[0].pkey;
+        must_reject_table([&] { validate_gjoin_index(keys, bad, 0, 3, 2, 1); });
+    }
+    // Representation overflow is explicitly uncovered, rather than an empty
+    // table that could be mistaken for a degenerate join.
+    PoolInfo pool;
+    e.w[1] = 65536; e.degree = 65537;
+    pool.entries.push_back(e);
+    HostGJoinTable table;
+    build_gjoin_table(pool, 2, 1, table);
+    assert(table.view.covered && !table.view.covered[0]);
+    assert(table.view.offsets[0] == table.view.offsets[1]);
+    GJoinPlan plan;
+    plan.nrows = 1; plan.ambient = 2; plan.table[0] = table.view;
+    DeviceCwsCandidate c;
+    unsigned long long np = 99;
+    assert(device_gjoin_decide(c, pool.entries.data(), plan, &np) == 2 && np == 0);
+    std::free(table.d_keys); std::free(table.d_offsets); std::free(table.d_covered);
+    e.size = 3; e.w[1] = e.w[2] = 65536; e.degree = 131073;
+    std::vector<SelectedEntry> flat = {e};
+    HostJoinTables legacy;
+    build_join_table(flat, flat.data(), 0, 1, 3, 1, legacy);
+    assert(legacy.view.covered && !legacy.view.covered[0]);
+    int prefix[3] = {0,0,0};
+    np = 99;
+    assert(device_join_decide(legacy.view, 0, 0, prefix, prefix, 1024, &np) == 2 && np == 0);
+    std::free(legacy.d_keys); std::free(legacy.d_offsets); std::free(legacy.d_covered);
+    std::free(legacy.d_masks); std::free(legacy.d_bloom);
+}
+
 int main() {
+    test_table_checks();
+#ifdef CWS_JOIN_EXHAUSTIVE
+    test_exhaustive_join_search();
+#endif
     // Exhaust every category mask, including empty masks for the low formula.
     for (unsigned int a = 0; a < 16; ++a) for (unsigned int b = 0; b < 16; ++b) {
         bool lo = false, hi = false;
@@ -163,6 +230,14 @@ int main() {
         GpuDescriptor d{};
         assert(GpuCatalogueDescriptor(id, &d));
         GJoinPlan plan = build_gjoin_plan(d, pools, tables);
+        for (int corruption = 0; corruption < 4; ++corruption) {
+            auto bad = plan;
+            if (corruption == 0) bad.order[1] = bad.order[0];
+            if (corruption == 1) bad.bound_before[0] = 1;
+            if (corruption == 2) bad.lookup[0] = !bad.lookup[0];
+            if (corruption == 3) bad.shared_mask ^= 1;
+            must_reject_table([&] { validate_gjoin_plan(bad); });
+        }
         unsigned int visited = 0;
         for (int depth = 0; depth < plan.nrows; ++depth) {
             assert(plan.order[depth] >= 0 && plan.order[depth] < plan.nrows);
@@ -221,9 +296,10 @@ int main() {
     for (auto &t : tables) {
         std::free(t.d_keys);
         std::free(t.d_offsets);
+        std::free(t.d_covered);
         for (auto *p : t.d_pidx) std::free(p);
     }
-    std::free(legacy5.d_keys); std::free(legacy5.d_offsets);
+    std::free(legacy5.d_keys); std::free(legacy5.d_offsets); std::free(legacy5.d_covered);
     std::free(legacy5.d_masks); std::free(legacy5.d_bloom);
     std::cout << "Source join agrees with direct enumeration: " << cases << " cases, "
               << "all 46 descriptors; verdicts degenerate/certified/keep = "

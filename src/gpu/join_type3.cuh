@@ -11,6 +11,7 @@
 #pragma once
 
 #include "generate.cuh"
+#include "join.cuh"
 
 #include <functional>
 #include <thread>
@@ -27,6 +28,7 @@ struct JoinKey {
 };
 
 struct JoinTables {
+    const unsigned char *covered = nullptr;  // unsupported row entries must defer
     const JoinKey *keys = nullptr;
     const unsigned long long *bloom = nullptr;  // 8 words (512 bits) per entry over its packed keys
     const unsigned long long *masks = nullptr;  // 3 per entry: bit v (v<63) / bit 63 (v>=63) = value present at shared position
@@ -39,6 +41,7 @@ struct JoinTables {
 struct HostJoinTables {
     JoinTables view;
     JoinKey *d_keys = nullptr;
+    unsigned char *d_covered = nullptr;
     unsigned long long *d_offsets = nullptr;
     unsigned long long *d_masks = nullptr;
     unsigned long long *d_bloom = nullptr;
@@ -120,6 +123,9 @@ __device__ __forceinline__ void device_join_cert_bits(const JoinKey &kl, const J
 
 __device__ int device_join_decide(const JoinTables &jt, int L, int R, const int eRw[3],
                                   const int prefix[3], int np_cap, unsigned long long *np_out) {
+    *np_out = 0;
+    if (L < 0 || R < 0 || L >= jt.pool_count || R >= jt.pool_count) return 2;
+    if (jt.covered && (!jt.covered[L] || !jt.covered[R])) return 2;
     int perm[3] = {0, 1, 2};
     unsigned int used = 0;
     for (int ci = 0; ci < 3; ++ci)
@@ -247,6 +253,7 @@ __global__ void type3_join_scan_kernel(const SelectedEntry *entries,
                 out->sel_index[slot] = 0;
                 for (int coordinate = 0; coordinate < 10; ++coordinate) out->weights[slot][coordinate] = 0;
             }
+            out->pipeline_id = 0;
             out->join_np = np <= static_cast<unsigned long long>(np_cap) ? static_cast<int>(np) : 0;
             out->degree[0] = le.degree;
             out->degree[1] = re.degree;
@@ -273,6 +280,21 @@ inline void build_join_table(const std::vector<SelectedEntry> &flat, const Selec
                       int pool_offset, int pool_count, int size, int shared, HostJoinTables &out) {
     if (size - shared != 2 || shared < 1 || shared > 3)
         throw std::runtime_error("build_join_table: unsupported pool shape");
+    if (pool_offset < 0 || pool_count < 0 || static_cast<std::size_t>(pool_offset) > flat.size() ||
+        static_cast<std::size_t>(pool_count) > flat.size() - pool_offset ||
+        pool_count > std::numeric_limits<int>::max() - pool_offset)
+        throw std::runtime_error("build_join_table: invalid pool range");
+    for (int e = 0; e < pool_count; ++e) {
+        const auto &entry = flat[static_cast<std::size_t>(pool_offset) + e];
+        long long degree = 0;
+        for (int p = 0; p < size; ++p) {
+            if (entry.w[p] <= 0) throw std::runtime_error("build_join_table: nonpositive weight");
+            degree += entry.w[p];
+        }
+        if (entry.size != size || degree != entry.degree)
+            throw std::runtime_error("build_join_table: inconsistent row size/degree");
+    }
+    std::vector<unsigned char> covered(static_cast<std::size_t>(pool_count), 1);
     std::vector<std::vector<JoinKey>> per(static_cast<std::size_t>(pool_count));
     auto work = [&](int begin, int end) {
         std::vector<std::array<int, 5>> pts;
@@ -280,6 +302,9 @@ inline void build_join_table(const std::vector<SelectedEntry> &flat, const Selec
             const SelectedEntry &en = flat[static_cast<std::size_t>(pool_offset + e)];
             const int *w = en.w;
             const int d = en.degree;
+            bool fits = true;
+            for (int p = 0; p < shared; ++p) fits &= d / w[p] <= 65535;
+            if (!fits) { covered[static_cast<std::size_t>(e)] = 0; continue; }
             pts.clear();
             std::array<int, 5> x{};
             // all non-negative solutions of sum_i w_i x_i = d (last position by divisibility)
@@ -288,45 +313,82 @@ inline void build_join_table(const std::vector<SelectedEntry> &flat, const Selec
                     if (rem % w[pos] == 0) { x[pos] = rem / w[pos]; pts.push_back(x); }
                     return;
                 }
-                for (int v = 0; v * w[pos] <= rem; ++v) { x[pos] = v; rec(pos + 1, rem - v * w[pos]); }
+                for (int v = 0, rest = rem;; ++v) {
+                    x[pos] = v;
+                    rec(pos + 1, rest);
+                    if (rest < w[pos]) break;
+                    rest -= w[pos];
+                }
             };
             rec(0, d);
             std::sort(pts.begin(), pts.end());
             std::vector<JoinKey> &o = per[static_cast<std::size_t>(e)];
             auto keyof = [&](const std::array<int, 5> &q) {
                 unsigned long long k = 0;
-                for (int i = 0; i < 3; ++i) k = (k << 16) | static_cast<unsigned long long>(i < shared ? q[i] : 0);
+                for (int i = 0; i < 3; ++i) {
+                    if (i < shared && q[i] > 65535)
+                        throw std::runtime_error("build_join_table: shared value exceeds 16 bits");
+                    k = (k << 16) | static_cast<unsigned long long>(i < shared ? q[i] : 0);
+                }
                 return k;
             };
             auto cls = [](int v) -> unsigned char { return v == 0 ? 1 : v == 1 ? 2 : v == 2 ? 4 : 8; };
+            bool representable = true;
             for (std::size_t i = 0; i < pts.size();) {
                 std::size_t j = i;
                 JoinKey k{};
                 k.key = keyof(pts[i]);
                 while (j < pts.size() && keyof(pts[j]) == k.key) {
+                    if (k.count == std::numeric_limits<unsigned int>::max()) { representable = false; break; }
                     ++k.count;
                     k.cat_a |= cls(pts[j][shared]);
                     k.cat_b |= cls(pts[j][shared + 1]);
-                    int sum = pts[j][shared] + pts[j][shared + 1];
+                    const long long sum = static_cast<long long>(pts[j][shared]) + pts[j][shared + 1];
                     if (sum <= 1) k.pair |= 1;
                     if (sum >= 3) k.pair |= 2;
                     ++j;
                 }
+                if (!representable) break;
                 o.push_back(k);
                 i = j;
             }
+            if (!representable) {
+                covered[static_cast<std::size_t>(e)] = 0;
+                o.clear();
+                continue;
+            }
+            std::vector<GJoinKey> check;
+            check.reserve(o.size());
+            for (const auto &g : o)
+                check.push_back({g.key >> (16 * (3 - shared)), g.count,
+                                 static_cast<unsigned int>(g.cat_a) | (static_cast<unsigned int>(g.cat_b) << 4),
+                                 g.pair, 0});
+            validate_gjoin_fibres(en, size, shared, pts, check);
         }
     };
     unsigned int nthreads = std::max(1u, std::thread::hardware_concurrency());
     std::vector<std::thread> threads;
+    std::vector<std::exception_ptr> errors(nthreads);
     for (unsigned int t = 0; t < nthreads; ++t) {
         int b0 = static_cast<int>(static_cast<long long>(pool_count) * t / nthreads);
         int e0 = static_cast<int>(static_cast<long long>(pool_count) * (t + 1) / nthreads);
-        threads.emplace_back(work, b0, e0);
+        threads.emplace_back([&, b0, e0, t] {
+            try { work(b0, e0); }
+            catch (...) { errors[t] = std::current_exception(); }
+        });
     }
     for (auto &th : threads) th.join();
+    for (const auto &error : errors) if (error) std::rethrow_exception(error);
     std::vector<unsigned long long> offsets(static_cast<std::size_t>(pool_count) + 1, 0);
-    for (int e = 0; e < pool_count; ++e) offsets[e + 1] = offsets[e] + per[static_cast<std::size_t>(e)].size();
+    for (int e = 0; e < pool_count; ++e) {
+        auto count = per[static_cast<std::size_t>(e)].size();
+        if (count > 0xFFFFFFFFULL - offsets[e]) {
+            covered[static_cast<std::size_t>(e)] = 0;
+            per[static_cast<std::size_t>(e)].clear();
+            count = 0;
+        }
+        offsets[e + 1] = offsets[e] + count;
+    }
     std::vector<unsigned long long> masks(static_cast<std::size_t>(pool_count) * 3, 0);
     std::vector<unsigned long long> bloom(static_cast<std::size_t>(pool_count) * 8, 0);
     for (int e = 0; e < pool_count; ++e)
@@ -340,6 +402,21 @@ inline void build_join_table(const std::vector<SelectedEntry> &flat, const Selec
             bloom[static_cast<std::size_t>(e) * 8 + (h1 >> 6)] |= 1ULL << (h1 & 63);
             bloom[static_cast<std::size_t>(e) * 8 + (h2 >> 6)] |= 1ULL << (h2 & 63);
         }
+    // The accelerated filters may have false positives, but must never hide
+    // a stored key. Check this against every canonical key before upload.
+    for (int e = 0; e < pool_count; ++e)
+        for (const auto &key : per[static_cast<std::size_t>(e)]) {
+            for (int p = 0; p < 3; ++p) {
+                const auto value = (key.key >> (16 * (2 - p))) & 65535ULL;
+                if (!((masks[static_cast<std::size_t>(e) * 3 + p] >> std::min(value, 63ULL)) & 1ULL))
+                    throw std::runtime_error("build_join_table: presence mask loses a key");
+            }
+            for (const auto multiplier : {0x9E3779B97F4A7C15ULL, 0xC2B2AE3D27D4EB4FULL}) {
+                const auto hash = (key.key * multiplier) >> 55;
+                if (!((bloom[static_cast<std::size_t>(e) * 8 + hash / 64] >> (hash % 64)) & 1ULL))
+                    throw std::runtime_error("build_join_table: bloom filter loses a key");
+            }
+        }
     std::vector<JoinKey> keys(static_cast<std::size_t>(offsets.back()));
     for (int e = 0; e < pool_count; ++e)
         std::copy(per[e].begin(), per[e].end(), keys.begin() + static_cast<std::ptrdiff_t>(offsets[e]));
@@ -347,10 +424,12 @@ inline void build_join_table(const std::vector<SelectedEntry> &flat, const Selec
         check_cuda(cudaMalloc(dst, std::max<std::size_t>(v.size(), 1) * sizeof(v[0])), what);
         check_cuda(cudaMemcpy(*dst, v.data(), v.size() * sizeof(v[0]), cudaMemcpyHostToDevice), what);
     };
+    upload(&out.d_covered, covered, "join coverage");
     upload(&out.d_bloom, bloom, "join bloom");
     upload(&out.d_masks, masks, "join masks");
     upload(&out.d_keys, keys, "join keys");
     upload(&out.d_offsets, offsets, "join offsets");
+    out.view.covered = out.d_covered;
     out.view.keys = out.d_keys;
     out.view.masks = out.d_masks;
     out.view.bloom = out.d_bloom;

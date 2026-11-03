@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <array>
 #include <chrono>
+#include <exception>
 #include <functional>
 #include <thread>
 
@@ -45,6 +46,7 @@ struct GJoinIdx {
 };
 
 struct GJoinTable {
+    const unsigned char *covered = nullptr;  // nullptr: all covered; 0 entry: defer, never an empty join
     const GJoinKey *keys = nullptr;
     const GJoinIdx *pidx[4] = {nullptr, nullptr, nullptr, nullptr};  // shared position 1..3
     const unsigned long long *offsets = nullptr;  // pool_count + 1
@@ -72,9 +74,66 @@ struct GJoinCensus {
     unsigned long long max_np_kept = 0;  // over candidates no join rule rejects
 };
 
+// Position the iterator of depth j: a lookup starts fresh; a scan with a
+// bound shared position covers only that value's range in the position's
+// sorted copy; a scan with none covers all keys.
+__device__ void device_gjoin_begin_level(
+    int j, const GJoinPlan &plan, const int epos_coord[kMaxSlots][kMaxSize],
+    const int val[10], const unsigned long long kb[kMaxSlots],
+    const unsigned long long ke[kMaxSlots], unsigned long long it[kMaxSlots],
+    unsigned long long end[kMaxSlots], int pstar[kMaxSlots]) {
+    const int s = plan.order[j];
+    const int k = plan.shared[s];
+    it[j] = kb[s];
+    end[j] = ke[s];
+    pstar[j] = -1;
+    if (plan.lookup[j]) return;
+    const unsigned int bound = plan.bound_before[j];
+    int p = 0;
+    while (p < k && !((bound >> epos_coord[s][p]) & 1u)) ++p;
+    if (p == k) return;
+    pstar[j] = p;
+    const unsigned long long v = static_cast<unsigned long long>(val[epos_coord[s][p]]);
+    const int sh = 16 * (k - 1);
+    const unsigned long long want_lo = v << sh;
+    unsigned long long lo = kb[s], hi = ke[s];
+    if (p == 0) {
+        const GJoinKey *keys = plan.table[s].keys;
+        while (lo < hi) { const unsigned long long m = (lo + hi) >> 1; if (keys[m].key < want_lo) lo = m + 1; else hi = m; }
+        it[j] = lo;
+        hi = ke[s];
+        // Comparing the leading value also handles k=4, v=65535;
+        // forming (v+1)<<48 would wrap to zero in that case.
+        while (lo < hi) { const unsigned long long m = (lo + hi) >> 1; if ((keys[m].key >> sh) <= v) lo = m + 1; else hi = m; }
+        end[j] = lo;
+    } else {
+        const GJoinIdx *px = plan.table[s].pidx[p];
+        while (lo < hi) { const unsigned long long m = (lo + hi) >> 1; if (px[m].pkey < want_lo) lo = m + 1; else hi = m; }
+        it[j] = lo;
+        hi = ke[s];
+        while (lo < hi) { const unsigned long long m = (lo + hi) >> 1; if ((px[m].pkey >> sh) <= v) lo = m + 1; else hi = m; }
+        end[j] = lo;
+    }
+}
+
+// A failed row comparison may leave new (unbound) values behind. It must
+// never alter the earlier rows' bound coordinates. Every successful match
+// overwrites all coordinates introduced by this row before descent.
+__device__ bool device_gjoin_match_key(unsigned long long key, int k,
+                                       const int coordinates[kMaxSize],
+                                       unsigned int bound, int val[10]) {
+    for (int p = 0; p < k; ++p) {
+        const int A = coordinates[p];
+        const int v = static_cast<int>((key >> (16 * (k - 1 - p))) & 0xFFFFULL);
+        if ((bound >> A) & 1u) { if (val[A] != v) return false; }
+        else val[A] = v;
+    }
+    return true;
+}
+
 // Returns 0 = degenerate (np < 6), 1 = certified non-IP, 2 = keep; *np_out is
 // the exact point count. Layouts the tables do not cover return 2 with
-// *np_out = 0, and the walk decides them as before.
+// *np_out = 0; callers must defer these candidates for exact CPU completion.
 __device__ int device_gjoin_decide(const DeviceCwsCandidate &c, const SelectedEntry *entries,
                                    const GJoinPlan &plan, unsigned long long *np_out) {
     *np_out = 0;
@@ -87,6 +146,7 @@ __device__ int device_gjoin_decide(const DeviceCwsCandidate &c, const SelectedEn
         const GJoinTable &t = plan.table[s];
         const int local = c.sel_index[s] - t.pool_offset;
         if (local < 0 || local >= t.pool_count) return 2;
+        if (t.covered && !t.covered[local]) return 2;
         const SelectedEntry &E = entries[c.sel_index[s]];
         const int k = plan.shared[s];
         // The candidate's shared prefix is a permutation of the entry's; match
@@ -113,46 +173,8 @@ __device__ int device_gjoin_decide(const DeviceCwsCandidate &c, const SelectedEn
     unsigned int tz = 0, t2 = 0, m3_all = 0;
     unsigned int LO[10] = {}, HI[10] = {}, LS[10] = {}, HS[10] = {};
 
-    // Position the iterator of depth j: a lookup starts fresh; a scan with a
-    // bound shared position covers only that value's range in the position's
-    // sorted copy; a scan with none covers all keys.
-    auto begin_level = [&](int j) {
-        const int s = plan.order[j];
-        const int k = plan.shared[s];
-        it[j] = kb[s];
-        end[j] = ke[s];
-        pstar[j] = -1;
-        if (plan.lookup[j]) return;
-        const unsigned int bound = plan.bound_before[j];
-        int p = 0;
-        while (p < k && !((bound >> epos_coord[s][p]) & 1u)) ++p;
-        if (p == k) return;
-        pstar[j] = p;
-        const unsigned long long v = static_cast<unsigned long long>(val[epos_coord[s][p]]);
-        const int sh = 16 * (k - 1);
-        const unsigned long long want_lo = v << sh;
-        unsigned long long lo = kb[s], hi = ke[s];
-        if (p == 0) {
-            const GJoinKey *keys = plan.table[s].keys;
-            while (lo < hi) { const unsigned long long m = (lo + hi) >> 1; if (keys[m].key < want_lo) lo = m + 1; else hi = m; }
-            it[j] = lo;
-            hi = ke[s];
-            // Comparing the leading value also handles k=4, v=65535;
-            // forming (v+1)<<48 would wrap to zero in that case.
-            while (lo < hi) { const unsigned long long m = (lo + hi) >> 1; if ((keys[m].key >> sh) <= v) lo = m + 1; else hi = m; }
-            end[j] = lo;
-        } else {
-            const GJoinIdx *px = plan.table[s].pidx[p];
-            while (lo < hi) { const unsigned long long m = (lo + hi) >> 1; if (px[m].pkey < want_lo) lo = m + 1; else hi = m; }
-            it[j] = lo;
-            hi = ke[s];
-            while (lo < hi) { const unsigned long long m = (lo + hi) >> 1; if ((px[m].pkey >> sh) <= v) lo = m + 1; else hi = m; }
-            end[j] = lo;
-        }
-    };
-
     int depth = 0;
-    begin_level(0);
+    device_gjoin_begin_level(0, plan, epos_coord, val, kb, ke, it, end, pstar);
     while (depth >= 0) {
         const int s = plan.order[depth];
         const int k = plan.shared[s];
@@ -177,20 +199,14 @@ __device__ int device_gjoin_decide(const DeviceCwsCandidate &c, const SelectedEn
                 const unsigned long long pos = it[depth]++;
                 const unsigned long long kk = px ? static_cast<unsigned long long>(px[pos].idx) : pos;
                 const unsigned long long key = keys[kk].key;
-                bool ok = true;
-                for (int p = 0; p < k; ++p) {
-                    const int A = epos_coord[s][p];
-                    const int v = static_cast<int>((key >> (16 * (k - 1 - p))) & 0xFFFFULL);
-                    if ((bound >> A) & 1u) { if (val[A] != v) { ok = false; break; } }
-                    else val[A] = v;
-                }
+                const bool ok = device_gjoin_match_key(key, k, epos_coord[s], bound, val);
                 if (ok) { chosen[depth] = kk; found = true; break; }
             }
         }
         if (!found) { --depth; continue; }
         if (depth + 1 < R) {
             ++depth;
-            begin_level(depth);
+            device_gjoin_begin_level(depth, plan, epos_coord, val, kb, ke, it, end, pstar);
             continue;
         }
         // Leaf: one block {s} x prod_r F_r(s).
@@ -256,23 +272,118 @@ struct HostGJoinTable {
     GJoinTable view;
     GJoinIdx *d_pidx[4] = {nullptr, nullptr, nullptr, nullptr};
     GJoinKey *d_keys = nullptr;
+    unsigned char *d_covered = nullptr;
     unsigned long long *d_offsets = nullptr;
     std::uint64_t key_count = 0;
     std::uint64_t point_count = 0;
 };
 
+// Check the representation consumed by the search, before uploading it. This
+// does not establish completeness of the row enumerator: it checks that every
+// enumerated point is valid/distinct and is represented by exactly one fibre,
+// with its exact count and occupancy summary.
+inline void validate_gjoin_fibres(const SelectedEntry &entry, int size, int shared,
+                                 const std::vector<std::array<int, 5>> &points,
+                                 const std::vector<GJoinKey> &fibres) {
+    std::size_t cursor = 0;
+    for (std::size_t f = 0; f < fibres.size(); ++f) {
+        const GJoinKey &g = fibres[f];
+        if (!g.count || (f && fibres[f - 1].key >= g.key) ||
+            (shared < 4 && (g.key >> (16 * shared))))
+            throw std::runtime_error("gjoin: invalid canonical fibre key/count");
+        unsigned int cats = 0, pairs = 0;
+        for (unsigned int j = 0; j < g.count; ++j, ++cursor) {
+            if (cursor >= points.size() || (cursor && !(points[cursor - 1] < points[cursor])))
+                throw std::runtime_error("gjoin: missing, repeated or unsorted row point");
+            const auto &point = points[cursor];
+            int remaining = entry.degree;
+            unsigned long long key = 0;
+            for (int p = 0; p < size; ++p) {
+                if (entry.w[p] <= 0 || point[p] < 0 || point[p] > remaining / entry.w[p])
+                    throw std::runtime_error("gjoin: invalid row point");
+                remaining -= point[p] * entry.w[p];
+                if (p < shared) {
+                    if (point[p] > 65535) throw std::runtime_error("gjoin: shared value exceeds 16 bits");
+                    key = (key << 16) | static_cast<unsigned int>(point[p]);
+                } else {
+                    cats |= (1u << std::min(point[p], 3)) << (4 * (p - shared));
+                }
+            }
+            if (remaining || key != g.key) throw std::runtime_error("gjoin: incorrect row fibre");
+            int pair = 0;
+            for (int a = shared; a < size; ++a)
+                for (int b = a + 1; b < size; ++b, ++pair) {
+                    const long long sum = static_cast<long long>(point[a]) + point[b];
+                    pairs |= (sum <= 1 ? 1u : 0u) << (2 * pair);
+                    pairs |= (sum >= 3 ? 2u : 0u) << (2 * pair);
+                }
+        }
+        if (cats != g.cats || pairs != g.pairs)
+            throw std::runtime_error("gjoin: incorrect fibre occupancy summary");
+    }
+    if (cursor != points.size()) throw std::runtime_error("gjoin: unrepresented row points");
+}
+
+inline void validate_gjoin_index(const std::vector<GJoinKey> &keys,
+                                const std::vector<GJoinIdx> &index,
+                                std::size_t begin, std::size_t end, int shared, int position) {
+    if (begin > end || end > keys.size() || end > index.size() ||
+        shared < 2 || shared > 4 || position < 1 || position >= shared)
+        throw std::runtime_error("gjoin: invalid position index shape");
+    std::vector<bool> seen(end - begin, false);
+    for (std::size_t i = begin; i < end; ++i) {
+        const std::size_t target = index[i].idx;
+        if (target < begin || target >= end || seen[target - begin] ||
+            (i > begin && index[i - 1].pkey >= index[i].pkey))
+            throw std::runtime_error("gjoin: position index is not a sorted permutation");
+        seen[target - begin] = true;
+        const unsigned long long key = keys[target].key;
+        // Independently unpack the permuted word, rather than using the
+        // builder's packing loop to validate itself.
+        int output = 0;
+        for (int p = -1; p < shared; ++p) {
+            if (p == position) continue;
+            const int original = p < 0 ? position : p;
+            const auto value = (key >> (16 * (shared - 1 - original))) & 65535ULL;
+            const auto actual = (index[i].pkey >> (16 * (shared - 1 - output))) & 65535ULL;
+            if (value != actual) throw std::runtime_error("gjoin: incorrect position index key");
+            ++output;
+        }
+        if (shared < 4 && (index[i].pkey >> (16 * shared)))
+            throw std::runtime_error("gjoin: position index key exceeds width");
+    }
+}
+
 inline void build_gjoin_table(const PoolInfo &pool, int size, int shared, HostGJoinTable &out) {
+    if (pool.entries.size() > static_cast<std::size_t>(std::numeric_limits<int>::max()) ||
+        pool.device_offset > static_cast<std::uint64_t>(std::numeric_limits<int>::max()) - pool.entries.size())
+        throw std::runtime_error("gjoin: pool exceeds signed candidate index range");
     const int pool_count = static_cast<int>(pool.entries.size());
     const int npriv = size - shared;
     if (size < 1 || size > kMaxSize || shared < 0 || shared > size || shared > 4)
         throw std::runtime_error("gjoin: unsupported table shape");
+    for (const auto &entry : pool.entries) {
+        long long degree = 0;
+        for (int p = 0; p < size; ++p) {
+            if (entry.w[p] <= 0) throw std::runtime_error("gjoin: nonpositive row weight");
+            degree += entry.w[p];
+        }
+        if (entry.size != size || degree != entry.degree)
+            throw std::runtime_error("gjoin: inconsistent row size/degree");
+    }
     std::vector<std::vector<GJoinKey>> per(static_cast<std::size_t>(pool_count));
+    std::vector<unsigned char> covered(static_cast<std::size_t>(pool_count), 1);
     std::vector<std::uint64_t> points_per(static_cast<std::size_t>(pool_count), 0);
     auto work = [&](int begin, int end) {
         std::vector<std::array<int, 5>> pts;
         for (int e = begin; e < end; ++e) {
             const SelectedEntry &en = pool.entries[static_cast<std::size_t>(e)];
             const int *w = en.w;
+            // A conservative coverage guard is enough: unsupported entries
+            // retain their identity and are sent to exact CPU completion.
+            bool fits = true;
+            for (int p = 0; p < shared; ++p) fits &= en.degree / w[p] <= 65535;
+            if (!fits) { covered[static_cast<std::size_t>(e)] = 0; continue; }
             pts.clear();
             std::array<int, 5> x{};
             std::function<void(int, int)> rec = [&](int pos, int rem) {
@@ -280,7 +391,14 @@ inline void build_gjoin_table(const PoolInfo &pool, int size, int shared, HostGJ
                     if (rem % w[pos] == 0) { x[pos] = rem / w[pos]; pts.push_back(x); }
                     return;
                 }
-                for (int v = 0; v * w[pos] <= rem; ++v) { x[pos] = v; rec(pos + 1, rem - v * w[pos]); }
+                // Avoid the overflowing multiply at the first excluded v and
+                // the final increment when rem / w[pos] == INT_MAX.
+                for (int v = 0, rest = rem;; ++v) {
+                    x[pos] = v;
+                    rec(pos + 1, rest);
+                    if (rest < w[pos]) break;
+                    rest -= w[pos];
+                }
             };
             rec(0, en.degree);
             std::sort(pts.begin(), pts.end());
@@ -295,38 +413,60 @@ inline void build_gjoin_table(const PoolInfo &pool, int size, int shared, HostGJ
             };
             auto cls = [](int v) -> unsigned int { return v == 0 ? 1u : v == 1 ? 2u : v == 2 ? 4u : 8u; };
             std::vector<GJoinKey> &o = per[static_cast<std::size_t>(e)];
+            bool representable = true;
             for (std::size_t i = 0; i < pts.size();) {
                 GJoinKey g{};
                 g.key = keyof(pts[i]);
                 std::size_t j = i;
                 for (; j < pts.size() && keyof(pts[j]) == g.key; ++j) {
-                    if (g.count == std::numeric_limits<unsigned int>::max())
-                        throw std::runtime_error("gjoin: fibre count exceeds 32 bits");
+                    if (g.count == std::numeric_limits<unsigned int>::max()) { representable = false; break; }
                     ++g.count;
                     for (int t = 0; t < npriv; ++t) g.cats |= cls(pts[j][shared + t]) << (4 * t);
                     int u = 0;
                     for (int t1 = 0; t1 < npriv; ++t1)
                         for (int t2 = t1 + 1; t2 < npriv; ++t2, ++u) {
-                            const int sum = pts[j][shared + t1] + pts[j][shared + t2];
+                            const long long sum = static_cast<long long>(pts[j][shared + t1]) + pts[j][shared + t2];
                             if (sum <= 1) g.pairs |= 1u << (2 * u);
                             if (sum >= 3) g.pairs |= 1u << (2 * u + 1);
                         }
                 }
+                if (!representable) break;
                 o.push_back(g);
                 i = j;
             }
+            if (!representable) {
+                covered[static_cast<std::size_t>(e)] = 0;
+                points_per[static_cast<std::size_t>(e)] = 0;
+                o.clear();
+                continue;
+            }
+            validate_gjoin_fibres(en, size, shared, pts, o);
         }
     };
     unsigned int nthreads = std::max(1u, std::thread::hardware_concurrency());
     std::vector<std::thread> threads;
+    std::vector<std::exception_ptr> errors(nthreads);
     for (unsigned int t = 0; t < nthreads; ++t) {
         int b0 = static_cast<int>(static_cast<long long>(pool_count) * t / nthreads);
         int e0 = static_cast<int>(static_cast<long long>(pool_count) * (t + 1) / nthreads);
-        threads.emplace_back(work, b0, e0);
+        threads.emplace_back([&, b0, e0, t] {
+            try { work(b0, e0); }
+            catch (...) { errors[t] = std::current_exception(); }
+        });
     }
     for (auto &th : threads) th.join();
+    for (const auto &error : errors) if (error) std::rethrow_exception(error);
     std::vector<unsigned long long> offsets(static_cast<std::size_t>(pool_count) + 1, 0);
-    for (int e = 0; e < pool_count; ++e) offsets[e + 1] = offsets[e] + per[static_cast<std::size_t>(e)].size();
+    for (int e = 0; e < pool_count; ++e) {
+        auto count = per[static_cast<std::size_t>(e)].size();
+        if (count > 0xFFFFFFFFULL - offsets[e]) {
+            covered[static_cast<std::size_t>(e)] = 0;
+            points_per[static_cast<std::size_t>(e)] = 0;
+            per[static_cast<std::size_t>(e)].clear();
+            count = 0;
+        }
+        offsets[e + 1] = offsets[e] + count;
+    }
     std::vector<GJoinKey> keys(static_cast<std::size_t>(offsets.back()));
     for (int e = 0; e < pool_count; ++e)
         std::copy(per[e].begin(), per[e].end(), keys.begin() + static_cast<std::ptrdiff_t>(offsets[e]));
@@ -351,12 +491,15 @@ inline void build_gjoin_table(const PoolInfo &pool, int size, int shared, HostGJ
             }
             std::sort(px.begin() + static_cast<std::ptrdiff_t>(b), px.begin() + static_cast<std::ptrdiff_t>(b + n),
                       [](const GJoinIdx &l, const GJoinIdx &r) { return l.pkey < r.pkey; });
+            validate_gjoin_index(keys, px, b, b + n, shared, p);
         }
-        if (keys.size() > 0xFFFFFFFFULL) throw std::runtime_error("gjoin: table exceeds 32-bit indices");
         check_cuda(cudaMalloc(&out.d_pidx[p], std::max<std::size_t>(px.size(), 1) * sizeof(GJoinIdx)), "gjoin pidx");
         check_cuda(cudaMemcpy(out.d_pidx[p], px.data(), px.size() * sizeof(GJoinIdx), cudaMemcpyHostToDevice), "gjoin pidx");
         out.view.pidx[p] = out.d_pidx[p];
     }
+    check_cuda(cudaMalloc(&out.d_covered, std::max<std::size_t>(covered.size(), 1)), "gjoin coverage");
+    check_cuda(cudaMemcpy(out.d_covered, covered.data(), covered.size(), cudaMemcpyHostToDevice), "gjoin coverage");
+    out.view.covered = out.d_covered;
     out.view.keys = out.d_keys;
     out.view.offsets = out.d_offsets;
     out.view.pool_offset = static_cast<int>(pool.device_offset);
@@ -369,6 +512,56 @@ inline void build_gjoin_table(const PoolInfo &pool, int size, int shared, HostGJ
 // join, and the tables. Rows are visited greedily: first the row with the most
 // shared coordinates, then always a row whose shared coordinates are all bound
 // (a lookup) if one exists, else the row with the most bound ones.
+inline void validate_gjoin_plan(const GJoinPlan &plan) {
+    if (plan.nrows < 1 || plan.nrows > kMaxSlots || plan.ambient < 1 || plan.ambient > 10)
+        throw std::runtime_error("gjoin: invalid plan dimensions");
+    int uses[10] = {};
+    unsigned int support[kMaxSlots] = {}, expected_pairs[10] = {};
+    for (int r = 0; r < plan.nrows; ++r) {
+        if (plan.size[r] < 1 || plan.size[r] > kMaxSize || plan.shared[r] < 0 ||
+            plan.shared[r] > 4 || plan.shared[r] > plan.size[r])
+            throw std::runtime_error("gjoin: invalid plan row shape");
+        unsigned int seen = 0;
+        for (int p = 0; p < plan.size[r]; ++p) {
+            const int a = plan.coord[r][p];
+            if (a < 0 || a >= plan.ambient || (seen & (1u << a)))
+                throw std::runtime_error("gjoin: invalid or repeated plan coordinate");
+            seen |= 1u << a;
+            ++uses[a];
+            if (p < plan.shared[r]) support[r] |= 1u << a;
+            else for (int q = plan.shared[r]; q < plan.size[r]; ++q) {
+                // q's coordinate is checked on its own iteration before the
+                // masks below are consumed; validate it here before shifting.
+                const int b = plan.coord[r][q];
+                if (b < 0 || b >= plan.ambient) throw std::runtime_error("gjoin: invalid private coordinate");
+                if (p != q) expected_pairs[a] |= 1u << b;
+            }
+        }
+    }
+    unsigned int shared = 0;
+    for (int a = 0; a < plan.ambient; ++a) {
+        if (!uses[a]) throw std::runtime_error("gjoin: uncovered plan coordinate");
+        if (uses[a] > 1) shared |= 1u << a;
+        if (expected_pairs[a] != plan.same_row[a]) throw std::runtime_error("gjoin: incorrect same-row pair mask");
+    }
+    if (shared != plan.shared_mask) throw std::runtime_error("gjoin: incorrect shared mask");
+    for (int r = 0; r < plan.nrows; ++r)
+        for (int p = 0; p < plan.size[r]; ++p)
+            if ((uses[plan.coord[r][p]] > 1) != (p < plan.shared[r]))
+                throw std::runtime_error("gjoin: row is not in shared-first layout");
+    unsigned int visited = 0, bound = 0;
+    for (int j = 0; j < plan.nrows; ++j) {
+        const int r = plan.order[j];
+        if (r < 0 || r >= plan.nrows || (visited & (1u << r)))
+            throw std::runtime_error("gjoin: row order is not a permutation");
+        if (plan.bound_before[j] != bound ||
+            plan.lookup[j] != static_cast<int>((support[r] & ~bound) == 0))
+            throw std::runtime_error("gjoin: incorrect bound/lookup plan");
+        visited |= 1u << r;
+        bound |= support[r];
+    }
+}
+
 inline GJoinPlan build_gjoin_plan(const GpuDescriptor &d, const PoolArray &pools,
                                   std::array<HostGJoinTable, kPoolKeyStride * kPoolKeyStride> &tables) {
     GJoinPlan plan;
@@ -414,6 +607,7 @@ inline GJoinPlan build_gjoin_plan(const GpuDescriptor &d, const PoolArray &pools
         bound |= row_shared[best];
         done |= 1u << best;
     }
+    validate_gjoin_plan(plan);
     return plan;
 }
 

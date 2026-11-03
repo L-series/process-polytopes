@@ -34,6 +34,7 @@ def block(source, marker, semicolon=False):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--sanitize", action="store_true")
+    parser.add_argument("--exhaustive-search", action="store_true")
     args = parser.parse_args()
     common = (GPU / "common.cuh").read_text()
     pools = (GPU / "pools.cuh").read_text()
@@ -46,6 +47,7 @@ def main():
 #include <cstdlib>
 #include <cstring>
 #include <functional>
+#include <exception>
 #include <iostream>
 #include <limits>
 #include <random>
@@ -69,6 +71,7 @@ inline void check_cuda(int s, const char*) { assert(s == 0); }
     pieces.append("using PoolArray = std::array<PoolInfo, kPoolKeyStride * kPoolKeyStride>;\n")
     for name in ("GJoinKey", "GJoinIdx", "GJoinTable", "GJoinPlan", "GJoinCensus"):
         pieces.append(block(join, f"struct {name} {{", True))
+    pieces.append(block(join, "inline void validate_gjoin_fibres("))
     for name in ("JoinKey", "JoinTables", "HostJoinTables"):
         pieces.append(block(type3, f"struct {name} {{", True))
     for name in ("device_join_cat", "device_join_lo", "device_join_hi"):
@@ -82,10 +85,17 @@ inline void check_cuda(int s, const char*) { assert(s == 0); }
         "inline void build_join_table(",
     ):
         pieces.append(block(type3, marker))
+    pieces.append(block(join, "__device__ void device_gjoin_begin_level("))
+    pieces.append(block(join, "__device__ bool device_gjoin_match_key("))
     pieces.append(block(join, "__device__ int device_gjoin_decide("))
     pieces.append(block(join, "struct HostGJoinTable {", True))
+    pieces.append(block(join, "inline void validate_gjoin_index("))
     pieces.append(block(join, "inline void build_gjoin_table("))
+    pieces.append(block(join, "inline void validate_gjoin_plan("))
     pieces.append(block(join, "inline GJoinPlan build_gjoin_plan("))
+    if args.exhaustive_search:
+        pieces.append("#define CWS_JOIN_EXHAUSTIVE 1\n")
+        pieces.append((ROOT / "tests/gpu/join_search_host.cpp").read_text())
     pieces.append((ROOT / "tests/gpu/join_source_harness.cpp").read_text())
     with tempfile.TemporaryDirectory(prefix="join-source-") as directory:
         cpp = Path(directory) / "join.cpp"
