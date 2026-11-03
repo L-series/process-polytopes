@@ -19,15 +19,40 @@ theorem device_eval_eq_defined (e : Equation 5) (x : Fin 5 → Int) (v : Int) :
       expressionDefined e x deviceEvalExpr ∧ v = eval e x := by
   rw [checkedEval_exact, device_eval_eq_integer]
 
--- Bound-check source-function SHA256: 418721e3a702fb5735dee8e067904176fd3916ba457e588a87e19c5e2cecc0b0
-def sourceEvalBounded (e : Equation 5) (x : Fin 5 → Int) : Prop := -2305843009213693952 ≤ e.constant ∧ e.constant ≤ 2305843009213693952 ∧ -17592186044416 ≤ e.normal ⟨0, by decide⟩ ∧ e.normal ⟨0, by decide⟩ ≤ 17592186044416 ∧ -17592186044416 ≤ e.normal ⟨1, by decide⟩ ∧ e.normal ⟨1, by decide⟩ ≤ 17592186044416 ∧ -17592186044416 ≤ e.normal ⟨2, by decide⟩ ∧ e.normal ⟨2, by decide⟩ ≤ 17592186044416 ∧ -17592186044416 ≤ e.normal ⟨3, by decide⟩ ∧ e.normal ⟨3, by decide⟩ ≤ 17592186044416 ∧ -17592186044416 ≤ e.normal ⟨4, by decide⟩ ∧ e.normal ⟨4, by decide⟩ ≤ 17592186044416 ∧ -32768 ≤ x ⟨0, by decide⟩ ∧ x ⟨0, by decide⟩ ≤ 32768 ∧ -32768 ≤ x ⟨1, by decide⟩ ∧ x ⟨1, by decide⟩ ≤ 32768 ∧ -32768 ≤ x ⟨2, by decide⟩ ∧ x ⟨2, by decide⟩ ≤ 32768 ∧ -32768 ≤ x ⟨3, by decide⟩ ∧ x ⟨3, by decide⟩ ≤ 32768 ∧ -32768 ≤ x ⟨4, by decide⟩ ∧ x ⟨4, by decide⟩ ≤ 32768
+-- Bound-check source-function SHA256: 1a4061c48d83cf189f1b4ae040896efa06c48cf8c9b06daa26a6cc126dec3b59
+def sourceEvalBounded (e : Equation 5) (x : Fin 5 → Int) : Prop := (e.constant % 2^64 + 2305843009213693952) % 2^64 ≤ 4611686018427387904 ∧ (e.normal ⟨0, by decide⟩ % 2^64 + 17592186044416) % 2^64 ≤ 35184372088832 ∧ (e.normal ⟨1, by decide⟩ % 2^64 + 17592186044416) % 2^64 ≤ 35184372088832 ∧ (e.normal ⟨2, by decide⟩ % 2^64 + 17592186044416) % 2^64 ≤ 35184372088832 ∧ (e.normal ⟨3, by decide⟩ % 2^64 + 17592186044416) % 2^64 ≤ 35184372088832 ∧ (e.normal ⟨4, by decide⟩ % 2^64 + 17592186044416) % 2^64 ≤ 35184372088832 ∧ (x ⟨0, by decide⟩ % 2^64 + 32768) % 2^64 ≤ 65536 ∧ (x ⟨1, by decide⟩ % 2^64 + 32768) % 2^64 ≤ 65536 ∧ (x ⟨2, by decide⟩ % 2^64 + 32768) % 2^64 ≤ 65536 ∧ (x ⟨3, by decide⟩ % 2^64 + 32768) % 2^64 ≤ 65536 ∧ (x ⟨4, by decide⟩ % 2^64 + 32768) % 2^64 ≤ 65536
 
 /-- Inside the source bound check every product of the raw evaluator fits in
 2^59 and every partial sum in 2^61 + 5 * 2^59 < 2^63, so the unchecked fast
-path computes exactly what the checked path would. -/
+path computes exactly what the checked path would. The values are C signed
+64-bit operands, hence the `fits64` premises. -/
 theorem source_eval_bounded_defined (e : Equation 5) (x : Fin 5 → Int)
-    (h : sourceEvalBounded e x) : expressionDefined e x deviceEvalExpr := by
-  obtain ⟨h0, h1, h2, h3, h4, h5, h6, h7, h8, h9, h10, h11, h12, h13, h14, h15, h16, h17, h18, h19, h20, h21⟩ := h
+    (h : sourceEvalBounded e x) (hfit : fits64 (e.constant) ∧ fits64 (e.normal ⟨0, by decide⟩) ∧ fits64 (e.normal ⟨1, by decide⟩) ∧ fits64 (e.normal ⟨2, by decide⟩) ∧ fits64 (e.normal ⟨3, by decide⟩) ∧ fits64 (e.normal ⟨4, by decide⟩) ∧ fits64 (x ⟨0, by decide⟩) ∧ fits64 (x ⟨1, by decide⟩) ∧ fits64 (x ⟨2, by decide⟩) ∧ fits64 (x ⟨3, by decide⟩) ∧ fits64 (x ⟨4, by decide⟩)) :
+    expressionDefined e x deviceEvalExpr := by
+  obtain ⟨u0, u1, u2, u3, u4, u5, u6, u7, u8, u9, u10⟩ := h
+  obtain ⟨f0, f1, f2, f3, f4, f5, f6, f7, f8, f9, f10⟩ := hfit
+  have h0 : -2305843009213693952 ≤ e.constant := by unfold fits64 at f0; omega
+  have h1 : e.constant ≤ 2305843009213693952 := by unfold fits64 at f0; omega
+  have h2 : -17592186044416 ≤ e.normal ⟨0, by decide⟩ := by unfold fits64 at f1; omega
+  have h3 : e.normal ⟨0, by decide⟩ ≤ 17592186044416 := by unfold fits64 at f1; omega
+  have h4 : -17592186044416 ≤ e.normal ⟨1, by decide⟩ := by unfold fits64 at f2; omega
+  have h5 : e.normal ⟨1, by decide⟩ ≤ 17592186044416 := by unfold fits64 at f2; omega
+  have h6 : -17592186044416 ≤ e.normal ⟨2, by decide⟩ := by unfold fits64 at f3; omega
+  have h7 : e.normal ⟨2, by decide⟩ ≤ 17592186044416 := by unfold fits64 at f3; omega
+  have h8 : -17592186044416 ≤ e.normal ⟨3, by decide⟩ := by unfold fits64 at f4; omega
+  have h9 : e.normal ⟨3, by decide⟩ ≤ 17592186044416 := by unfold fits64 at f4; omega
+  have h10 : -17592186044416 ≤ e.normal ⟨4, by decide⟩ := by unfold fits64 at f5; omega
+  have h11 : e.normal ⟨4, by decide⟩ ≤ 17592186044416 := by unfold fits64 at f5; omega
+  have h12 : -32768 ≤ x ⟨0, by decide⟩ := by unfold fits64 at f6; omega
+  have h13 : x ⟨0, by decide⟩ ≤ 32768 := by unfold fits64 at f6; omega
+  have h14 : -32768 ≤ x ⟨1, by decide⟩ := by unfold fits64 at f7; omega
+  have h15 : x ⟨1, by decide⟩ ≤ 32768 := by unfold fits64 at f7; omega
+  have h16 : -32768 ≤ x ⟨2, by decide⟩ := by unfold fits64 at f8; omega
+  have h17 : x ⟨2, by decide⟩ ≤ 32768 := by unfold fits64 at f8; omega
+  have h18 : -32768 ≤ x ⟨3, by decide⟩ := by unfold fits64 at f9; omega
+  have h19 : x ⟨3, by decide⟩ ≤ 32768 := by unfold fits64 at f9; omega
+  have h20 : -32768 ≤ x ⟨4, by decide⟩ := by unfold fits64 at f10; omega
+  have h21 : x ⟨4, by decide⟩ ≤ 32768 := by unfold fits64 at f10; omega
   have term : ∀ a y : Int, -17592186044416 ≤ a → a ≤ 17592186044416 → -32768 ≤ y → y ≤ 32768 →
       -(2^59) ≤ a * y ∧ a * y ≤ 2^59 := by
     intro a y h1 h2 h3 h4
@@ -47,8 +72,9 @@ theorem source_eval_bounded_defined (e : Equation 5) (x : Fin 5 → Int)
   all_goals first | trivial | linarith
 
 theorem source_eval_bounded_exact (e : Equation 5) (x : Fin 5 → Int)
-    (h : sourceEvalBounded e x) : checkedEval e x deviceEvalExpr = some (eval e x) :=
-  (device_eval_eq_defined e x _).mpr ⟨source_eval_bounded_defined e x h, rfl⟩
+    (h : sourceEvalBounded e x) (hfit : fits64 (e.constant) ∧ fits64 (e.normal ⟨0, by decide⟩) ∧ fits64 (e.normal ⟨1, by decide⟩) ∧ fits64 (e.normal ⟨2, by decide⟩) ∧ fits64 (e.normal ⟨3, by decide⟩) ∧ fits64 (e.normal ⟨4, by decide⟩) ∧ fits64 (x ⟨0, by decide⟩) ∧ fits64 (x ⟨1, by decide⟩) ∧ fits64 (x ⟨2, by decide⟩) ∧ fits64 (x ⟨3, by decide⟩) ∧ fits64 (x ⟨4, by decide⟩)) :
+    checkedEval e x deviceEvalExpr = some (eval e x) :=
+  (device_eval_eq_defined e x _).mpr ⟨source_eval_bounded_defined e x h hfit, rfl⟩
 
 -- Normal-check source-function SHA256: a402455cbd1c400af3dbc10dc21e0bcead87f03bdbf8409a3bf4a922de39e119
 def sourceHasNormal (e : Equation 5) : Bool := decide (e.normal ⟨0, by decide⟩ ≠ 0) || decide (e.normal ⟨1, by decide⟩ ≠ 0) || decide (e.normal ⟨2, by decide⟩ ≠ 0) || decide (e.normal ⟨3, by decide⟩ ≠ 0) || decide (e.normal ⟨4, by decide⟩ ≠ 0)

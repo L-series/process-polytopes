@@ -54,13 +54,20 @@ def generated():
     names = (['equation.c'] + [f'equation.a[{i}]' for i in range(5)] + [f'point[{i}]' for i in range(5)])
     limits = [2**61] + [2**44] * 5 + [2**15] * 5
     expected = ('__device__intdevice_eval_bounded(constDeviceEquation5&equation,constlonglong*point){return' +
-                '&&'.join(f'{n}>=-{b}LL&&{n}<={b}LL' for n, b in zip(names, limits)) + ';}')
-    if re.sub(r'\s+', '', bounded) != expected:
+                '&'.join(f'((unsignedlonglong){n}+{b}ULL<={2 * b}ULL)' for n, b in zip(names, limits)) + ';}')
+    if re.sub(r'//[^\n]*|\s+', '', bounded) != expected:
         raise ValueError('device_eval_bounded is not the audited bound conjunction')
     lean_names = ['e.constant'] + [f'e.normal ⟨{i}, by decide⟩' for i in range(5)] + [f'x ⟨{i}, by decide⟩' for i in range(5)]
-    bounded_expr = ' ∧ '.join(f'-{b} ≤ {n} ∧ {n} ≤ {b}' for n, b in zip(lean_names, limits))
+    # C semantics of (unsigned long long)v + B: (v mod 2^64 + B) mod 2^64.
+    bounded_expr = ' ∧ '.join(f'({n} % 2^64 + {b}) % 2^64 ≤ {2 * b}' for n, b in zip(lean_names, limits))
+    fits_hyps = ' ∧ '.join(f'fits64 ({n})' for n in lean_names)
     bounded_digest = hashlib.sha256(bounded.encode()).hexdigest()
     hyps = ', '.join(f'h{i}' for i in range(22))
+    unsigned_hyps = ', '.join(f'u{i}' for i in range(11))
+    fit_names = ', '.join(f'f{i}' for i in range(11))
+    decode = '\n'.join(f'  have h{2 * i} : -{b} ≤ {n} := by unfold fits64 at f{i}; omega\n'
+                       f'  have h{2 * i + 1} : {n} ≤ {b} := by unfold fits64 at f{i}; omega'
+                       for i, (n, b) in enumerate(zip(lean_names, limits)))
     products = '\n'.join(f'  obtain ⟨p{i}l, p{i}u⟩ := term _ _ h{2 + 2 * i} h{3 + 2 * i} h{12 + 2 * i} h{13 + 2 * i}'
                           for i in range(5))
     digest = hashlib.sha256(function.encode()).hexdigest()
@@ -92,10 +99,14 @@ def sourceEvalBounded (e : Equation 5) (x : Fin 5 → Int) : Prop := {bounded_ex
 
 /-- Inside the source bound check every product of the raw evaluator fits in
 2^59 and every partial sum in 2^61 + 5 * 2^59 < 2^63, so the unchecked fast
-path computes exactly what the checked path would. -/
+path computes exactly what the checked path would. The values are C signed
+64-bit operands, hence the `fits64` premises. -/
 theorem source_eval_bounded_defined (e : Equation 5) (x : Fin 5 → Int)
-    (h : sourceEvalBounded e x) : expressionDefined e x deviceEvalExpr := by
-  obtain ⟨{hyps}⟩ := h
+    (h : sourceEvalBounded e x) (hfit : {fits_hyps}) :
+    expressionDefined e x deviceEvalExpr := by
+  obtain ⟨{unsigned_hyps}⟩ := h
+  obtain ⟨{fit_names}⟩ := hfit
+{decode}
   have term : ∀ a y : Int, -{2**44} ≤ a → a ≤ {2**44} → -{2**15} ≤ y → y ≤ {2**15} →
       -(2^59) ≤ a * y ∧ a * y ≤ 2^59 := by
     intro a y h1 h2 h3 h4
@@ -111,8 +122,9 @@ theorem source_eval_bounded_defined (e : Equation 5) (x : Fin 5 → Int)
   all_goals first | trivial | linarith
 
 theorem source_eval_bounded_exact (e : Equation 5) (x : Fin 5 → Int)
-    (h : sourceEvalBounded e x) : checkedEval e x deviceEvalExpr = some (eval e x) :=
-  (device_eval_eq_defined e x _).mpr ⟨source_eval_bounded_defined e x h, rfl⟩
+    (h : sourceEvalBounded e x) (hfit : {fits_hyps}) :
+    checkedEval e x deviceEvalExpr = some (eval e x) :=
+  (device_eval_eq_defined e x _).mpr ⟨source_eval_bounded_defined e x h hfit, rfl⟩
 
 -- Normal-check source-function SHA256: {normal_digest}
 def sourceHasNormal (e : Equation 5) : Bool := {normal_expr}

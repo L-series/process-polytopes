@@ -170,15 +170,18 @@ __device__ long long device_eval_eq(const DeviceEquation5 &equation,
 // every partial sum of device_eval_eq within 2^61 + 5 * 2^59 < 2^63, so the raw
 // evaluation is exact there (CudaIPBounded.lean) and needs no per-operation check.
 __device__ int device_eval_bounded(const DeviceEquation5 &equation, const long long *point) {
-    return equation.c >= -2305843009213693952LL && equation.c <= 2305843009213693952LL &&
-           equation.a[0] >= -17592186044416LL && equation.a[0] <= 17592186044416LL &&
-           equation.a[1] >= -17592186044416LL && equation.a[1] <= 17592186044416LL &&
-           equation.a[2] >= -17592186044416LL && equation.a[2] <= 17592186044416LL &&
-           equation.a[3] >= -17592186044416LL && equation.a[3] <= 17592186044416LL &&
-           equation.a[4] >= -17592186044416LL && equation.a[4] <= 17592186044416LL &&
-           point[0] >= -32768LL && point[0] <= 32768LL && point[1] >= -32768LL && point[1] <= 32768LL &&
-           point[2] >= -32768LL && point[2] <= 32768LL && point[3] >= -32768LL && point[3] <= 32768LL &&
-           point[4] >= -32768LL && point[4] <= 32768LL;
+    // Branch-free: (unsigned)v + B <= 2B is -B <= v <= B for a signed 64-bit v.
+    return ((unsigned long long)equation.c + 2305843009213693952ULL <= 4611686018427387904ULL) &
+           ((unsigned long long)equation.a[0] + 17592186044416ULL <= 35184372088832ULL) &
+           ((unsigned long long)equation.a[1] + 17592186044416ULL <= 35184372088832ULL) &
+           ((unsigned long long)equation.a[2] + 17592186044416ULL <= 35184372088832ULL) &
+           ((unsigned long long)equation.a[3] + 17592186044416ULL <= 35184372088832ULL) &
+           ((unsigned long long)equation.a[4] + 17592186044416ULL <= 35184372088832ULL) &
+           ((unsigned long long)point[0] + 32768ULL <= 65536ULL) &
+           ((unsigned long long)point[1] + 32768ULL <= 65536ULL) &
+           ((unsigned long long)point[2] + 32768ULL <= 65536ULL) &
+           ((unsigned long long)point[3] + 32768ULL <= 65536ULL) &
+           ((unsigned long long)point[4] + 32768ULL <= 65536ULL);
 }
 
 __device__ long long device_ip_eval_eq(const DeviceEquation5 &equation,
