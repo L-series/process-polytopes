@@ -98,7 +98,7 @@ value, avoiding the `(65535+1)<<48` wrap.
 With the pinned Lean/Mathlib dependencies available (`cd proofs && lake exe cache get`):
 
 ```sh
-python3 scripts/test-gpu-join-proofs.py
+python3 scripts/test-gpu-proofs.py
 python3 scripts/test-gpu-join-source.py
 ASAN_OPTIONS=detect_leaks=0 python3 scripts/test-gpu-join-source.py --sanitize
 ```
