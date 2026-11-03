@@ -25,6 +25,22 @@ theorem checked_walk_complete {α : Type*} [DecidableEq α] (P : Finset α)
   rw [← equal]
   simp
 
+/-- Rows certified in the kernel of the weight matrix keep every point
+`1 + sum_i x_i B_i` on the weight equations, given `W 1 = deg`. The walk
+validator therefore checks only the coordinate bounds of each point. -/
+theorem kernel_rows_preserve_weights {r n d : Nat} (W : Matrix (Fin r) (Fin n) Int) (deg : Fin r → Int)
+    (B : Matrix (Fin d) (Fin n) Int) (kernel : ∀ i s, ∑ a, W s a * B i a = 0)
+    (origin : ∀ s, ∑ a, W s a = deg s) (x : Fin d → Int) (s : Fin r) :
+    ∑ a, W s a * (1 + ∑ i, x i * B i a) = deg s := by
+  have h : ∑ a, W s a * (1 + ∑ i, x i * B i a) =
+      ∑ a, W s a + ∑ i, x i * ∑ a, W s a * B i a := by
+    simp only [mul_add, mul_one, Finset.sum_add_distrib, Finset.mul_sum]
+    congr 1
+    rw [Finset.sum_comm]
+    refine Finset.sum_congr rfl (fun i _ => Finset.sum_congr rfl (fun a _ => by ring))
+  rw [h, origin s]
+  simp [kernel]
+
 /-- The independently validated mod-2 left-inverse witness implies a nonzero
 integer determinant. Elimination itself need not be trusted to produce a
 correct witness. -/

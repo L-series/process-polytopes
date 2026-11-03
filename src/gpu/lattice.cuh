@@ -512,8 +512,12 @@ __device__ int device_walk_lex_greater(const long long *left, const long long *r
 // order) and independently revalidate every stored tuple. Strict increase makes
 // the tuples distinct, so count equality is useful even if the walk misses a
 // root interval or its traversal is imperfect.
+// The box [Lo, Hi] passed device_walk_int32_box, so for a tuple inside it
+// every partial sum of 1 + sum_j x_j basis[j][a] stays below 2^28 and the
+// recomputation needs no per-operation overflow check.
 __device__ int device_walk_validate_points(const DeviceCwsCandidate &candidate,
                                            const int basis[FP_NMAX][10], const int xu[10], const int ord[5],
+                                           const int Lo[FP_NMAX], const int Hi[FP_NMAX],
                                            long long *points, int count, int *ip_possible = nullptr) {
     if (count < 0) return 0;
     for (int d = 0; d < 5; ++d) if (ord[d] < 0 || ord[d] >= 5) return 0;
@@ -521,26 +525,17 @@ __device__ int device_walk_validate_points(const DeviceCwsCandidate &candidate,
     for (int p = 0; p < count; ++p) {
         const long long *point = points + 5ULL * static_cast<unsigned int>(p);
         if (p && !device_walk_lex_greater(point, point - 5, ord)) return 0;
-        int X[10], ok = 1;
+        for (int j = 0; j < 5; ++j) if (point[j] < Lo[j] || point[j] > Hi[j]) return 0;
+        int X[10];
         for (int a = 0; a < candidate.ambient_vertices; ++a) {
             long long value = 1;
-            for (int j = 0; j < 5; ++j)
-                value = device_walk_add(value, device_walk_mul(point[j], basis[j][a], &ok), &ok);
-            if (!ok || value < 0 || value > xu[a]) return 0;
+            for (int j = 0; j < 5; ++j) value += point[j] * basis[j][a];
+            if (value < 0 || value > xu[a]) return 0;
             X[a] = static_cast<int>(value);
         }
-        for (int r = 0; r < candidate.nw; ++r) {
-            long long remaining = candidate.degree[r];
-            for (int a = 0; a < candidate.ambient_vertices; ++a) {
-                // remaining is in [0, 2^31) here and the term in [0, 2^62]: no overflow.
-                // Every term is nonnegative, so a negative remainder never returns to 0.
-                const int weight = candidate.weights[r][a];
-                if (weight < 0) return 0;
-                remaining -= static_cast<long long>(weight) * X[a];
-                if (remaining < 0) return 0;
-            }
-            if (remaining != 0) return 0;
-        }
+        // The weight equations need no check per point: the basis certificate
+        // proved every row in their kernel and the precheck W 1 = degree, so
+        // kernel_rows_preserve_weights (GpuWalk.lean) gives W X = degree.
         unsigned int m0 = 0, m1 = 0, m2 = 0, m3 = 0;
         for (int a = 0; a < candidate.ambient_vertices; ++a) {
             const unsigned int bit = 1u << a;
@@ -727,7 +722,7 @@ __device__ int device_make_points_fp(const DeviceCwsCandidate &candidate,
     }
     // Recompute all certificate masks from the checked final point buffer,
     // so the certificate and the cardinality check concern the same family.
-    if (!device_walk_validate_points(candidate, bred, xu, ord, points, *point_count, ip_possible)) return -1;
+    if (!device_walk_validate_points(candidate, bred, xu, ord, Lo, Hi, points, *point_count, ip_possible)) return -1;
     return *point_count > 0 ? 1 : 0;
 }
 

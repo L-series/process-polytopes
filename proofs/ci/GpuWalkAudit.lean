@@ -1,5 +1,6 @@
 import Refpoly.GpuWalk
 
+#print axioms Refpoly.GpuWalk.kernel_rows_preserve_weights
 #print axioms Refpoly.GpuWalk.checked_walk_complete
 #print axioms Refpoly.GpuWalk.integer_det_ne_zero_of_mod2_left_inverse
 #print axioms Refpoly.GpuWalk.real_minor_independent

@@ -91,18 +91,18 @@ void test_certificates() {
     hi[0] = 2147483647; assert(!device_walk_int32_box(basis,6,lo,hi,xu)); hi[0] = 2;
     const int ord[5] = {0,1,2,3,4}, reversed[5] = {4,3,2,1,0};
     long long pts[15] = {-1,0,0,0,0, 0,0,0,0,0, 1,0,0,0,0};
-    assert(device_walk_validate_points(c,basis,xu,ord,pts,3));
+    assert(device_walk_validate_points(c,basis,xu,ord,lo,hi,pts,3));
     long long tail_order[10] = {0,0,0,0,1, 1,0,0,0,0};   // increasing under ord, decreasing under reversed
-    assert(device_walk_validate_points(c,basis,xu,ord,tail_order,2));
-    assert(!device_walk_validate_points(c,basis,xu,reversed,tail_order,2));
+    assert(device_walk_validate_points(c,basis,xu,ord,lo,hi,tail_order,2));
+    assert(!device_walk_validate_points(c,basis,xu,reversed,lo,hi,tail_order,2));
     long long unordered[15] = {0,0,0,0,0, 1,0,0,0,0, -1,0,0,0,0};
-    assert(!device_walk_validate_points(c,basis,xu,ord,unordered,3));
+    assert(!device_walk_validate_points(c,basis,xu,ord,lo,hi,unordered,3));
     for (int j = 0; j < 5; ++j) pts[5+j] = pts[j];
-    assert(!device_walk_validate_points(c,basis,xu,ord,pts,3));
+    assert(!device_walk_validate_points(c,basis,xu,ord,lo,hi,pts,3));
     long long invalid[5] = {7,0,0,0,0};
-    assert(!device_walk_validate_points(c,basis,xu,ord,invalid,1));
+    assert(!device_walk_validate_points(c,basis,xu,ord,lo,hi,invalid,1));
     invalid[0] = std::numeric_limits<long long>::max();
-    assert(!device_walk_validate_points(c,basis,xu,ord,invalid,1));
+    assert(!device_walk_validate_points(c,basis,xu,ord,lo,hi,invalid,1));
     long long buffer[10]; int count = 99, possible = 0;
     assert(device_make_points_fp(c,buffer,2,&count,&possible) < 0); // cap defers
     count = 99;
