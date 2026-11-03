@@ -19,7 +19,7 @@ for path in files:
 if errors: raise SystemExit('\n'.join(errors))
 for generator in ('generate_ip_eval_model.py','generate_ip_arithmetic_model.py','generate_ip_certificate_model.py'):
     subprocess.run([sys.executable,str(ROOT/'scripts'/generator)],check=True)
-subprocess.run(['lake','build','Refpoly.CudaIPScan','Refpoly.CudaIPArithmeticSource','Refpoly.CudaIPCertificate'],cwd=PROOFS,check=True)
+subprocess.run(['lake','build','Refpoly.CudaIPScan','Refpoly.CudaIPArithmeticSource','Refpoly.CudaIPCertificate','Refpoly.CudaIPAcceptance'],cwd=PROOFS,check=True)
 result=subprocess.run(['lake','env','lean','ci/IPAudit.lean'],cwd=PROOFS,text=True,capture_output=True,check=True)
 closures=re.findall(r'depends on axioms:\s*\[([^\]]*)\]',result.stdout)
 empty=result.stdout.count('does not depend on any axioms')

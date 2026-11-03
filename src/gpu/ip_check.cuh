@@ -581,6 +581,203 @@ __device__ int device_ip_supporting_certificate(const DeviceEquation5 &equation,
     return !*arithmetic_failed;
 }
 
+// Acceptance certificate. B = five reduced points with an integer matrix A and
+// d != 0 such that A * B = d I (so B is invertible), and point indices idx,
+// multiplicities mu >= 0 (not all 0) and k > 0 with
+//     sum_r mu_r P[idx_r] + k sum_r B_r = 0.
+// Then -c (B_0 + ... + B_4), c > 0, lies in the hull, so the origin is interior
+// (integer_positive_spanning_ip, CudaIPAcceptance.lean). Only the checker below
+// is trusted; the search that proposes the certificate may fail, which defers.
+struct DeviceAcceptance5 {
+    int b[5] = {0, 0, 0, 0, 0};
+    long long adj[5][5] = {};
+    long long d = 0;
+    int idx[5] = {0, 0, 0, 0, 0};
+    long long mu[5] = {0, 0, 0, 0, 0};
+    long long k = 0;
+};
+
+__device__ int device_ip_acceptance_verified(const DeviceAcceptance5 &cert, const long long *points,
+                                             int point_count, int *arithmetic_failed) {
+    if (cert.d == 0 || cert.k <= 0) return 0;
+    long long mu_total = 0;
+    for (int r = 0; r < 5; ++r) {
+        if (cert.b[r] < 0 || cert.b[r] >= point_count || cert.idx[r] < 0 || cert.idx[r] >= point_count) return 0;
+        if (cert.mu[r] < 0) return 0;
+        mu_total = device_ip_add(mu_total, cert.mu[r], arithmetic_failed);
+    }
+    if (mu_total <= 0) return 0;
+    for (int i = 0; i < 5; ++i)
+        for (int j = 0; j < 5; ++j) {
+            long long value = 0;
+            for (int t = 0; t < 5; ++t)
+                value = device_ip_add(value, device_ip_mul(cert.adj[i][t], points[cert.b[t] * 5 + j],
+                                                           arithmetic_failed), arithmetic_failed);
+            if (value != (i == j ? cert.d : 0)) return 0;
+        }
+    for (int j = 0; j < 5; ++j) {
+        long long value = 0;
+        for (int r = 0; r < 5; ++r) {
+            value = device_ip_add(value, device_ip_mul(cert.mu[r], points[cert.idx[r] * 5 + j], arithmetic_failed),
+                                  arithmetic_failed);
+            value = device_ip_add(value, device_ip_mul(cert.k, points[cert.b[r] * 5 + j], arithmetic_failed),
+                                  arithmetic_failed);
+        }
+        if (value != 0) return 0;
+    }
+    return !*arithmetic_failed;
+}
+
+// 3x3 minor of m on rows r[0..2] and columns c[0..2].
+__device__ long long device_ip_minor3(const long long m[5][5], const int r[3], const int c[3], int *arithmetic_failed) {
+    long long value = 0;
+    for (int t = 0; t < 3; ++t) {
+        const int c1 = c[(t + 1) % 3], c2 = c[(t + 2) % 3];
+        const long long cof = device_ip_sub(device_ip_mul(m[r[1]][c1], m[r[2]][c2], arithmetic_failed),
+                                            device_ip_mul(m[r[1]][c2], m[r[2]][c1], arithmetic_failed),
+                                            arithmetic_failed);
+        value = device_ip_add(value, device_ip_mul(m[r[0]][c[t]], cof, arithmetic_failed), arithmetic_failed);
+    }
+    return value;
+}
+
+// Adjugate and determinant of a 5x5 matrix by cofactors: adj * m = det I.
+__device__ long long device_ip_adjugate5(const long long m[5][5], long long adj[5][5], int *arithmetic_failed) {
+    for (int i = 0; i < 5; ++i)
+        for (int j = 0; j < 5; ++j) {
+            int rows[4], cols[4], nr = 0, nc = 0;
+            for (int t = 0; t < 5; ++t) { if (t != i) rows[nr++] = t; if (t != j) cols[nc++] = t; }
+            long long minor = 0;
+            for (int t = 0; t < 4; ++t) {
+                int sr[3] = {rows[1], rows[2], rows[3]}, sc[3], n = 0;
+                for (int u = 0; u < 4; ++u) if (u != t) sc[n++] = cols[u];
+                const long long term = device_ip_mul(m[rows[0]][cols[t]], device_ip_minor3(m, sr, sc, arithmetic_failed),
+                                                     arithmetic_failed);
+                minor = (t % 2) ? device_ip_sub(minor, term, arithmetic_failed) : device_ip_add(minor, term, arithmetic_failed);
+            }
+            adj[j][i] = ((i + j) % 2) ? device_ip_sub(0, minor, arithmetic_failed) : minor;
+        }
+    long long det = 0;
+    for (int j = 0; j < 5; ++j)
+        det = device_ip_add(det, device_ip_mul(m[0][j], adj[j][0], arithmetic_failed), arithmetic_failed);
+    return det;
+}
+
+// Untrusted search over the hull vertices found by the IP check (their cone is
+// that of all points when the list is complete; otherwise the search fails and
+// the candidate defers): five independent vertices B, then a phase-1 simplex
+// with Bland's rule for u = -(B_0 + ... + B_4) as a nonnegative combination of
+// vertices. Columns: t >= 0 is vertex t, -1-i the artificial sign(u_i) e_i.
+// Returns 1 with a certificate (point indices) for the checker, 0 otherwise.
+__device__ int device_ip_find_acceptance(const long long *points, int point_count, const int *vertices,
+                                         int vertex_count, DeviceAcceptance5 *cert, int *arithmetic_failed) {
+    long long m[5][5], adj[5][5];
+    int chosen = 0;
+    for (int t0 = 0; t0 < vertex_count && chosen < 5; ++t0) {
+        const int j = vertices[t0];
+        if (j < 0 || j >= point_count) return 0;
+        // Independence of the chosen rows plus point j: a nonzero 5x5 determinant
+        // after completing with unit rows is sufficient (not necessary); keep j
+        // when the rank grows, tested by elimination against the chosen rows.
+        long long w[5];
+        for (int c = 0; c < 5; ++c) w[c] = points[j * 5 + c];
+        for (int t = 0; t < chosen; ++t) {
+            int pc = 0;
+            while (pc < 5 && m[t][pc] == 0) ++pc;
+            if (pc == 5 || w[pc] == 0) continue;
+            const long long a = m[t][pc], f = w[pc];
+            long long g = 0;
+            for (int c = 0; c < 5; ++c) {
+                w[c] = device_ip_sub(device_ip_mul(a, w[c], arithmetic_failed), device_ip_mul(f, m[t][c], arithmetic_failed),
+                                     arithmetic_failed);
+                g = device_ip_nngcd(g, w[c], arithmetic_failed);
+            }
+            if (g > 1) for (int c = 0; c < 5; ++c) w[c] = device_ip_div(w[c], g, arithmetic_failed);
+        }
+        if (*arithmetic_failed) return 0;
+        int nonzero = 0;
+        for (int c = 0; c < 5; ++c) nonzero |= w[c] != 0;
+        if (!nonzero) continue;
+        // Keep the reduced row in echelon form for later candidates: order by pivot.
+        for (int c = 0; c < 5; ++c) m[chosen][c] = w[c];
+        cert->b[chosen++] = j;
+    }
+    if (chosen < 5) return 0;
+    long long bm[5][5];
+    for (int r = 0; r < 5; ++r) for (int c = 0; c < 5; ++c) bm[r][c] = points[cert->b[r] * 5 + c];
+    cert->d = device_ip_adjugate5(bm, cert->adj, arithmetic_failed);
+    if (*arithmetic_failed || cert->d == 0) return 0;
+    long long u[5];
+    for (int c = 0; c < 5; ++c) {
+        u[c] = 0;
+        for (int r = 0; r < 5; ++r) u[c] = device_ip_sub(u[c], bm[r][c], arithmetic_failed);
+    }
+    int basis[5];
+    for (int i = 0; i < 5; ++i) basis[i] = -1 - i;
+    for (int iteration = 0; iteration < 1024; ++iteration) {
+        for (int r = 0; r < 5; ++r)
+            for (int c = 0; c < 5; ++c) {
+                if (basis[r] >= 0) m[c][r] = points[vertices[basis[r]] * 5 + c];
+                else m[c][r] = (c == -1 - basis[r]) ? (u[c] < 0 ? -1 : 1) : 0;
+            }
+        const long long det = device_ip_adjugate5(m, adj, arithmetic_failed);
+        if (*arithmetic_failed || det == 0) return 0;
+        const long long sign = det < 0 ? -1 : 1;
+        long long beta[5], y[5];
+        long long artificial = 0;
+        for (int r = 0; r < 5; ++r) {
+            beta[r] = 0;
+            for (int c = 0; c < 5; ++c) beta[r] = device_ip_add(beta[r], device_ip_mul(adj[r][c], u[c], arithmetic_failed), arithmetic_failed);
+            beta[r] = device_ip_mul(beta[r], sign, arithmetic_failed);
+            if (basis[r] < 0) artificial = device_ip_add(artificial, beta[r], arithmetic_failed);
+        }
+        if (*arithmetic_failed) return 0;
+        if (artificial == 0) {
+            for (int r = 0; r < 5; ++r) {
+                cert->idx[r] = basis[r] >= 0 ? vertices[basis[r]] : 0;
+                cert->mu[r] = basis[r] >= 0 ? beta[r] : 0;
+            }
+            cert->k = device_ip_mul(det, sign, arithmetic_failed);
+            return !*arithmetic_failed;
+        }
+        for (int c = 0; c < 5; ++c) {
+            y[c] = 0;
+            for (int r = 0; r < 5; ++r) if (basis[r] < 0) y[c] = device_ip_add(y[c], adj[r][c], arithmetic_failed);
+            y[c] = device_ip_mul(y[c], sign, arithmetic_failed);
+        }
+        int entering = -1;
+        for (int t = 0; t < vertex_count && entering < 0; ++t) {
+            int in_basis = 0;
+            for (int r = 0; r < 5; ++r) in_basis |= basis[r] == t;
+            if (in_basis) continue;
+            long long value = 0;
+            for (int c = 0; c < 5; ++c) value = device_ip_add(value, device_ip_mul(y[c], points[vertices[t] * 5 + c], arithmetic_failed), arithmetic_failed);
+            if (value > 0) entering = t;
+        }
+        if (*arithmetic_failed || entering < 0) return 0;
+        long long dir[5];
+        for (int r = 0; r < 5; ++r) {
+            dir[r] = 0;
+            for (int c = 0; c < 5; ++c) dir[r] = device_ip_add(dir[r], device_ip_mul(adj[r][c], points[vertices[entering] * 5 + c], arithmetic_failed), arithmetic_failed);
+            dir[r] = device_ip_mul(dir[r], sign, arithmetic_failed);
+        }
+        int leaving = -1;
+        for (int r = 0; r < 5; ++r) {
+            if (dir[r] <= 0) continue;
+            if (leaving < 0) { leaving = r; continue; }
+            const long long lhs = device_ip_mul(beta[r], dir[leaving], arithmetic_failed);
+            const long long rhs = device_ip_mul(beta[leaving], dir[r], arithmetic_failed);
+            const int key_r = basis[r] < 0 ? -1 - basis[r] : 5 + basis[r];
+            const int key_l = basis[leaving] < 0 ? -1 - basis[leaving] : 5 + basis[leaving];
+            if (lhs < rhs || (lhs == rhs && key_r < key_l)) leaving = r;
+        }
+        if (*arithmetic_failed || leaving < 0) return 0;
+        basis[leaving] = entering;
+    }
+    return 0;
+}
+
+
 __device__ int device_ip_check(const long long *points,
                                int point_count,
                                DeviceIpScratch *scratch,
@@ -647,6 +844,11 @@ __device__ int device_ip_check(const long long *points,
         }
     }
     if (truncated || *arithmetic_failed) return 0;
+    // The hull construction is not trusted to accept: acceptance needs its own
+    // checked certificate, and a failed search or check defers (reason 3).
+    DeviceAcceptance5 acceptance;
+    if (!device_ip_find_acceptance(points, point_count, vertices, vertex_count, &acceptance, arithmetic_failed)) return 0;
+    if (!device_ip_acceptance_verified(acceptance, points, point_count, arithmetic_failed)) return 0;
     return 1;
 }
 

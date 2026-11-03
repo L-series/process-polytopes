@@ -55,6 +55,34 @@ int main() {
     for (long long a : limits) for (long long b : limits) check_pair(a,b);
     for (int i = 0; i < 50000; ++i) check_pair(arithmetic_random(),arithmetic_random());
 
+    // Acceptance certificate: found for the cross-polytope, and any tampering
+    // with its multiplicities, scale, adjugate or indices fails the checker.
+    {
+        std::vector<Point> cross_points = {{0,0,0,0,0}};
+        for (int i = 0; i < 5; ++i) for (int sign : {1,-1}) { Point p{}; p[i] = sign; cross_points.push_back(p); }
+        DeviceAcceptance5 cert; int failed = 0;
+        const long long *data = cross_points.front().data();
+        const int count = static_cast<int>(cross_points.size());
+        std::vector<int> all(count); for (int i = 0; i < count; ++i) all[i] = i;
+        assert(device_ip_find_acceptance(data, count, all.data(), count, &cert, &failed));
+        assert(device_ip_acceptance_verified(cert, data, count, &failed) && !failed);
+        DeviceAcceptance5 bad = cert; bad.k += 1; assert(!device_ip_acceptance_verified(bad, data, count, &failed));
+        bad = cert; bad.k = 0; assert(!device_ip_acceptance_verified(bad, data, count, &failed));
+        bad = cert; bad.d = 0; assert(!device_ip_acceptance_verified(bad, data, count, &failed));
+        bad = cert; bad.adj[0][0] += 1; assert(!device_ip_acceptance_verified(bad, data, count, &failed));
+        bad = cert; for (auto &m : bad.mu) m = 0; assert(!device_ip_acceptance_verified(bad, data, count, &failed));
+        bad = cert; bad.mu[0] = -bad.mu[0] - 1; assert(!device_ip_acceptance_verified(bad, data, count, &failed));
+        bad = cert; bad.idx[0] = count; assert(!device_ip_acceptance_verified(bad, data, count, &failed));
+        bad = cert; bad.b[1] = bad.b[0]; assert(!device_ip_acceptance_verified(bad, data, count, &failed));
+        // Half of the cross-polytope: the origin is a vertex, no certificate exists.
+        std::vector<Point> half = {{0,0,0,0,0}};
+        for (int i = 0; i < 5; ++i) { Point p{}; p[i] = 1; half.push_back(p); }
+        failed = 0;
+        std::vector<int> half_all(half.size()); for (std::size_t i = 0; i < half.size(); ++i) half_all[i] = static_cast<int>(i);
+        assert(!device_ip_find_acceptance(half.front().data(), static_cast<int>(half.size()), half_all.data(),
+                                          static_cast<int>(half.size()), &cert, &failed));
+    }
+
     // Rank deficient: a flat set through the origin is rejected (reason 1,
     // certificate rechecked by classify); a flat set missing the origin, whose
     // hyperplane constant is nonzero, is rejected only by a valid gate or deferred.

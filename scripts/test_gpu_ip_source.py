@@ -34,7 +34,7 @@ def translation_unit():
 inline int atomicExch(int *p, int v) { int old = *p; *p = v; return old; }
 inline int __popcll(unsigned long long x) { return __builtin_popcountll(x); }
 ''']
-    for name in ('DeviceEquation5', 'DeviceCEqList5', 'DeviceEqList5', 'DeviceIpScratch'):
+    for name in ('DeviceEquation5', 'DeviceCEqList5', 'DeviceEqList5', 'DeviceIpScratch', 'DeviceAcceptance5'):
         pieces.append(block(source, 'struct ' + name + ' {', True))
     for name in ('add', 'sub', 'mul', 'div', 'rem'):
         pieces.append(block(source, '__device__ __forceinline__ long long device_ip_' + name + '('))
@@ -49,7 +49,9 @@ inline int __popcll(unsigned long long x) { return __builtin_popcountll(x); }
         ('DeviceEquation5','device_eev_to_equation'), ('int','device_is_good_ceq'),
         ('int','device_search_new_vertex'), ('void','device_make_new_ceqs'),
         ('int','device_equation_has_normal'), ('int','device_ip_search_bad_eq'),
-        ('int','device_ip_supporting_certificate'), ('int','device_ip_check'),
+        ('int','device_ip_supporting_certificate'), ('int','device_ip_acceptance_verified'),
+        ('long long','device_ip_minor3'), ('long long','device_ip_adjugate5'), ('int','device_ip_find_acceptance'),
+        ('int','device_ip_check'),
     ):
         pieces.append(block(source, '__device__ ' + result + ' ' + name + '('))
     return '\n'.join(pieces)
