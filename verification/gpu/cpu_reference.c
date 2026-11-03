@@ -80,3 +80,56 @@ int cpu_read_weight(FILE *in, int *d, int *n, long w[7]) {
     w[p] = weight.w[p];
   return 1;
 }
+
+/* Runs EnumeratePermutations from slot 0 on the given row weights and records
+   every emitted CWS (rows over the GPU's 10 coordinate columns). Returns the
+   number emitted; at most `capacity` are recorded. */
+static long (*emitted_weights)[CWS_MAX_ROWS][10];
+static long (*emitted_degrees)[CWS_MAX_ROWS];
+static int emitted_count, emitted_capacity;
+
+static int record_emit(CWS *cw, void *user_data) {
+  int t, c;
+  (void)user_data;
+  if (emitted_count < emitted_capacity) {
+    for (t = 0; t < cw->nw; t++) {
+      emitted_degrees[emitted_count][t] = cw->d[t];
+      for (c = 0; c < 10; c++)
+        emitted_weights[emitted_count][t][c] = c < cw->N ? cw->W[t][c] : 0;
+    }
+  }
+  emitted_count++;
+  return 0;
+}
+
+int cpu_enumerate(int id, const long weights[CWS_MAX_ROWS][CWS_MAX_ROW_SIZE], const long degrees[CWS_MAX_ROWS],
+                  long out_degrees[][CWS_MAX_ROWS], long out_weights[][CWS_MAX_ROWS][10], int capacity) {
+  static CWSDescriptor descriptor;
+  static CWSEnumerationContext context;
+  int t, p;
+  ProjectCWSDescriptor(id, &descriptor);
+  context.descriptor = &descriptor;
+  context.emit = record_emit;
+  context.stopped = 0;
+  context.candidates = 0;
+  for (t = 0; t < descriptor.row_count; t++) {
+    context.weights[t].N = descriptor.row_sizes[t];
+    context.weights[t].d = degrees[t];
+    for (p = 0; p < descriptor.row_sizes[t]; p++)
+      context.weights[t].w[p] = weights[t][p];
+  }
+  emitted_weights = out_weights;
+  emitted_degrees = out_degrees;
+  emitted_capacity = capacity;
+  emitted_count = 0;
+  EnumeratePermutations(&context, 0);
+  return emitted_count;
+}
+
+/* cpu_enumerate with untyped buffers: CBMC's C++ front end cannot declare
+   pointer-to-array parameters. */
+int cpu_enumerate_buffers(int id, const void *weights, const void *degrees, void *out_degrees, void *out_weights,
+                          int capacity) {
+  return cpu_enumerate(id, (const long(*)[CWS_MAX_ROW_SIZE])weights, (const long *)degrees,
+                       (long(*)[CWS_MAX_ROWS])out_degrees, (long(*)[CWS_MAX_ROWS][10])out_weights, capacity);
+}
