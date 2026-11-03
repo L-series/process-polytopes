@@ -2,6 +2,7 @@ import Refpoly.CudaIPScan
 import Refpoly.CudaIPArithmeticSource
 import Refpoly.CudaIPCertificate
 import Refpoly.CudaIPAcceptance
+import Refpoly.CudaIPAcceptanceSource
 
 #print axioms Refpoly.CudaIP.eval_cast
 #print axioms Refpoly.CudaIP.linear_ne_zero
@@ -46,3 +47,6 @@ import Refpoly.CudaIPAcceptance
 #print axioms Refpoly.CudaIP.integer_positive_spanning_ip
 #print axioms Refpoly.CudaIP.det_ne_zero_of_witness
 #print axioms Refpoly.CudaIP.checked_acceptance
+#print axioms Refpoly.CudaIP.dotChecked_exact
+#print axioms Refpoly.CudaIP.sumChecked_exact
+#print axioms Refpoly.CudaIP.sourceAcceptance_sound
