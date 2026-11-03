@@ -19,13 +19,13 @@ for path in files:
         errors.append(f"{path.name}: forbidden tokens {sorted(forbidden)}")
 if errors:
     raise SystemExit("\n".join(errors))
-for pin in ("check_join_row_count_model.py", "check_join_loop_model.py", "check_join_leaf_model.py", "check_join_index_model.py"):
+for pin in ("check_join_row_count_model.py", "check_join_loop_model.py", "check_join_leaf_model.py", "check_join_index_model.py", "check_join_type3_model.py", "check_join_fibre_model.py", "check_walk_validator_model.py"):
     subprocess.run([sys.executable, str(Path(__file__).resolve().parent / pin)], check=True)
-subprocess.run(["lake", "build", "Refpoly.JoinStack", "Refpoly.JoinRowCount", "Refpoly.JoinLoopSource", "Refpoly.JoinLeafCount", "Refpoly.JoinLeafPoints", "Refpoly.JoinLeafMasks", "Refpoly.JoinLeafState", "Refpoly.JoinLeafVerdict", "Refpoly.JoinIndexValidator", "Refpoly.GpuDecode", "Refpoly.GpuPipeline", "Refpoly.GpuEmission"], cwd=PROOFS, check=True)
+subprocess.run(["lake", "build", *("Refpoly." + path.stem for path in files)], cwd=PROOFS, check=True)
 expected = 0
 closures = []
 empty = 0
-for audit_file in ("ci/JoinAudit.lean", "ci/GpuAudit.lean"):
+for audit_file in ("ci/JoinAudit.lean", "ci/GpuAudit.lean", "ci/JoinPipelineAudit.lean", "ci/GpuWalkValidatorAudit.lean"):
     result = subprocess.run(["lake", "env", "lean", audit_file], cwd=PROOFS, text=True, capture_output=True, check=True)
     closures += re.findall(r"depends on axioms:\s*\[([^\]]*)\]", result.stdout)
     # Closed computational proofs can also be reported with an empty axiom set.
