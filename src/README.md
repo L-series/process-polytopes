@@ -10,6 +10,7 @@ build/cws.x -n5 -s5
 | Directory     | Purpose                                                            |
 | ------------- | ------------------------------------------------------------------ |
 | `cws/`        | Historical catalogue, project weight-file loading and CLI adapter. |
+| `gpu/`        | CUDA generation, join, lattice points and IP check (`make gpu`).   |
 | `benchmarks/` | Geometry-corpus harness and function-clock runtime.                |
 | `reporting/`  | Performance dashboard template.                                    |
 
@@ -31,4 +32,5 @@ serial within a process.
 The project adapter delegates other commands to `CWSMain`. Standalone
 `PALP/cws.x` retains PALP's legacy CLI; project `-n5 -sID` is provided by
 `build/cws.x`. Compile PALP with `PALP_CWS_NO_MAIN` when linking the project front
-end. GPU routing, worker scheduling and checkpointing are not implemented here.
+end. The CUDA front end is described in [gpu/README.md](gpu/README.md); worker
+scheduling and checkpointing are not implemented here.
