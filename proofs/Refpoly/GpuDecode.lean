@@ -156,6 +156,30 @@ theorem right_in_range (n p l : ℕ) (hl : l < n) (h1 : first n l ≤ p) (h2 : p
     l ≤ l + (p - first n l) ∧ l + (p - first n l) < n := by
   rw [first_succ] at h2; omega
 
+/-- Every pair `l ≤ r < n` has an index in `[0, first n n)`, in block `l`, so
+the pair decoding is onto as well as one-to-one. -/
+theorem pair_surjective (n l r : ℕ) (hlr : l ≤ r) (hr : r < n) :
+    first n l + (r - l) < first n n ∧ first n l ≤ first n l + (r - l) ∧
+      first n l + (r - l) < first n (l + 1) := by
+  have h1 := first_succ n l
+  have h2 := first_mono n (show l + 1 ≤ n by omega)
+  omega
+
+/-- `triangular_count(n)` (halving the even factor first, so no intermediate
+exceeds the result) is the size `first n n` of the pair space. -/
+theorem triangular_formula (n : ℕ) :
+    (if n % 2 = 0 then n / 2 * (n + 1) else n * ((n + 1) / 2)) = first n n := by
+  have h := first_twice n n le_rfl
+  have h2 : 2 * first n n = n * (n + 1) := by
+    cases n with
+    | zero => simp [first]
+    | succ m => simp only [Nat.add_sub_cancel] at h; nlinarith
+  split_ifs with he
+  · obtain ⟨k, rfl⟩ : ∃ k, n = 2 * k := ⟨n / 2, by omega⟩
+    rw [show 2 * k / 2 = k by omega]; nlinarith
+  · obtain ⟨k, rfl⟩ : ∃ k, n = 2 * k + 1 := ⟨n / 2, by omega⟩
+    rw [show (2 * k + 1 + 1) / 2 = k + 1 by omega]; nlinarith
+
 /-! ### The binary search of `device_pair_left_from_linear`
 
 `low = 0, high = n; while (low + 1 < high) { mid = low + (high - low) / 2;
