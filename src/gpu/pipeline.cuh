@@ -322,9 +322,9 @@ __global__ void ip_check_kernel(const DeviceCwsCandidate *candidates, const long
             atomicAdd(&stats->accepted, 1ULL);
             const unsigned long long a = atomicAdd(accepted_count, 1ULL);
             if (a < accepted_capacity) accepted[a] = candidates[index];
-        } else if (reason == 4) {
+        } else if (reason == 4 || reason == 1) {
             device_route(candidates[index], kRouteIp, kRouteRejected, routes, original_count, error);
-            atomicAdd(&stats->rejected, 1ULL);
+            atomicAdd(reason == 4 ? &stats->rejected : &stats->rank_deficient, 1ULL);
         } else {
             device_defer(candidates[index], stats, deferred, deferred_count, deferred_capacity,
                          routes, original_count, error, kRouteIp);

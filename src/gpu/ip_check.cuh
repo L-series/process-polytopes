@@ -2,8 +2,9 @@
 // grows a simplex into the hull in the supplied origin-centered coordinates.
 // Lists hold 64 vertices / equations; when one would overflow the result is
 // "incomplete" (reason 3) and the caller hands the CWS to the CPU.
-// Reasons: 1 rank deficient, 2 initial incidence failure, 3 incomplete,
-// 4 an independently checked nonzero supporting inequality with constant <= 0.
+// Reasons: 1 rank deficient and 4 hull failure, each with an independently
+// checked nonzero supporting inequality with constant <= 0 (the only
+// rejections); 2 initial incidence failure and 3 incomplete defer.
 #pragma once
 
 #include "lattice.cuh"
@@ -578,7 +579,21 @@ __device__ int device_ip_check(const long long *points,
     const int start_status = device_glz_start_simplex(points, point_count, vertices,
                                                     &vertex_count, candidate_equations, arithmetic_failed);
     if (*arithmetic_failed) return 0;
-    if (start_status) { *reject_reason = 1; return 0; }
+    if (start_status) {
+        // Rank deficient: the points span a proper affine subspace, whose normals
+        // are the proposed equations. One passing the independent gate (with the
+        // origin among the points its constant is 0) rejects; otherwise defer.
+        for (int index = 0; index < start_status && index < candidate_equations->ne && index < 64; ++index) {
+            const DeviceEquation5 equation = candidate_equations->e[index];
+            if (device_ip_supporting_certificate(equation, points, point_count, arithmetic_failed)) {
+                scratch->rejecting_equation = equation;
+                *reject_reason = 1;
+                return 0;
+            }
+            if (*arithmetic_failed) return 0;
+        }
+        return 0;
+    }
     for (int index = 0; index < candidate_equations->ne; ++index) {
         ceq_inci[index] = device_eq_to_inci(candidate_equations->e[index], points,
                                           vertices, vertex_count, arithmetic_failed);

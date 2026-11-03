@@ -4,7 +4,7 @@ int classify(const std::vector<Point> &points, int *reason = nullptr) {
     DeviceIpScratch scratch{};
     int local_reason = 0;
     const int result = device_ip_check(points.front().data(), points.size(), &scratch, &local_reason);
-    if (!result && local_reason == 4) {
+    if (!result && (local_reason == 4 || local_reason == 1)) {
         const auto &eq = scratch.rejecting_equation;
         bool nonzero = false;
         for (auto a : eq.a) nonzero |= a != 0;
@@ -54,6 +54,20 @@ int main() {
     };
     for (long long a : limits) for (long long b : limits) check_pair(a,b);
     for (int i = 0; i < 50000; ++i) check_pair(arithmetic_random(),arithmetic_random());
+
+    // Rank deficient: a flat set through the origin is rejected (reason 1,
+    // certificate rechecked by classify); a flat set missing the origin, whose
+    // hyperplane constant is nonzero, is rejected only by a valid gate or deferred.
+    {
+        std::vector<Point> flat = {{0,0,0,0,0}};
+        for (int i = 0; i < 4; ++i) for (int sign : {-1,1}) { Point p{}; p[i] = sign; flat.push_back(p); }
+        flat.push_back({1,1,0,0,0});
+        int reason = 0;
+        assert(classify(flat, &reason) == 0 && reason == 1);
+        std::vector<Point> shifted;
+        for (Point p : flat) { p[4] = 1; shifted.push_back(p); }
+        assert(classify(shifted, &reason) == 0 && (reason == 1 || reason == 3));
+    }
 
     // Exact expected answers follow from explicit geometric constructions.
     std::vector<Point> cross;

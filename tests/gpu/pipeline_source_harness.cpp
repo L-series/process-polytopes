@@ -249,13 +249,14 @@ void test_ip_routing() {
         // Stub value 1000 accepts; all other values are false with that reason.
         if (reason == 1000) { assert(na == 1 && nd == 0); f.output({accepted[0]}, true); }
         else if (reason == 4) assert(na == 0 && nd == 0 && stats.rejected == 1);
+        else if (reason == 1) assert(na == 0 && nd == 0 && stats.rank_deficient == 1);
         else { assert(na == 0 && nd == 1); f.output({deferred[0]}, false); }
         f.terminal(); assert(!f.error); ++cases;
     }
     for (int fault = 0; fault < 4; ++fault) {
         Fixture f(2, true);
         std::fill(f.routes.begin(), f.routes.end(), kRoutePoint);
-        std::vector<long long> points(60, 1);
+        std::vector<long long> points(60, 3);  // stub reason 3: deferred
         int np[2] = {6,6}, index[2] = {0,1};
         if (fault == 0) index[1] = -1;
         if (fault == 1) index[1] = 2;
