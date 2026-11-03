@@ -395,6 +395,18 @@ inline void descriptor_shard_range(const DeviceDescriptor &descriptor,
     *shard_count = end - start;
 }
 
+// Mixed-radix decoding of a selection tuple index, slot 0 most significant:
+// a bijection from [0, selection_product) onto the index tuples.
+__device__ void device_decode_tuple(const DeviceDescriptor &descriptor, unsigned long long linear,
+                                    unsigned long long selected_indices[kMaxSlots]) {
+    unsigned long long remainder = linear;
+    for (int slot = descriptor.simplex_count - 1; slot >= 0; --slot) {
+        unsigned long long pool_count = descriptor.pool_counts[slot];
+        selected_indices[slot] = remainder % pool_count;
+        remainder /= pool_count;
+    }
+}
+
 __global__ void descriptor_scan_kernel(const SelectedEntry *entries,
                                        DeviceDescriptor descriptor,
                                        unsigned long long start_tuple,
@@ -409,16 +421,9 @@ __global__ void descriptor_scan_kernel(const SelectedEntry *entries,
     unsigned long long stride = blockDim.x * gridDim.x;
 
     for (unsigned long long offset = global_thread; offset < tuple_count; offset += stride) {
-        unsigned long long linear = start_tuple + offset;
-        unsigned long long remainder = linear;
         unsigned long long selected_indices[kMaxSlots] = {0, 0, 0, 0, 0};
         SelectedEntry tuple_entries[kMaxSlots];
-
-        for (int slot = descriptor.simplex_count - 1; slot >= 0; --slot) {
-            unsigned long long pool_count = descriptor.pool_counts[slot];
-            selected_indices[slot] = remainder % pool_count;
-            remainder /= pool_count;
-        }
+        device_decode_tuple(descriptor, start_tuple + offset, selected_indices);
 
         int canonical_selection = 1;
         for (int slot = 0; slot < descriptor.simplex_count; ++slot) {
