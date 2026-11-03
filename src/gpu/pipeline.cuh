@@ -72,14 +72,19 @@ __global__ void __launch_bounds__(256, 3) point_enum_kernel(const DeviceCwsCandi
     for (unsigned long long index = blockIdx.x * blockDim.x + threadIdx.x; index < candidate_count;
          index += blockDim.x * gridDim.x) {
         const DeviceCwsCandidate &candidate = candidates[index];
+        // The walk is complete only when it finds the join's exact point count;
+        // without that count (np > np_cap in the fused join, or a layout the
+        // join does not cover) there is nothing to check it against.
+        if (candidate.join_np <= 0) {
+            np_out[index] = kNpDecided;
+            device_defer(candidate, stats, deferred, deferred_count, deferred_capacity);
+            continue;
+        }
         long long *slot = points + index * static_cast<unsigned long long>(np_cap) * 5ULL;
         int np = 0;
         int ip_possible = 1;
         const int status = device_make_points_fp(candidate, slot, np_cap, &np, &ip_possible);
-        // A joined candidate carries its exact point count, and the walk must
-        // find exactly that many points; otherwise the GPU verdict would rest on
-        // an incomplete walk, so the candidate is deferred.
-        const bool mismatch = candidate.join_np > 0 && status >= 0 && np != candidate.join_np;
+        const bool mismatch = status >= 0 && np != candidate.join_np;
         if (mismatch) atomicAdd(&stats->np_mismatch, 1ULL);
         if (status < 0 || mismatch) {
             np_out[index] = kNpDecided;
