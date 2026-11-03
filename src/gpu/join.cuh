@@ -130,21 +130,23 @@ __device__ int device_gjoin_decide(const DeviceCwsCandidate &c, const SelectedEn
         pstar[j] = p;
         const unsigned long long v = static_cast<unsigned long long>(val[epos_coord[s][p]]);
         const int sh = 16 * (k - 1);
-        const unsigned long long want_lo = v << sh, want_hi = (v + 1) << sh;
+        const unsigned long long want_lo = v << sh;
         unsigned long long lo = kb[s], hi = ke[s];
         if (p == 0) {
             const GJoinKey *keys = plan.table[s].keys;
             while (lo < hi) { const unsigned long long m = (lo + hi) >> 1; if (keys[m].key < want_lo) lo = m + 1; else hi = m; }
             it[j] = lo;
             hi = ke[s];
-            while (lo < hi) { const unsigned long long m = (lo + hi) >> 1; if (keys[m].key < want_hi) lo = m + 1; else hi = m; }
+            // Comparing the leading value also handles k=4, v=65535;
+            // forming (v+1)<<48 would wrap to zero in that case.
+            while (lo < hi) { const unsigned long long m = (lo + hi) >> 1; if ((keys[m].key >> sh) <= v) lo = m + 1; else hi = m; }
             end[j] = lo;
         } else {
             const GJoinIdx *px = plan.table[s].pidx[p];
             while (lo < hi) { const unsigned long long m = (lo + hi) >> 1; if (px[m].pkey < want_lo) lo = m + 1; else hi = m; }
             it[j] = lo;
             hi = ke[s];
-            while (lo < hi) { const unsigned long long m = (lo + hi) >> 1; if (px[m].pkey < want_hi) lo = m + 1; else hi = m; }
+            while (lo < hi) { const unsigned long long m = (lo + hi) >> 1; if ((px[m].pkey >> sh) <= v) lo = m + 1; else hi = m; }
             end[j] = lo;
         }
     };
