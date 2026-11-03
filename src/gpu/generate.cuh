@@ -385,11 +385,12 @@ inline void descriptor_shard_range(const DeviceDescriptor &descriptor,
                             std::uint64_t *shard_start,
                             std::uint64_t *shard_count) {
     std::uint64_t scan_space = descriptor_scan_space(descriptor);
+    // floor(S i / k) for i = 0..k partitions [0, S); checked_mul rejects S k >= 2^64.
     std::uint64_t start =
-        (scan_space * static_cast<std::uint64_t>(shard_index)) /
+        checked_mul(scan_space, static_cast<std::uint64_t>(shard_index)) /
         static_cast<std::uint64_t>(shard_count_total);
     std::uint64_t end =
-        (scan_space * static_cast<std::uint64_t>(shard_index + 1)) /
+        checked_mul(scan_space, static_cast<std::uint64_t>(shard_index + 1)) /
         static_cast<std::uint64_t>(shard_count_total);
     *shard_start = start;
     *shard_count = end - start;

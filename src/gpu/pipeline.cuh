@@ -440,6 +440,7 @@ inline HostIpResult run_shard(const DeviceDescriptor &descriptor, const JoinCont
             span = std::max<std::uint64_t>(1, count / 2);
             continue;
         }
+        if (scan.scanned_tuples != count) throw std::runtime_error("the scan visited a different number of tuples");
         const std::uint64_t decided = scan.join_degenerate + scan.join_certified;
         if (scan.stored_candidate_count + decided != scan.prefix_candidates)
             throw std::runtime_error("generation stored a different number of candidates than it counted");
