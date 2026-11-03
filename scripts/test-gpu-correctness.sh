@@ -24,6 +24,10 @@ python3 tests/pipeline/test_completion.py --driver build/cpu-completion/complete
 python3 tests/pipeline/test_production_scheduler.py
 python3 scripts/test-gpu-join-match.py
 python3 scripts/test-gpu-join-match.py --nonvacuity
+python3 scripts/test-gpu-join-prefix.py
+python3 scripts/test-gpu-join-leaf.py
+python3 scripts/test-gpu-join-leaf.py --nonvacuity
+python3 scripts/test-gpu-join-leaf.py --mutation
 python3 scripts/test-gpu-walk-rank.py
 python3 scripts/test-gpu-walk-rank.py --nonvacuity
 python3 scripts/test-gpu-join-search.py --weighted
