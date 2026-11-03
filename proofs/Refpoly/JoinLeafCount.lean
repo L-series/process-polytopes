@@ -97,4 +97,35 @@ theorem leafCount_iff {max np v : Nat} {counts : List Nat} (hmax : 1 ≤ max) :
     simp only [one_mul] at hm
     simp [leafCount, hm, show ¬ max - counts.prod < np by omega]
 
+/-- Ordered accumulation across every leaf; failure makes the caller keep. -/
+def leafCounts (max : Nat) : List (List Nat) → Nat → Option Nat
+  | [], np => some np
+  | counts :: leaves, np => do
+      let next ← leafCount max np counts
+      leafCounts max leaves next
+
+theorem leafCounts_exact {max np v : Nat} {leaves : List (List Nat)}
+    (hmax : 1 ≤ max) (hnp : np ≤ max) (h : leafCounts max leaves np = some v) :
+    v = np + (leaves.map List.prod).sum ∧ v ≤ max ∧
+      ∀ counts ∈ leaves, ∀ b ∈ counts, b ≠ 0 := by
+  induction leaves generalizing np with
+  | nil =>
+    have he : np = v := Option.some.inj h
+    subst v
+    simp [hnp]
+  | cons counts leaves ih =>
+    simp only [leafCounts] at h
+    cases hm : leafCount max np counts with
+    | none => simp [hm] at h
+    | some next =>
+      simp [hm] at h
+      obtain ⟨hne, hbound, hnext⟩ := (leafCount_iff hmax).mp hm
+      obtain ⟨hv, hvmax, hrest⟩ := ih (show next ≤ max by omega) h
+      refine ⟨?_, hvmax, ?_⟩
+      · simp [hv, hnext, Nat.add_assoc]
+      · intro cs hcs
+        rcases List.mem_cons.mp hcs with rfl | hcs
+        · exact hne
+        · exact hrest cs hcs
+
 end Refpoly.JoinRejection

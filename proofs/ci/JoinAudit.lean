@@ -5,6 +5,8 @@ import Refpoly.JoinLeafCount
 import Refpoly.JoinLeafPoints
 import Refpoly.JoinLeafMasks
 import Refpoly.JoinLeafState
+import Refpoly.JoinLeafVerdict
+import Refpoly.JoinIndexValidator
 
 #print axioms Refpoly.JoinRejection.functional_balance
 #print axioms Refpoly.JoinRejection.cws_join_preserves_ip_all_dimensions
@@ -82,3 +84,19 @@ import Refpoly.JoinLeafState
 #print axioms Refpoly.JoinLoopSource.matchKey_extends_prefix
 #print axioms Refpoly.JoinRejection.matched_weights_equation
 #print axioms Refpoly.JoinRejection.matched_weights_solutions
+#print axioms Refpoly.JoinRejection.leafCounts_exact
+#print axioms Refpoly.JoinPoints.leafCounts_index
+#print axioms Refpoly.JoinPoints.leafCounts_points
+#print axioms Refpoly.JoinPoints.enumeration_sides
+#print axioms Refpoly.JoinPoints.leaf_spec_rejection_sound
+#print axioms Refpoly.JoinLoopSource.matchKey_keeps_prefix
+#print axioms Refpoly.JoinLoopSource.cstep_fields
+#print axioms Refpoly.JoinLoopSource.cstep_leaf_fields
+#print axioms Refpoly.JoinLoopSource.crunWitness_tuples
+#print axioms Refpoly.JoinLoopSource.crunWitness_fields
+#print axioms Refpoly.JoinLoopSource.crun_leaf_values
+#print axioms Refpoly.JoinLoopSource.pack_injective_fields
+#print axioms Refpoly.JoinLoopSource.fibre_key_fields
+#print axioms Refpoly.JoinIndexValidator.scan_sound
+#print axioms Refpoly.JoinIndexValidator.scan_complete
+#print axioms Refpoly.JoinIndexValidator.validateIndex_complete

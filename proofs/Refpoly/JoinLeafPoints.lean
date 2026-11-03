@@ -1,5 +1,6 @@
 import Refpoly.JoinPoints
 import Refpoly.JoinCWS
+import Refpoly.JoinLeafCount
 
 /-! Finite point enumeration at the join leaf boundary. Unlike coverage alone,
 injectivity ensures that the sum of fibre products is the actual point count.
@@ -56,6 +57,30 @@ theorem point_card (hw : Wf L) (hcov : Covered L)
     Nat.card {X // IsPoint L X} = ∑ t ∈ T, ∏ r, (fibre L r (t r)).card := by
   rw [← Nat.card_congr (pointEquiv L hw hcov T hT hall)]
   simpa using index_card L T
+
+/-- Exact successful machine count over a complete duplicate-free tuple list.
+The order may be the source search order; no canonical order is needed. -/
+theorem leafCounts_index {max np : ℕ} (hmax : 1 ≤ max)
+    (leaves : List (Fin R → ℕ)) (hn : leaves.Nodup)
+    (T : Finset (Fin R → ℕ)) (hT : leaves.toFinset = T)
+    (h : Refpoly.JoinRejection.leafCounts max
+      (leaves.map (fun t => List.ofFn (fun r => (fibre L r (t r)).card))) 0 = some np) :
+    np = (index L T).card := by
+  have he := (Refpoly.JoinRejection.leafCounts_exact hmax (Nat.zero_le _) h).1
+  simp only [Nat.zero_add, List.map_map, Function.comp_def, List.prod_ofFn] at he
+  rw [← List.sum_toFinset _ hn, hT, ← index_card L T] at he
+  exact he
+
+theorem leafCounts_points {max np : ℕ} (hmax : 1 ≤ max)
+    (hw : Wf L) (hcov : Covered L) (leaves : List (Fin R → ℕ)) (hn : leaves.Nodup)
+    (T : Finset (Fin R → ℕ)) (hT : leaves.toFinset = T)
+    (hcompat : ∀ t ∈ T, Compatible L t)
+    (hall : ∀ X, IsPoint L X → tupleOf L X ∈ T)
+    (h : Refpoly.JoinRejection.leafCounts max
+      (leaves.map (fun t => List.ofFn (fun r => (fibre L r (t r)).card))) 0 = some np) :
+    np = Nat.card {X // IsPoint L X} := by
+  rw [leafCounts_index L hmax leaves hn T hT h, index_card,
+    point_card L hw hcov T hcompat hall]
 
 /-- Coordinate occupancies of the index are exactly those of actual points. -/
 theorem point_occupancy (hw : Wf L) (hcov : Covered L)
