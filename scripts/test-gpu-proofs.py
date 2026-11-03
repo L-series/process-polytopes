@@ -19,8 +19,9 @@ for path in files:
         errors.append(f"{path.name}: forbidden tokens {sorted(forbidden)}")
 if errors:
     raise SystemExit("\n".join(errors))
-subprocess.run([sys.executable, str(Path(__file__).resolve().parent / "check_join_row_count_model.py")], check=True)
-subprocess.run(["lake", "build", "Refpoly.JoinStack", "Refpoly.JoinRowCount", "Refpoly.GpuDecode", "Refpoly.GpuPipeline", "Refpoly.GpuEmission"], cwd=PROOFS, check=True)
+for pin in ("check_join_row_count_model.py", "check_join_loop_model.py"):
+    subprocess.run([sys.executable, str(Path(__file__).resolve().parent / pin)], check=True)
+subprocess.run(["lake", "build", "Refpoly.JoinStack", "Refpoly.JoinRowCount", "Refpoly.JoinLoopSource", "Refpoly.GpuDecode", "Refpoly.GpuPipeline", "Refpoly.GpuEmission"], cwd=PROOFS, check=True)
 expected = 0
 closures = []
 empty = 0

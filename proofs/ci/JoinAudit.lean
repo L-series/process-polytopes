@@ -1,3 +1,4 @@
+import Refpoly.JoinLoopSource
 import Refpoly.JoinRowCount
 import Refpoly.JoinStack
 
@@ -51,3 +52,11 @@ import Refpoly.JoinStack
 #print axioms Refpoly.JoinRejection.dpCount_exact
 #print axioms Refpoly.JoinRejection.rowSolutions_nodup
 #print axioms Refpoly.JoinRejection.enumerated_complete
+
+#print axioms Refpoly.JoinLoop.run_exact
+#print axioms Refpoly.JoinLoop.run_initial
+#print axioms Refpoly.JoinLoop.leavesFrom_perm_full
+#print axioms Refpoly.JoinLoopSource.cstep_refines
+#print axioms Refpoly.JoinLoopSource.crun_exact
+#print axioms Refpoly.JoinLoopSource.candA_narrowed
+#print axioms Refpoly.JoinLoopSource.crun_perm_full
