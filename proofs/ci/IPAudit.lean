@@ -14,6 +14,8 @@ import Refpoly.CudaIPCertificate
 #print axioms Refpoly.CudaIP.device_eval_eq_integer
 #print axioms Refpoly.CudaIP.source_has_normal_correct
 #print axioms Refpoly.CudaIP.device_eval_eq_defined
+#print axioms Refpoly.CudaIP.source_eval_bounded_defined
+#print axioms Refpoly.CudaIP.source_eval_bounded_exact
 #print axioms Refpoly.CudaIP.hasNormal_iff
 #print axioms Refpoly.CudaIP.scan_rejection_witness
 #print axioms Refpoly.CudaIP.scan_rejection_sound

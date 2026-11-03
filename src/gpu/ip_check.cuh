@@ -43,7 +43,7 @@ struct DeviceIpScratch {
 __device__ __forceinline__ long long device_ip_add(long long a, long long b, int *failed) {
     if (failed && ((b > 0 && a > 9223372036854775807LL - b) ||
                    (b < 0 && a < (-9223372036854775807LL - 1) - b))) {
-        atomicExch(failed, 1); return 0;
+        *failed = 1; return 0;
     }
     return a + b;
 }
@@ -51,7 +51,7 @@ __device__ __forceinline__ long long device_ip_add(long long a, long long b, int
 __device__ __forceinline__ long long device_ip_sub(long long a, long long b, int *failed) {
     if (failed && ((b < 0 && a > 9223372036854775807LL + b) ||
                    (b > 0 && a < (-9223372036854775807LL - 1) + b))) {
-        atomicExch(failed, 1); return 0;
+        *failed = 1; return 0;
     }
     return a - b;
 }
@@ -64,21 +64,21 @@ __device__ __forceinline__ long long device_ip_mul(long long a, long long b, int
                              (b < 0 && b < (-9223372036854775807LL - 1) / a))) ||
                    (a < 0 && ((b > 0 && a < (-9223372036854775807LL - 1) / b) ||
                              (b < 0 && a < 9223372036854775807LL / b))))) {
-        atomicExch(failed, 1); return 0;
+        *failed = 1; return 0;
     }
     return a * b;
 }
 
 __device__ __forceinline__ long long device_ip_div(long long a, long long b, int *failed) {
     if (failed && (b == 0 || (a == (-9223372036854775807LL - 1) && b == -1))) {
-        atomicExch(failed, 1); return 0;
+        *failed = 1; return 0;
     }
     return a / b;
 }
 
 __device__ __forceinline__ long long device_ip_rem(long long a, long long b, int *failed) {
     if (failed && (b == 0 || (a == (-9223372036854775807LL - 1) && b == -1))) {
-        atomicExch(failed, 1); return 0;
+        *failed = 1; return 0;
     }
     return a % b;
 }
@@ -166,9 +166,25 @@ __device__ long long device_eval_eq(const DeviceEquation5 &equation,
            equation.a[2] * point[2] + equation.a[3] * point[3] + equation.a[4] * point[4];
 }
 
+// |c| <= 2^61, |a_i| <= 2^44 and |x_i| <= 2^15 keep every product within 2^59 and
+// every partial sum of device_eval_eq within 2^61 + 5 * 2^59 < 2^63, so the raw
+// evaluation is exact there (CudaIPBounded.lean) and needs no per-operation check.
+__device__ int device_eval_bounded(const DeviceEquation5 &equation, const long long *point) {
+    return equation.c >= -2305843009213693952LL && equation.c <= 2305843009213693952LL &&
+           equation.a[0] >= -17592186044416LL && equation.a[0] <= 17592186044416LL &&
+           equation.a[1] >= -17592186044416LL && equation.a[1] <= 17592186044416LL &&
+           equation.a[2] >= -17592186044416LL && equation.a[2] <= 17592186044416LL &&
+           equation.a[3] >= -17592186044416LL && equation.a[3] <= 17592186044416LL &&
+           equation.a[4] >= -17592186044416LL && equation.a[4] <= 17592186044416LL &&
+           point[0] >= -32768LL && point[0] <= 32768LL && point[1] >= -32768LL && point[1] <= 32768LL &&
+           point[2] >= -32768LL && point[2] <= 32768LL && point[3] >= -32768LL && point[3] <= 32768LL &&
+           point[4] >= -32768LL && point[4] <= 32768LL;
+}
+
 __device__ long long device_ip_eval_eq(const DeviceEquation5 &equation,
                                        const long long *point, int *arithmetic_failed) {
     if (!arithmetic_failed) return device_eval_eq(equation, point);
+    if (device_eval_bounded(equation, point)) return device_eval_eq(equation, point);
     long long value = equation.c;
     for (int i = 0; i < 5; ++i)
         value = device_ip_add(value, device_ip_mul(equation.a[i], point[i], arithmetic_failed), arithmetic_failed);

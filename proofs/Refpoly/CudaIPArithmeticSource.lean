@@ -3,21 +3,21 @@ import Refpoly.CudaIPArithmetic
 
 namespace Refpoly.CudaIP
 
--- Function SHA256: 95f2101272b97b5538b90131179d2f3049f837270f3a388ac15ea82980195b1d
+-- Function SHA256: c3f40b6502c64206ab869eabf440456097a5a31aa5dcb567f6c00557deae21ca
 def sourceAddGuard (a b : Int) : Prop := (True ∧ (((b > 0) ∧ (a > (9223372036854775807 - b))) ∨ ((b < 0) ∧ (a < (((-9223372036854775807) - 1) - b)))))
 
--- Function SHA256: a7d88d343503cb212e35f39d60426f472fd039449d71430e82b1754b97c38518
+-- Function SHA256: 2dac096bd053f874141fa81b855111b6a9a4ae91b232dc5d3a4adbba306aca5a
 def sourceSubGuard (a b : Int) : Prop := (True ∧ (((b < 0) ∧ (a > (9223372036854775807 + b))) ∨ ((b > 0) ∧ (a < (((-9223372036854775807) - 1) + b)))))
 
 def sourceSmallMul (a b : Int) : Prop := (True ∧ (a ≥ (-2147483648)) ∧ (a ≤ 2147483647) ∧ (b ≥ (-2147483648)) ∧ (b ≤ 2147483647))
 
--- Function SHA256: b8e678d45f7f1c4aba7cf0c3bc44afc89c3de7305ff94a83eda9d11a0b5e166a
+-- Function SHA256: 7483d02185fffd2f2c610af7a7ea1992f486fdd236b4524407eb3248f12320a0
 def sourceMulGuard (a b : Int) : Prop := (True ∧ (((a > 0) ∧ (((b > 0) ∧ (a > (Int.tdiv (9223372036854775807) (b)))) ∨ ((b < 0) ∧ (b < (Int.tdiv (((-9223372036854775807) - 1)) (a)))))) ∨ ((a < 0) ∧ (((b > 0) ∧ (a < (Int.tdiv (((-9223372036854775807) - 1)) (b)))) ∨ ((b < 0) ∧ (a < (Int.tdiv (9223372036854775807) (b))))))))
 
--- Function SHA256: 15703a1a05fd6376516db79f7178b0d2ebe02e899f17100972cf2ce89e09d3ad
+-- Function SHA256: bd86deca106e99f79b706d883db936556ce9d9b4f226f4f0190b6df350e23b98
 def sourceDivGuard (a b : Int) : Prop := (True ∧ ((b = 0) ∨ ((a = ((-9223372036854775807) - 1)) ∧ (b = (-1)))))
 
--- Function SHA256: 276cb725a58841f037b8742fc2fbf4ce5e89606274fd1da195481383dba389bd
+-- Function SHA256: 55b0f844d0d75a93def53782f7ae62a69bcc5d1b1eb553175716cc626f8f1956
 def sourceRemGuard (a b : Int) : Prop := (True ∧ ((b = 0) ∨ ((a = ((-9223372036854775807) - 1)) ∧ (b = (-1)))))
 
 theorem source_add_guard_correct (a b : Int) (ha : fits64 a) (hb : fits64 b) :

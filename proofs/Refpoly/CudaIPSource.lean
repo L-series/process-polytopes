@@ -19,6 +19,37 @@ theorem device_eval_eq_defined (e : Equation 5) (x : Fin 5 → Int) (v : Int) :
       expressionDefined e x deviceEvalExpr ∧ v = eval e x := by
   rw [checkedEval_exact, device_eval_eq_integer]
 
+-- Bound-check source-function SHA256: 418721e3a702fb5735dee8e067904176fd3916ba457e588a87e19c5e2cecc0b0
+def sourceEvalBounded (e : Equation 5) (x : Fin 5 → Int) : Prop := -2305843009213693952 ≤ e.constant ∧ e.constant ≤ 2305843009213693952 ∧ -17592186044416 ≤ e.normal ⟨0, by decide⟩ ∧ e.normal ⟨0, by decide⟩ ≤ 17592186044416 ∧ -17592186044416 ≤ e.normal ⟨1, by decide⟩ ∧ e.normal ⟨1, by decide⟩ ≤ 17592186044416 ∧ -17592186044416 ≤ e.normal ⟨2, by decide⟩ ∧ e.normal ⟨2, by decide⟩ ≤ 17592186044416 ∧ -17592186044416 ≤ e.normal ⟨3, by decide⟩ ∧ e.normal ⟨3, by decide⟩ ≤ 17592186044416 ∧ -17592186044416 ≤ e.normal ⟨4, by decide⟩ ∧ e.normal ⟨4, by decide⟩ ≤ 17592186044416 ∧ -32768 ≤ x ⟨0, by decide⟩ ∧ x ⟨0, by decide⟩ ≤ 32768 ∧ -32768 ≤ x ⟨1, by decide⟩ ∧ x ⟨1, by decide⟩ ≤ 32768 ∧ -32768 ≤ x ⟨2, by decide⟩ ∧ x ⟨2, by decide⟩ ≤ 32768 ∧ -32768 ≤ x ⟨3, by decide⟩ ∧ x ⟨3, by decide⟩ ≤ 32768 ∧ -32768 ≤ x ⟨4, by decide⟩ ∧ x ⟨4, by decide⟩ ≤ 32768
+
+/-- Inside the source bound check every product of the raw evaluator fits in
+2^59 and every partial sum in 2^61 + 5 * 2^59 < 2^63, so the unchecked fast
+path computes exactly what the checked path would. -/
+theorem source_eval_bounded_defined (e : Equation 5) (x : Fin 5 → Int)
+    (h : sourceEvalBounded e x) : expressionDefined e x deviceEvalExpr := by
+  obtain ⟨h0, h1, h2, h3, h4, h5, h6, h7, h8, h9, h10, h11, h12, h13, h14, h15, h16, h17, h18, h19, h20, h21⟩ := h
+  have term : ∀ a y : Int, -17592186044416 ≤ a → a ≤ 17592186044416 → -32768 ≤ y → y ≤ 32768 →
+      -(2^59) ≤ a * y ∧ a * y ≤ 2^59 := by
+    intro a y h1 h2 h3 h4
+    have hb : |a * y| ≤ 2^59 := by
+      rw [abs_mul]
+      calc |a| * |y| ≤ 17592186044416 * 32768 :=
+            mul_le_mul (abs_le.mpr ⟨h1, h2⟩) (abs_le.mpr ⟨h3, h4⟩) (abs_nonneg _) (by norm_num)
+        _ = 2^59 := by norm_num
+    exact abs_le.mp hb
+  obtain ⟨p0l, p0u⟩ := term _ _ h2 h3 h12 h13
+  obtain ⟨p1l, p1u⟩ := term _ _ h4 h5 h14 h15
+  obtain ⟨p2l, p2u⟩ := term _ _ h6 h7 h16 h17
+  obtain ⟨p3l, p3u⟩ := term _ _ h8 h9 h18 h19
+  obtain ⟨p4l, p4u⟩ := term _ _ h10 h11 h20 h21
+  simp only [expressionDefined, deviceEvalExpr, evalExpr, fits64]
+  constructorm* _ ∧ _, True
+  all_goals first | trivial | linarith
+
+theorem source_eval_bounded_exact (e : Equation 5) (x : Fin 5 → Int)
+    (h : sourceEvalBounded e x) : checkedEval e x deviceEvalExpr = some (eval e x) :=
+  (device_eval_eq_defined e x _).mpr ⟨source_eval_bounded_defined e x h, rfl⟩
+
 -- Normal-check source-function SHA256: a402455cbd1c400af3dbc10dc21e0bcead87f03bdbf8409a3bf4a922de39e119
 def sourceHasNormal (e : Equation 5) : Bool := decide (e.normal ⟨0, by decide⟩ ≠ 0) || decide (e.normal ⟨1, by decide⟩ ≠ 0) || decide (e.normal ⟨2, by decide⟩ ≠ 0) || decide (e.normal ⟨3, by decide⟩ ≠ 0) || decide (e.normal ⟨4, by decide⟩ ≠ 0)
 

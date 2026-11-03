@@ -42,7 +42,7 @@ inline int __popcll(unsigned long long x) { return __builtin_popcountll(x); }
         pieces.append(block(source, '__device__ long long device_ip_' + name + '('))
     pieces.append(block(lattice, '__device__ int device_vec_greater_than('))
     for result, name in (
-        ('long long','device_eval_eq'), ('long long','device_ip_eval_eq'),
+        ('long long','device_eval_eq'), ('int','device_eval_bounded'), ('long long','device_ip_eval_eq'),
         ('int','device_inci_abs'), ('unsigned long long','device_eq_to_inci'),
         ('long long','device_vz_to_base'), ('int','device_orthbase_red_by_v'),
         ('int','device_new_start_vertex'), ('int','device_glz_start_simplex'),

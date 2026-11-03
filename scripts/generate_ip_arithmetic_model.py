@@ -76,7 +76,7 @@ def generated():
         # The only admitted side effect is setting the sticky failure flag.
         guard,start,end = guards[-1]
         tail = re.sub(r'\s+','',body[end:])
-        expected = '{atomicExch(failed,1);return0;}returna'+operator+'b;'
+        expected = '{*failed=1;return0;}returna'+operator+'b;'
         if tail != expected:
             raise ValueError(f'Unexpected return/status body in device_ip_{name}')
         prefix = re.sub(r'//[^\n]*|\s+','',body[:start])

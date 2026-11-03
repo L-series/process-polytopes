@@ -50,6 +50,19 @@ def generated():
     normal_body = normal[normal.index('{')+1:normal.rindex('}')]
     if re.sub(r'\s+','',normal_body) != 'for(inti=0;i<5;++i)if(equation.a[i]!=0)return1;return0;':
         raise ValueError('Unrecognized normal-check loop')
+    bounded = block(SOURCE.read_text(), '__device__ int device_eval_bounded(')
+    names = (['equation.c'] + [f'equation.a[{i}]' for i in range(5)] + [f'point[{i}]' for i in range(5)])
+    limits = [2**61] + [2**44] * 5 + [2**15] * 5
+    expected = ('__device__intdevice_eval_bounded(constDeviceEquation5&equation,constlonglong*point){return' +
+                '&&'.join(f'{n}>=-{b}LL&&{n}<={b}LL' for n, b in zip(names, limits)) + ';}')
+    if re.sub(r'\s+', '', bounded) != expected:
+        raise ValueError('device_eval_bounded is not the audited bound conjunction')
+    lean_names = ['e.constant'] + [f'e.normal ⟨{i}, by decide⟩' for i in range(5)] + [f'x ⟨{i}, by decide⟩' for i in range(5)]
+    bounded_expr = ' ∧ '.join(f'-{b} ≤ {n} ∧ {n} ≤ {b}' for n, b in zip(lean_names, limits))
+    bounded_digest = hashlib.sha256(bounded.encode()).hexdigest()
+    hyps = ', '.join(f'h{i}' for i in range(22))
+    products = '\n'.join(f'  obtain ⟨p{i}l, p{i}u⟩ := term _ _ h{2 + 2 * i} h{3 + 2 * i} h{12 + 2 * i} h{13 + 2 * i}'
+                          for i in range(5))
     digest = hashlib.sha256(function.encode()).hexdigest()
     normal_digest = hashlib.sha256(normal.encode()).hexdigest()
     normal_expr = ' || '.join(f'decide (e.normal ⟨{i}, by decide⟩ ≠ 0)' for i in range(5))
@@ -73,6 +86,33 @@ theorem device_eval_eq_defined (e : Equation 5) (x : Fin 5 → Int) (v : Int) :
     checkedEval e x deviceEvalExpr = some v ↔
       expressionDefined e x deviceEvalExpr ∧ v = eval e x := by
   rw [checkedEval_exact, device_eval_eq_integer]
+
+-- Bound-check source-function SHA256: {bounded_digest}
+def sourceEvalBounded (e : Equation 5) (x : Fin 5 → Int) : Prop := {bounded_expr}
+
+/-- Inside the source bound check every product of the raw evaluator fits in
+2^59 and every partial sum in 2^61 + 5 * 2^59 < 2^63, so the unchecked fast
+path computes exactly what the checked path would. -/
+theorem source_eval_bounded_defined (e : Equation 5) (x : Fin 5 → Int)
+    (h : sourceEvalBounded e x) : expressionDefined e x deviceEvalExpr := by
+  obtain ⟨{hyps}⟩ := h
+  have term : ∀ a y : Int, -{2**44} ≤ a → a ≤ {2**44} → -{2**15} ≤ y → y ≤ {2**15} →
+      -(2^59) ≤ a * y ∧ a * y ≤ 2^59 := by
+    intro a y h1 h2 h3 h4
+    have hb : |a * y| ≤ 2^59 := by
+      rw [abs_mul]
+      calc |a| * |y| ≤ {2**44} * {2**15} :=
+            mul_le_mul (abs_le.mpr ⟨h1, h2⟩) (abs_le.mpr ⟨h3, h4⟩) (abs_nonneg _) (by norm_num)
+        _ = 2^59 := by norm_num
+    exact abs_le.mp hb
+{products}
+  simp only [expressionDefined, deviceEvalExpr, evalExpr, fits64]
+  constructorm* _ ∧ _, True
+  all_goals first | trivial | linarith
+
+theorem source_eval_bounded_exact (e : Equation 5) (x : Fin 5 → Int)
+    (h : sourceEvalBounded e x) : checkedEval e x deviceEvalExpr = some (eval e x) :=
+  (device_eval_eq_defined e x _).mpr ⟨source_eval_bounded_defined e x h, rfl⟩
 
 -- Normal-check source-function SHA256: {normal_digest}
 def sourceHasNormal (e : Equation 5) : Bool := {normal_expr}

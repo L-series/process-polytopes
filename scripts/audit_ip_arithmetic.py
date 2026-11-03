@@ -60,7 +60,8 @@ def main():
             if node.get('type',{}).get('qualType')=='long long' and name not in allowed:
                 if (kind in ('BinaryOperator','CompoundAssignOperator') and node.get('opcode') in
                     ('+','-','*','/','%','+=','-=','*=','/=','%=') or
-                    kind=='UnaryOperator' and node.get('opcode') in ('-','++','--')):
+                    kind=='UnaryOperator' and node.get('opcode') in ('-','++','--') and not (
+                        node.get('opcode')=='-' and [c.get('kind') for c in node.get('inner',[])]==['IntegerLiteral'])):
                     errors.append(f'{name}: unchecked signed payload arithmetic {node.get("opcode")}')
             if kind!='CallExpr' or not node.get('inner'): continue
             callee=referenced(node['inner'][0])
@@ -80,6 +81,7 @@ def main():
     body=wrapper[wrapper.index('{')+1:wrapper.rindex('}')]
     normalized=re.sub(r'\s+','',body)
     expected=('if(!arithmetic_failed)returndevice_eval_eq(equation,point);'
+              'if(device_eval_bounded(equation,point))returndevice_eval_eq(equation,point);'
               'longlongvalue=equation.c;for(inti=0;i<5;++i)'
               'value=device_ip_add(value,device_ip_mul(equation.a[i],point[i],arithmetic_failed),arithmetic_failed);returnvalue;')
     if normalized!=expected:
