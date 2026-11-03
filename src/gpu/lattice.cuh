@@ -25,6 +25,8 @@ __device__ long long device_walk_sub(long long a, long long b, int *ok) {
 }
 __device__ long long device_walk_mul(long long a, long long b, int *ok) {
     if (!*ok) return 0;
+    // Two int32 operands: |a * b| <= 2^62, no division needed to check it.
+    if (a >= -2147483648LL && a <= 2147483647LL && b >= -2147483648LL && b <= 2147483647LL) return a * b;
     const bool negative = (a < 0) != (b < 0);
     const unsigned long long ua = a < 0 ? 0ULL - static_cast<unsigned long long>(a) : a;
     const unsigned long long ub = b < 0 ? 0ULL - static_cast<unsigned long long>(b) : b;
@@ -497,38 +499,28 @@ __device__ int device_walk_int32_box(const int basis[FP_NMAX][10], int N,
     return 1;
 }
 
-__device__ void device_walk_swap_point(long long *points, int a, int b) {
-    for (int c = 0; c < 5; ++c) {
-        const unsigned long long ia = static_cast<unsigned long long>(a) * 5ULL + c;
-        const unsigned long long ib = static_cast<unsigned long long>(b) * 5ULL + c;
-        const long long value = points[ia]; points[ia] = points[ib]; points[ib] = value;
+// Strict lexicographic order on the coordinates taken in the order ord.
+__device__ int device_walk_lex_greater(const long long *left, const long long *right, const int ord[5]) {
+    for (int d = 0; d < 5; ++d) {
+        if (left[ord[d]] > right[ord[d]]) return 1;
+        if (left[ord[d]] < right[ord[d]]) return 0;
     }
-}
-__device__ void device_walk_sift_points(long long *points, int count, int root) {
-    while (static_cast<long long>(root) * 2 + 1 < count) {
-        int child = static_cast<int>(static_cast<long long>(root) * 2 + 1);
-        if (child + 1 < count && device_vec_greater_than(points + 5ULL * (child + 1), points + 5ULL * child)) ++child;
-        if (!device_vec_greater_than(points + 5ULL * child, points + 5ULL * root)) return;
-        device_walk_swap_point(points, root, child);
-        root = child;
-    }
+    return 0;
 }
 
-// Sort coefficient tuples, reject duplicates, then independently revalidate
-// every stored tuple after sorting. This makes count equality useful even if
-// the walk misses a root interval or its traversal is imperfect.
+// Require strictly increasing tuples in the order ord (the walk's depth-first
+// order) and independently revalidate every stored tuple. Strict increase makes
+// the tuples distinct, so count equality is useful even if the walk misses a
+// root interval or its traversal is imperfect.
 __device__ int device_walk_validate_points(const DeviceCwsCandidate &candidate,
-                                           const int basis[FP_NMAX][10], const int xu[10],
+                                           const int basis[FP_NMAX][10], const int xu[10], const int ord[5],
                                            long long *points, int count, int *ip_possible = nullptr) {
     if (count < 0) return 0;
+    for (int d = 0; d < 5; ++d) if (ord[d] < 0 || ord[d] >= 5) return 0;
     unsigned int touch_zero = 0, touch_two = 0, pair_lo[10] = {}, pair_hi[10] = {};
-    for (int start = count / 2; start > 0; --start) device_walk_sift_points(points, count, start - 1);
-    for (int end = count - 1; end > 0; --end) {
-        device_walk_swap_point(points, 0, end); device_walk_sift_points(points, end, 0);
-    }
     for (int p = 0; p < count; ++p) {
         const long long *point = points + 5ULL * static_cast<unsigned int>(p);
-        if (p && !device_vec_greater_than(point, point - 5)) return 0;
+        if (p && !device_walk_lex_greater(point, point - 5, ord)) return 0;
         int X[10], ok = 1;
         for (int a = 0; a < candidate.ambient_vertices; ++a) {
             long long value = 1;
@@ -540,9 +532,12 @@ __device__ int device_walk_validate_points(const DeviceCwsCandidate &candidate,
         for (int r = 0; r < candidate.nw; ++r) {
             long long remaining = candidate.degree[r];
             for (int a = 0; a < candidate.ambient_vertices; ++a) {
+                // remaining is in [0, 2^31) here and the term in [0, 2^62]: no overflow.
+                // Every term is nonnegative, so a negative remainder never returns to 0.
                 const int weight = candidate.weights[r][a];
-                if (weight < 0 || (weight && X[a] > remaining / weight)) return 0;
+                if (weight < 0) return 0;
                 remaining -= static_cast<long long>(weight) * X[a];
+                if (remaining < 0) return 0;
             }
             if (remaining != 0) return 0;
         }
@@ -732,7 +727,7 @@ __device__ int device_make_points_fp(const DeviceCwsCandidate &candidate,
     }
     // Recompute all certificate masks from the checked final point buffer,
     // so the certificate and the cardinality check concern the same family.
-    if (!device_walk_validate_points(candidate, bred, xu, points, *point_count, ip_possible)) return -1;
+    if (!device_walk_validate_points(candidate, bred, xu, ord, points, *point_count, ip_possible)) return -1;
     return *point_count > 0 ? 1 : 0;
 }
 
