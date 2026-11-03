@@ -23,7 +23,8 @@ ${NVCC:-nvcc} -std=c++17 -Isrc/gpu ${NVCCFLAGS:-} verification/gpu/generation_ho
 python3 verification/gpu/extract.py "$work/gpu_extract.h" "struct SelectedEntry" "struct DeviceDescriptor" \
   "struct DeviceScanStats" "struct DeviceCwsCandidate" "__device__ int device_next_permutation(" \
   "__device__ int device_weight_at_coordinate(" "__device__ int device_slot_uses_coordinate(" \
-  "__device__ int device_prefix_is_canonical(" "__device__ __noinline__ void device_store_candidate("
+  "__device__ int device_prefix_is_canonical(" "__device__ __noinline__ void device_store_candidate(" \
+  "__device__ __forceinline__ bool device_type3_prefix_ok("
 for c in src/cws/catalogue.c src/gpu/catalogue_bridge.c verification/gpu/cpu_reference.c; do
   goto-cc "${cflags[@]}" -c "$c" -o "$work/$(basename "$c" .c).gb"
 done
@@ -74,5 +75,7 @@ for u in 2 3 4 5; do query permutation.cpp "permutation step, $u values" 7 -DU="
 echo "GPU permutation step equals NextPrefixPermutation for 2-5 values"
 for id in ${GEN_IDS:-$(seq 2 47)}; do query store.cpp "stored candidate, structure $id" 12 -DCATALOGUE_ID="$id"; done
 echo "Stored candidates equal EmbedWeightInCWS rows"
+query type3_prefix.cpp "fused structure-3 prefix test" 7
+echo "Fused structure-3 prefix test equals the general one"
 # Tuple and pair index decoding: proved in Lean (proofs/Refpoly/GpuDecode.lean);
 # symbolic 64-bit division and multiplication are out of CBMC's reach here.

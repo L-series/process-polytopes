@@ -188,6 +188,18 @@ __device__ __forceinline__ unsigned long long device_pair_left_closed(unsigned l
     return static_cast<unsigned long long>(l);
 }
 
+// device_prefix_is_canonical for slot 1 of structure 3: slot 1 shares all three
+// of slot 0's shared coordinates and no slot follows, so two of them may be
+// ordered exactly when slot 0 gives them equal weights. Slot 0 itself is only
+// emitted in pool order, the one arrangement its own test accepts here.
+__device__ __forceinline__ bool device_type3_prefix_ok(const SelectedEntry &le, const int prefix[3]) {
+    bool canonical = true;
+    for (int i = 0; i < 2; ++i)
+        for (int j = i + 1; j < 3; ++j)
+            if (le.w[i] == le.w[j] && prefix[i] > prefix[j]) canonical = false;
+    return canonical;
+}
+
 // Type-3 generation fused with the join. Same pair decoding and the
 // same canonical prefix permutations as descriptor_pair_scan_kernel /
 // device_emit_last_slot; every canonical candidate is decided by the join and
@@ -215,11 +227,7 @@ __global__ void type3_join_scan_kernel(const SelectedEntry *entries,
         const int eRw[3] = {re.w[0], re.w[1], re.w[2]};
         int prefix[3] = {re.w[0], re.w[1], re.w[2]};
         do {
-            bool canonical = true;   // device_prefix_is_canonical for slot 1 of structure 3
-            for (int i = 0; i < 2; ++i)
-                for (int j = i + 1; j < 3; ++j)
-                    if (le.w[i] == le.w[j] && prefix[i] > prefix[j]) canonical = false;
-            if (!canonical) continue;
+            if (!device_type3_prefix_ok(le, prefix)) continue;
             ++local_prefix;   // pool prefixes are sorted, so this visits every distinct permutation
             unsigned long long np = 0;
             const int verdict = device_join_decide(jt, L, R, eRw, prefix, np_cap, &np);
