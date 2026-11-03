@@ -1,0 +1,15 @@
+import Refpoly.GpuWalkValidator
+
+#print axioms Refpoly.GpuWalkValidator.lexGreater_spec
+#print axioms Refpoly.GpuWalkValidator.validateModel_success
+#print axioms Refpoly.GpuWalkValidator.ordered_reduced_nodup
+#print axioms Refpoly.GpuWalkValidator.ordered_ambient_nodup
+#print axioms Refpoly.GpuWalkValidator.accepted_points_valid
+#print axioms Refpoly.GpuWalkValidator.accepted_points_ambient_distinct
+#print axioms Refpoly.GpuWalkValidator.occupancy_coordinate_exact
+#print axioms Refpoly.GpuWalkValidator.pairLoRow_exact
+#print axioms Refpoly.GpuWalkValidator.pairHiRow_exact
+#print axioms Refpoly.GpuWalkValidator.occupancy_pair_low_exact
+#print axioms Refpoly.GpuWalkValidator.occupancy_pair_high_exact
+#print axioms Refpoly.GpuWalkValidator.occupancy_coordinate_thresholds
+#print axioms Refpoly.GpuWalkValidator.occupancy_pair_thresholds
