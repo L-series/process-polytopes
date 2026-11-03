@@ -132,7 +132,8 @@ int run(const Config &config) {
 #if CWS_GPU_FUSED_TYPE3
         HostJoinTables type3_tables;
         if (config.structure_id == 3 && !config.census) {
-            if (!type3_layout_supported(catalogue)) throw std::runtime_error("structure 3 layout not supported by the fused join");
+            // The fused kernel decodes pair indices, so the shard space must be the pair space.
+            if (!type3_layout_supported(catalogue) || !use_pair_scan(descriptor)) throw std::runtime_error("structure 3 layout not supported by the fused join");
             const PoolInfo &pool = pools[pool_key(5, 3)];
             build_join_table(flat, device_entries, static_cast<int>(pool.device_offset),
                              static_cast<int>(pool.entries.size()), 5, 3, type3_tables);
