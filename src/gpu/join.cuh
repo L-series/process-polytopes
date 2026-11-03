@@ -87,7 +87,18 @@ __device__ void device_gjoin_begin_level(
     it[j] = kb[s];
     end[j] = ke[s];
     pstar[j] = -1;
-    if (plan.lookup[j]) return;
+    if (plan.lookup[j]) {
+        // Every shared value is bound: the level is the one key equal to them,
+        // if present, as a range of length at most one.
+        unsigned long long want = 0;
+        for (int p = 0; p < k; ++p) want = (want << 16) | static_cast<unsigned long long>(val[epos_coord[s][p]]);
+        const GJoinKey *keys = plan.table[s].keys;
+        unsigned long long lo = kb[s], hi = ke[s];
+        while (lo < hi) { const unsigned long long m = (lo + hi) >> 1; if (keys[m].key < want) lo = m + 1; else hi = m; }
+        it[j] = lo;
+        end[j] = (lo < ke[s] && keys[lo].key == want) ? lo + 1 : lo;
+        return;
+    }
     const unsigned int bound = plan.bound_before[j];
     int p = 0;
     while (p < k && !((bound >> epos_coord[s][p]) & 1u)) ++p;
@@ -180,28 +191,14 @@ __device__ int device_gjoin_decide(const DeviceCwsCandidate &c, const SelectedEn
         const int k = plan.shared[s];
         const GJoinKey *keys = plan.table[s].keys;
         bool found = false;
-        if (plan.lookup[depth]) {
-            if (it[depth] == kb[s]) {
-                unsigned long long want = 0;
-                for (int p = 0; p < k; ++p) want = (want << 16) | static_cast<unsigned long long>(val[epos_coord[s][p]]);
-                unsigned long long lo = kb[s], hi = ke[s];
-                while (lo < hi) {
-                    const unsigned long long m = (lo + hi) >> 1;
-                    if (keys[m].key < want) lo = m + 1; else hi = m;
-                }
-                if (lo < ke[s] && keys[lo].key == want) { chosen[depth] = lo; found = true; }
-                it[depth] = ke[s];
-            }
-        } else {
-            const unsigned int bound = plan.bound_before[depth];
-            const GJoinIdx *px = pstar[depth] > 0 ? plan.table[s].pidx[pstar[depth]] : nullptr;
-            while (it[depth] < end[depth]) {
-                const unsigned long long pos = it[depth]++;
-                const unsigned long long kk = px ? static_cast<unsigned long long>(px[pos].idx) : pos;
-                const unsigned long long key = keys[kk].key;
-                const bool ok = device_gjoin_match_key(key, k, epos_coord[s], bound, val);
-                if (ok) { chosen[depth] = kk; found = true; break; }
-            }
+        const unsigned int bound = plan.bound_before[depth];
+        const GJoinIdx *px = pstar[depth] > 0 ? plan.table[s].pidx[pstar[depth]] : nullptr;
+        while (it[depth] < end[depth]) {
+            const unsigned long long pos = it[depth]++;
+            const unsigned long long kk = px ? static_cast<unsigned long long>(px[pos].idx) : pos;
+            const unsigned long long key = keys[kk].key;
+            const bool ok = device_gjoin_match_key(key, k, epos_coord[s], bound, val);
+            if (ok) { chosen[depth] = kk; found = true; break; }
         }
         if (!found) { --depth; continue; }
         if (depth + 1 < R) {
