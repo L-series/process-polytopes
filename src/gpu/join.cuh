@@ -282,6 +282,19 @@ struct HostGJoinTable {
 // does not establish completeness of the row enumerator: it checks that every
 // enumerated point is valid/distinct and is represented by exactly one fibre,
 // with its exact count and occupancy summary.
+// Exact number of nonnegative solutions of sum_p w[p] x[p] = degree: the in-place
+// coin-change DP over the positions from last to first (dpCount, JoinRowCount.lean).
+inline std::uint64_t row_solution_count(const SelectedEntry &entry, int size) {
+    if (entry.degree < 0) throw std::runtime_error("gjoin: negative row degree");
+    std::vector<std::uint64_t> dp(static_cast<std::size_t>(entry.degree) + 1, 0);
+    dp[0] = 1;
+    for (int p = size - 1; p >= 0; --p) {
+        if (entry.w[p] <= 0) throw std::runtime_error("gjoin: nonpositive row weight");
+        for (int r = entry.w[p]; r <= entry.degree; ++r) dp[r] = checked_add(dp[r], dp[r - entry.w[p]]);
+    }
+    return dp[static_cast<std::size_t>(entry.degree)];
+}
+
 inline void validate_gjoin_fibres(const SelectedEntry &entry, int size, int shared,
                                  const std::vector<std::array<int, 5>> &points,
                                  const std::vector<GJoinKey> &fibres) {
@@ -322,6 +335,10 @@ inline void validate_gjoin_fibres(const SelectedEntry &entry, int size, int shar
             throw std::runtime_error("gjoin: incorrect fibre occupancy summary");
     }
     if (cursor != points.size()) throw std::runtime_error("gjoin: unrepresented row points");
+    // The points are valid, distinct and as many as all solutions: none is
+    // missing (enumerated_complete, JoinRowCount.lean).
+    if (row_solution_count(entry, size) != points.size())
+        throw std::runtime_error("gjoin: row enumeration omitted solutions");
 }
 
 inline void validate_gjoin_index(const std::vector<GJoinKey> &keys,

@@ -71,6 +71,8 @@ inline void check_cuda(int s, const char*) { assert(s == 0); }
     pieces.append("using PoolArray = std::array<PoolInfo, kPoolKeyStride * kPoolKeyStride>;\n")
     for name in ("GJoinKey", "GJoinIdx", "GJoinTable", "GJoinPlan", "GJoinCensus"):
         pieces.append(block(join, f"struct {name} {{", True))
+    pieces.append(block(common, "inline std::uint64_t checked_add("))
+    pieces.append(block(join, "inline std::uint64_t row_solution_count("))
     pieces.append(block(join, "inline void validate_gjoin_fibres("))
     for name in ("JoinKey", "JoinTables", "HostJoinTables"):
         pieces.append(block(type3, f"struct {name} {{", True))

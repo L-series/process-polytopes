@@ -1,3 +1,4 @@
+import Refpoly.JoinRowCount
 import Refpoly.JoinStack
 
 #print axioms Refpoly.JoinRejection.functional_balance
@@ -45,3 +46,8 @@ import Refpoly.JoinStack
 #print axioms Refpoly.JoinRejection.matchRowFields_stale_independent
 #print axioms Refpoly.JoinRejection.matchRowFields_snapshot_preserved
 #print axioms Refpoly.JoinRejection.matchRowFields_snapshot_extension
+
+#print axioms Refpoly.JoinRejection.dpStep_sum
+#print axioms Refpoly.JoinRejection.dpCount_exact
+#print axioms Refpoly.JoinRejection.rowSolutions_nodup
+#print axioms Refpoly.JoinRejection.enumerated_complete

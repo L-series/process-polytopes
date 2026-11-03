@@ -72,6 +72,11 @@ void test_table_checks() {
         if (corruption == 4) bad.pop_back();
         must_reject_table([&] { validate_gjoin_fibres(e, 2, 1, pts, bad); });
     }
+    // A consistent table that omits a solution is caught only by the DP count.
+    std::vector<std::array<int, 5>> omitted = {{{0,2,0,0,0}}, {{2,0,0,0,0}}};
+    std::vector<GJoinKey> omitted_fibres = {{0,1,4,0,0}, {2,1,1,0,0}};
+    assert(row_solution_count(e, 2) == 3);
+    must_reject_table([&] { validate_gjoin_fibres(e, 2, 1, omitted, omitted_fibres); });
     auto bad_points = pts; bad_points[1] = pts[0];
     must_reject_table([&] { validate_gjoin_fibres(e, 2, 1, bad_points, fibres); });
     bad_points = pts; ++bad_points[0][1];
