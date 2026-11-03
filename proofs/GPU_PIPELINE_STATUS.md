@@ -1,104 +1,56 @@
 # GPU correctness checkpoint
 
-Branch: `integration/cws-5d-gpu`, continued from `73df0cb`.
+Branch: `integration/cws-5d-gpu`.
 
-**The full source-level no-omissions proof is not complete.** The integration
-adds substantial proved models, checked runtime contracts and actual-source
-verification. None of the finite tests below should be described as a proof of
-all CUDA executions. No production GPU run was launched in this session.
+**The full source-level no-omissions proof is not complete**: the join's search
+loop (item 1 below) is the one remaining unproved link on the rejection path.
+Everything else on the path from generation to a GPU verdict is either proved
+in Lean against a model that is source-pinned or source-generated, model-checked
+by CBMC on the extracted source, or exhaustively checked over a finite domain
+whose sufficiency is itself proved. Every GPU verdict, accept or reject, now
+carries an independently checked certificate. Anything else defers to exact CPU
+completion.
 
-## Implemented and verified
+## What decides a candidate, and why it is sound
 
-* Dimension-independent join rejection still uses the production `CWS.IsIP`.
-  New Lean results cover arbitrary-length binary searches and exact packed
-  ranges/lookups, explicit continuation and row-frame traversal, exact weighted
-  enumeration, and depth-indexed stack decoding. The mutable matcher is checked
-  against all supported arities/coordinate mappings and full machine payloads.
-  See [JOIN_REJECTION.md](JOIN_REJECTION.md).
-* Both join builders check row-point/fibre summaries, index permutations, plan
-  masks and filter coverage. Unrepresentable shared values/counts/index tables
-  mark the affected entry uncovered; candidates involving it remain inconclusive
-  and reach CPU deferral. Resource/build failures stop the run visibly.
-* The walk checks exact basis arithmetic, kernel membership, rank, arithmetic
-  budgets, valid final points and distinct reduced tuples. It returns reduced
-  coordinates directly. Lean connects complete valid distinct point families
-  and invertible kernel coordinates to production IP. The source's mod-2 rank
-  certificate passes CBMC for all 5x10 parity matrices. See
-  [GPU_WALK_VERIFICATION.md](GPU_WALK_VERIFICATION.md).
-* The IP call graph uses checked signed arithmetic. Only reason 4 can reject;
-  an independent checked scan requires a nonzero normal and a valid one-sided
-  equation on every supplied point. Rank/incidence/arithmetic/list failures
-  defer. Source arithmetic and certificate models are checked against Lean;
-  the typed arithmetic audit covers every reachable IP function. See
-  [IP_VERIFICATION.md](IP_VERIFICATION.md).
-* Chunk-local identity tags and atomic ownership transitions audit compaction,
-  both sorts, terminal outcomes and output payloads. Dropped, duplicated,
-  out-of-range or changed records prevent a completion receipt. Lean proves the
-  corresponding output-audit model gives coverage and unique identities.
-  Host shard boundaries use the proved nonoverflowing quotient/remainder formula;
-  host allocation/counter arithmetic is checked and launch stride bounds enforced.
-* The native CPU fallback uses exact PALP operations, assertions and UB traps.
-  Every deferred row must receive a decision and a completion footer; inputs
-  remain intact. Chunk receipts support CPU retries. Missing output, partial
-  processing, changed inputs or missing shards prevent execution completion.
-* Production orchestration covers exactly 53 jobs: all combined structures
-  2..47, with structure 3 split into eight shards on eight exclusive devices.
-  Every job includes CPU completion, and the final audit requires all receipts.
-  Structure 1 was already completed according to the user. Instructions:
-  [PRODUCTION_GPU_RUN.md](../docs/PRODUCTION_GPU_RUN.md).
+| Stage | Verdict | Soundness argument |
+| --- | --- | --- |
+| Generation | which candidates exist | CBMC: prefix test, permutation step and stored rows equal PALP's (149 slots, 46 descriptors). Exhaustive: selection pools (5,871,755 entries, shared prefixes sorted) and slot order (179 pairs). Exhaustive emission over all rank-fixed order types (12,528,582 cases), covering all positive weights by `agree_on_positive` (GpuEmission.lean), whose premises are CBMC order-invariance of both comparing primitives and a clang audit that the GPU and PALP recursions only copy weights. Lean: tuple and pair decoding, pair-space size, shard partition. Fused type 3: exhaustive equality with the general generator. |
+| Join | reject (np < 6, coordinate/pair certificate); exact np for the walk | Lean: rejection rules, binary searches, packed ranges, stack machine. CBMC: matcher on its full domain; bounded search/range queries. Builder: every row enumeration validated and counted against `row_solution_count`, a DP proved to count all solutions (JoinRowCount.lean), so no table entry can miss a point. **Open: the search loop's source-level refinement (item 1).** |
+| Walk | point set, or reject by coordinate/pair certificate | Basis rows certified in the kernel and of full rank (mod-2 witness, CBMC on all parity matrices). Points validated inside the certified int32 box, strictly increasing (hence distinct), on the weight equations (`kernel_rows_preserve_weights`). Completeness from count equality with the join's exact np (`checked_walk_complete`); no count means defer. |
+| IP check | accept or reject | Hull construction untrusted. Reject only with a checked supporting inequality (reasons 1 and 4, `sourceSupportingCertificate_sound`). Accept only with a checked positive-spanning certificate (`sourceAcceptance_sound`, source-pinned). Checked 64-bit arithmetic everywhere (source-generated guards; clang audit); overflow defers. |
+| Routing and output | no loss or duplication | Identity tags and ownership transitions audited per chunk; receipts. Lean: output-audit model coverage and uniqueness. |
+| CPU completion | deferred rows | PALP (proof deferred, as agreed); every deferred row must be decided. |
 
-## Validation performed
+## Measured cost (type 3, shard 2600/4000, fused binary)
 
-* Lean builds and foundational-axiom audits for join/search/stack, walk, IP and
-  pipeline proofs; no proof placeholders or nonfoundational axioms in the
-  audited theorem closures.
-* Generation: 5,871,755 selected-pool entries, 149 canonical-prefix slots,
-  12,528,582 emission order-type cases (108,732,951 candidates), and 17,424
-  fused/general generation cases; the existing source-linked CBMC checks pass.
-* Join: 1,203,052 exhaustive weighted table cases; independent point-oracle
-  comparisons for all 46 descriptors; bounded actual traversal/range checks;
-  full supported-arity matcher CBMC, nonvacuity and mutation checks.
-* Walk: 250,405 checked arithmetic operations and 184 exact point-set/certificate
-  cases across all 46 descriptors; address/undefined-behavior sanitizers.
-* IP: 2,407 geometric cases, 50,081 arithmetic pairs, overflow probes and
-  independently rescanned rejecting witnesses; sanitizers and typed AST audit.
-* Routing: 2,574 source-kernel cases, including exhaustive small compactions and
-  permutations, changed records, missing/duplicate identities and buffer bounds.
-* Host bounds: 200,000 full-width arithmetic/shard cases checked against
-  `unsigned __int128`, including maximum counts and key-width edges.
-* CPU/job completion: 12 tests with the native driver; production scheduling:
-  nine tests, including a 53-job end-to-end mock through the real runners/auditor.
-* Both standard and fused CUDA configurations compile for `sm_75`. These are
-  compile checks, not execution tests on the intended production GPUs.
+Accepted set identical to the pre-verification build (same sorted sha256),
+nothing deferred. GPU time 7.6 s before the verification work and 10.1 s now.
+The first verified build was much slower, mostly from an atomic per checked
+operation and a sort in the walk validator. Those are removed; the remaining
+overhead is the IP check's checked arithmetic (about 1.2 s) and the walk
+validator (about 0.8 s).
 
-Run `scripts/test-gpu-correctness.sh` with CBMC/goto-cc and a suitable CUDA compiler
-on PATH to reproduce the complete regression suite. Set `NVCC`, `NVCCFLAGS` and
-`CUDA_ARCH` for the installed toolkit/target. The combined command was added as
-an entry point; individual checks were run during integration, rather than
-claiming a separate completed invocation of the entire combined command.
+## Regression gate
+
+`.github/workflows/gpu-verification.yml` runs `scripts/test-gpu-correctness.sh`
+in two parts on every push: `proofs` (Lean modules, source pins, axiom audits)
+and `source` (CBMC queries, clang audits, sanitizer harnesses, CPU completion
+and scheduler tests, in `nix develop .#gpu-verify`). No GPU is needed; the CUDA
+compile runs only where a toolkit is present.
 
 ## Remaining formal boundaries
 
-1. The joint simulation from actual join packed-pointer iterators, chosen-key
-   arrays and mutable values into the proved frame/slot model. Abstract stack,
-   search and local mutation arguments are proved, but their complete concrete
-   source-state coupling is still an obligation. The three-row/two-key symbolic
-   traversal query timed out at 180 seconds; smaller queries and host exhaustion
-   do not discharge an unbounded source proof.
-2. Concrete host row enumeration/table uploads and walk validators/sorting must
-   be formally refined to their Lean premises. Runtime validation removes
-   reliance on floating-point enumeration completeness and basis saturation,
-   but the implementation of those checks is not wholly kernel verified.
-3. The finite generation order-type check has a reviewed comparison-only
-   reduction to arbitrary positive weights; that reduction is not yet a Lean
-   theorem about the complete source. CUDA atomics/compiler/memory semantics
-   and the OS/filesystem remain implementation trust boundaries. CUB results
-   are checked by identities rather than assumed correct.
-4. Concrete hull acceptance is not formally refined. This completeness-focused
-   work establishes sound rejection contracts; final GPU acceptance proof and
-   a full implementation proof of the PALP CPU reference remain separate.
-5. Actual production execution, performance, the supplied pool catalogue,
-   structure-1 artifacts and all eight GPU/shard receipts must still be audited.
-   The historical candidate-count table is a regression reference tied to its
-   original inputs, not a mathematical completeness theorem or a newly measured
-   baseline for different pools.
+1. **Join search loop.** The CUDA loop in `device_gjoin_decide` (cursors
+   `it`/`end`, chosen keys, mutable `val`) and the fused type-3 join are not yet
+   refined to the proved stack machine (JoinStack.lean). Needed: a source-pinned
+   Lean transcription of the loop and a simulation proof into that machine,
+   with the range initialization tied to `packed_range_exact`.
+2. **Trusted frontends.** Source pins and generated models are small reviewed
+   translators (scripts/generate_ip_*.py, check_*_model.py), not a verified
+   C++ semantics. The CUDA compiler, atomics and memory model, CUB, the OS and
+   the filesystem are trusted. The walk validator and the fibre validator are
+   tested and audited, but not source-pinned.
+3. **PALP** (CPU completion of deferred rows) is trusted, as agreed.
+4. **Production execution.** All eight type-3 shard receipts, structure 1's
+   artifacts and the final audit must still be produced and checked.

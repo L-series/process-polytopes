@@ -11,11 +11,11 @@ checks=(--bounds-check --pointer-check --signed-overflow-check --div-by-zero-che
 cflags=(-DPOLY_Dmax=5 -IPALP -Isrc/cws -Isrc/gpu)
 
 # Host stage: selection pools and slot order, exhaustively on the production
-# pools (needs nvcc for the host code and `make` for the PALP objects).
+# pools (host C++ with a CUDA runtime stub, and `make` for the PALP objects).
 make -s build/palp-Coord.o build/palp-Rat.o build/palp-Vertex.o build/palp-Polynf.o build/palp-LG.o \
   build/project-weight_pool.o build/project-catalogue.o build/gpu-catalogue_bridge.o
 cc "${cflags[@]}" -O1 -c verification/gpu/cpu_reference.c -o "$work/cpu_reference.o"
-${NVCC:-nvcc} -ccbin "${CXX:-g++}" -std=c++17 -Isrc/gpu ${NVCCFLAGS:-} verification/gpu/generation_host.cu "$work/cpu_reference.o" \
+${CXX:-g++} -x c++ -std=c++17 -O2 -Iverification/gpu/host_stub -Isrc/gpu verification/gpu/generation_host.cu -x none "$work/cpu_reference.o" \
   build/palp-Coord.o build/palp-Rat.o build/palp-Vertex.o build/palp-Polynf.o build/palp-LG.o \
   build/project-weight_pool.o build/project-catalogue.o build/gpu-catalogue_bridge.o -o "$work/generation_host"
 "$work/generation_host"

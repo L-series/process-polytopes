@@ -25,7 +25,7 @@
         };
         # Model checking of the CUDA sources (verification/gpu) with CBMC.
         gpu-verify = pkgs.mkShell {
-          packages = with pkgs; [ gcc gnumake python3 git cbmc ];
+          packages = with pkgs; [ gcc gnumake python3 git cbmc clang ];
         };
       };
     };
