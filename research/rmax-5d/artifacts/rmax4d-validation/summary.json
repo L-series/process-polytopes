@@ -1,0 +1,29 @@
+{
+  "changed_hull_maxima": 7,
+  "dimension": 4,
+  "discovery_index_cap": 3,
+  "exhaustive_lattice_search": false,
+  "index3_search": {
+    "containers": 308,
+    "hull_nodes": 17248,
+    "lattices": 17248,
+    "maximal_classes": 334,
+    "maximality_checks": 2640,
+    "non_ip_nodes": 11729,
+    "reflexive_leaves": 5519
+  },
+  "input_records": 201346,
+  "maximal_classes": 340,
+  "palp_commit": "ccc8e5e3f96ab2d424649f4bed3707a206c50bd2",
+  "reduction_seconds": 134.369,
+  "rminimal_cws": 308,
+  "scope": "Historical 4D regression, not an exhaustive run of the general algorithm",
+  "sha256": {
+    "docs/data/single-weight-systems/4d.txt": "b8c20654d50bc1bc78c8b1c2bca794f6cabc7bb02e952771dd8b73dfee9c97ee",
+    "maximal-340.jsonl": "b16528fe9471388b26b3877a193b7f16fb13dde46be176e4fa0856756efcbb1c",
+    "tests/fixtures/cws/4d.cws": "4662a36eed52a943992fb6b2f97e6bb54c9da5c5ad651aa3e82128f85b6429fd"
+  },
+  "table_8_exact_match": true,
+  "total_seconds": 213.97,
+  "unchanged_shape_maxima": 333
+}

@@ -1,0 +1,186 @@
+{
+  "496_point_example": {
+    "D": 2401,
+    "cumulative_hnfs": 35476236001762088,
+    "worker_years_at_one_million_states_per_second": 1124.1740817350521
+  },
+  "determinant_frame_counts": [
+    {
+      "five_vertex_frames": 6,
+      "vertices": 6
+    },
+    {
+      "five_vertex_frames": 252,
+      "vertices": 10
+    },
+    {
+      "five_vertex_frames": 3003,
+      "vertices": 15
+    },
+    {
+      "five_vertex_frames": 15504,
+      "vertices": 20
+    },
+    {
+      "five_vertex_frames": 142506,
+      "vertices": 30
+    },
+    {
+      "five_vertex_frames": 2118760,
+      "vertices": 50
+    }
+  ],
+  "formula": "N + N*s*((ell-1) + ell*f*b)",
+  "full_five_child_tree": [
+    {
+      "depth": 5,
+      "nodes": 3906
+    },
+    {
+      "depth": 10,
+      "nodes": 12207031
+    },
+    {
+      "depth": 15,
+      "nodes": 38146972656
+    },
+    {
+      "depth": 20,
+      "nodes": 119209289550781
+    }
+  ],
+  "hard_tail_example": {
+    "extra_calls": 2000000000000,
+    "extra_calls_per_root": 1000000,
+    "fraction": 0.0001,
+    "roots": 2000000
+  },
+  "historical_assumed_inputs": 20000000000,
+  "historical_assumptions": [
+    "One new root geometry decision per input, unless existing metadata is reused.",
+    "s is the fraction retained by a lattice-complete root sieve.",
+    "ell is an assumed effective count of geometry-triggering lattice states, not a complete index cutoff.",
+    "f and b concern retained lattice states; neither was measured in the initial estimate.",
+    "Normal forms and global maximality are additional costs.",
+    "The measured 4D reduction fraction is not a proved 5D reduction rate."
+  ],
+  "hnf_counts": [
+    {
+      "candidate_states_for_20B": 20000000000,
+      "cap": 1,
+      "cumulative": 1,
+      "exact_index": 1
+    },
+    {
+      "candidate_states_for_20B": 640000000000,
+      "cap": 2,
+      "cumulative": 32,
+      "exact_index": 31
+    },
+    {
+      "candidate_states_for_20B": 3060000000000,
+      "cap": 3,
+      "cumulative": 153,
+      "exact_index": 121
+    },
+    {
+      "candidate_states_for_20B": 16080000000000,
+      "cap": 4,
+      "cumulative": 804,
+      "exact_index": 651
+    },
+    {
+      "candidate_states_for_20B": 31700000000000,
+      "cap": 5,
+      "cumulative": 1585,
+      "exact_index": 781
+    },
+    {
+      "candidate_states_for_20B": 1103400000000000,
+      "cap": 10,
+      "cumulative": 55170,
+      "exact_index": 24211
+    },
+    {
+      "candidate_states_for_20B": 92136993620000000000,
+      "cap": 100,
+      "cumulative": 4606849681,
+      "exact_index": 330988581
+    }
+  ],
+  "hypothetical_timing": {
+    "days_on_1000_cores_at_70_percent": 165.34391534391534,
+    "one_trillion_calls_at_10ms_worker_years": 316.8808781402895
+  },
+  "index_at_most_3_rank_filter_sensitivity": [
+    {
+      "geometry_calls": 3060000000000,
+      "nonidentity_geometry_fraction": 1
+    },
+    {
+      "geometry_calls": 324000000000,
+      "nonidentity_geometry_fraction": 0.1
+    },
+    {
+      "geometry_calls": 50400000000,
+      "nonidentity_geometry_fraction": 0.01
+    },
+    {
+      "geometry_calls": 23040000000,
+      "nonidentity_geometry_fraction": 0.001
+    }
+  ],
+  "measured_original_plus_index_2_3_scenarios": {
+    "baseline_geometry_calls": 702498035586.9805,
+    "extra_nodes_scenarios": {
+      "10": 1050457289843.3086,
+      "100": 4182090578150.2617,
+      "1000": 35498423461219.8,
+      "25000": 870600633676407.2
+    },
+    "lattice_single_worker_years": 1.9577658128594353,
+    "nonreflexive_starting_states": 34795925425.63281,
+    "note": "No root reduction or cross-record caching. Scenario b is additional nodes per nonreflexive start, not an observed completed-search mean. Other indices, CWS and global maximality costs excluded.",
+    "prune_fraction_for_100B_with_b1000": 0.9975720866252327,
+    "root_single_worker_days": 61.65828472315951
+  },
+  "measured_ws_counts": {
+    "ip": 11469405637,
+    "reflexive": 2377115412
+  },
+  "scenarios": [
+    {
+      "b": 100,
+      "ell": 153,
+      "f": 0.1,
+      "main_geometry_calls": 23364000000,
+      "name": "exceptional reduction",
+      "s": 0.0001
+    },
+    {
+      "b": 1000,
+      "ell": 153,
+      "f": 0.25,
+      "main_geometry_calls": 1172060000000,
+      "name": "hypothetically 4D-like reduction",
+      "s": 0.0015
+    },
+    {
+      "b": 10000,
+      "ell": 153,
+      "f": 0.25,
+      "main_geometry_calls": 76550400000000,
+      "name": "one percent retained, harder residual",
+      "s": 0.01
+    },
+    {
+      "b": 1000,
+      "ell": 153,
+      "f": 0.25,
+      "main_geometry_calls": 768060000000000,
+      "name": "no root reduction",
+      "s": 1
+    }
+  ],
+  "status": "Historical assumptions retained for comparison; measured WS profiling supersedes the initial point-tail and root-time assumptions."
+}

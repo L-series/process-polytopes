@@ -1,0 +1,5 @@
+{
+  "removed_generated_files": 811,
+  "removed_bytes": 140141424,
+  "rebuild": "native_runs.py regenerates point dumps from saved sample.json"
+}

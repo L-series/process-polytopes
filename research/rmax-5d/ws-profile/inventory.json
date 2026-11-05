@@ -1,0 +1,224 @@
+{
+  "ip": {
+    "expected": 11469405637,
+    "extrema": {
+      "facet_count_max": {
+        "group": 1502,
+        "path": "/work/edih210/ahat01/refpoly-runs/20260703-223852/final_v2/ip-polytopes-5d-valid-parquet-parts/ip-polytopes-5d-part-0004.parquet",
+        "value": 63
+      },
+      "facet_count_min": {
+        "group": 4,
+        "path": "/work/edih210/ahat01/refpoly-runs/20260703-223852/final_v2/ip-polytopes-5d-valid-parquet-parts/ip-polytopes-5d-part-0000.parquet",
+        "value": 6
+      },
+      "point_count_max": {
+        "group": 3156,
+        "path": "/work/edih210/ahat01/refpoly-runs/20260703-223852/final_v2/ip-polytopes-5d-valid-parquet-parts/ip-polytopes-5d-part-0006.parquet",
+        "value": 222426
+      },
+      "point_count_min": {
+        "group": 2519,
+        "path": "/work/edih210/ahat01/refpoly-runs/20260703-223852/final_v2/ip-polytopes-5d-valid-parquet-parts/ip-polytopes-5d-part-0000.parquet",
+        "value": 7
+      },
+      "vertex_count_max": {
+        "group": 688,
+        "path": "/work/edih210/ahat01/refpoly-runs/20260703-223852/final_v2/ip-polytopes-5d-valid-parquet-parts/ip-polytopes-5d-part-0007.parquet",
+        "value": 49
+      },
+      "vertex_count_min": {
+        "group": 4,
+        "path": "/work/edih210/ahat01/refpoly-runs/20260703-223852/final_v2/ip-polytopes-5d-valid-parquet-parts/ip-polytopes-5d-part-0000.parquet",
+        "value": 6
+      }
+    },
+    "files": [
+      {
+        "bytes": 8829451361,
+        "groups": 4595,
+        "path": "/work/edih210/ahat01/refpoly-runs/20260703-223852/final_v2/ip-polytopes-5d-valid-parquet-parts/ip-polytopes-5d-part-0000.parquet",
+        "rows": 564580498
+      },
+      {
+        "bytes": 8829305702,
+        "groups": 4596,
+        "path": "/work/edih210/ahat01/refpoly-runs/20260703-223852/final_v2/ip-polytopes-5d-valid-parquet-parts/ip-polytopes-5d-part-0001.parquet",
+        "rows": 564580498
+      },
+      {
+        "bytes": 8829839485,
+        "groups": 4595,
+        "path": "/work/edih210/ahat01/refpoly-runs/20260703-223852/final_v2/ip-polytopes-5d-valid-parquet-parts/ip-polytopes-5d-part-0002.parquet",
+        "rows": 564580498
+      },
+      {
+        "bytes": 8829189932,
+        "groups": 4596,
+        "path": "/work/edih210/ahat01/refpoly-runs/20260703-223852/final_v2/ip-polytopes-5d-valid-parquet-parts/ip-polytopes-5d-part-0003.parquet",
+        "rows": 564580498
+      },
+      {
+        "bytes": 8829571941,
+        "groups": 4595,
+        "path": "/work/edih210/ahat01/refpoly-runs/20260703-223852/final_v2/ip-polytopes-5d-valid-parquet-parts/ip-polytopes-5d-part-0004.parquet",
+        "rows": 564580498
+      },
+      {
+        "bytes": 8829525155,
+        "groups": 4596,
+        "path": "/work/edih210/ahat01/refpoly-runs/20260703-223852/final_v2/ip-polytopes-5d-valid-parquet-parts/ip-polytopes-5d-part-0005.parquet",
+        "rows": 564580498
+      },
+      {
+        "bytes": 8829539848,
+        "groups": 4595,
+        "path": "/work/edih210/ahat01/refpoly-runs/20260703-223852/final_v2/ip-polytopes-5d-valid-parquet-parts/ip-polytopes-5d-part-0006.parquet",
+        "rows": 564580498
+      },
+      {
+        "bytes": 8829677482,
+        "groups": 4596,
+        "path": "/work/edih210/ahat01/refpoly-runs/20260703-223852/final_v2/ip-polytopes-5d-valid-parquet-parts/ip-polytopes-5d-part-0007.parquet",
+        "rows": 564580498
+      },
+      {
+        "bytes": 8830154743,
+        "groups": 4596,
+        "path": "/work/edih210/ahat01/refpoly-runs/20260703-223852/final_v2/ip-polytopes-5d-valid-parquet-parts/ip-polytopes-5d-part-0008.parquet",
+        "rows": 564580498
+      },
+      {
+        "bytes": 8829128757,
+        "groups": 4595,
+        "path": "/work/edih210/ahat01/refpoly-runs/20260703-223852/final_v2/ip-polytopes-5d-valid-parquet-parts/ip-polytopes-5d-part-0009.parquet",
+        "rows": 564580498
+      },
+      {
+        "bytes": 8829870084,
+        "groups": 4596,
+        "path": "/work/edih210/ahat01/refpoly-runs/20260703-223852/final_v2/ip-polytopes-5d-valid-parquet-parts/ip-polytopes-5d-part-0010.parquet",
+        "rows": 564580498
+      },
+      {
+        "bytes": 8829556523,
+        "groups": 4595,
+        "path": "/work/edih210/ahat01/refpoly-runs/20260703-223852/final_v2/ip-polytopes-5d-valid-parquet-parts/ip-polytopes-5d-part-0011.parquet",
+        "rows": 564580498
+      },
+      {
+        "bytes": 8829902265,
+        "groups": 4596,
+        "path": "/work/edih210/ahat01/refpoly-runs/20260703-223852/final_v2/ip-polytopes-5d-valid-parquet-parts/ip-polytopes-5d-part-0012.parquet",
+        "rows": 564580498
+      },
+      {
+        "bytes": 8829067390,
+        "groups": 4595,
+        "path": "/work/edih210/ahat01/refpoly-runs/20260703-223852/final_v2/ip-polytopes-5d-valid-parquet-parts/ip-polytopes-5d-part-0013.parquet",
+        "rows": 564580498
+      },
+      {
+        "bytes": 8829873818,
+        "groups": 4596,
+        "path": "/work/edih210/ahat01/refpoly-runs/20260703-223852/final_v2/ip-polytopes-5d-valid-parquet-parts/ip-polytopes-5d-part-0014.parquet",
+        "rows": 564580498
+      },
+      {
+        "bytes": 8829283244,
+        "groups": 4596,
+        "path": "/work/edih210/ahat01/refpoly-runs/20260703-223852/final_v2/ip-polytopes-5d-valid-parquet-parts/ip-polytopes-5d-part-0015.parquet",
+        "rows": 564580498
+      },
+      {
+        "bytes": 8829385540,
+        "groups": 4595,
+        "path": "/work/edih210/ahat01/refpoly-runs/20260703-223852/final_v2/ip-polytopes-5d-valid-parquet-parts/ip-polytopes-5d-part-0016.parquet",
+        "rows": 564580498
+      },
+      {
+        "bytes": 8829779514,
+        "groups": 4596,
+        "path": "/work/edih210/ahat01/refpoly-runs/20260703-223852/final_v2/ip-polytopes-5d-valid-parquet-parts/ip-polytopes-5d-part-0017.parquet",
+        "rows": 564580498
+      },
+      {
+        "bytes": 8829723108,
+        "groups": 4595,
+        "path": "/work/edih210/ahat01/refpoly-runs/20260703-223852/final_v2/ip-polytopes-5d-valid-parquet-parts/ip-polytopes-5d-part-0018.parquet",
+        "rows": 564580498
+      },
+      {
+        "bytes": 8829592357,
+        "groups": 4596,
+        "path": "/work/edih210/ahat01/refpoly-runs/20260703-223852/final_v2/ip-polytopes-5d-valid-parquet-parts/ip-polytopes-5d-part-0019.parquet",
+        "rows": 564580498
+      },
+      {
+        "bytes": 2780592712,
+        "groups": 1448,
+        "path": "/work/edih210/ahat01/refpoly-runs/20260703-223852/final_v2/ip-polytopes-5d-valid-parquet-parts/ip-polytopes-5d-part-0020.parquet",
+        "rows": 177795677
+      }
+    ],
+    "footer_seconds": 2.0270835739793256,
+    "groups": 93359,
+    "rows": 11469405637
+  },
+  "reflexive": {
+    "expected": 2377115412,
+    "extrema": {
+      "dual_point_count_max": {
+        "group": 28,
+        "path": "/work/edih210/data/unique_polytopes.parquet",
+        "value": 355785
+      },
+      "dual_point_count_min": {
+        "group": 149,
+        "path": "/work/edih210/data/unique_polytopes.parquet",
+        "value": 7
+      },
+      "facet_count_max": {
+        "group": 517,
+        "path": "/work/edih210/data/unique_polytopes.parquet",
+        "value": 57
+      },
+      "facet_count_min": {
+        "group": 0,
+        "path": "/work/edih210/data/unique_polytopes.parquet",
+        "value": 6
+      },
+      "point_count_max": {
+        "group": 1887,
+        "path": "/work/edih210/data/unique_polytopes.parquet",
+        "value": 355785
+      },
+      "point_count_min": {
+        "group": 599,
+        "path": "/work/edih210/data/unique_polytopes.parquet",
+        "value": 7
+      },
+      "vertex_count_max": {
+        "group": 1177,
+        "path": "/work/edih210/data/unique_polytopes.parquet",
+        "value": 46
+      },
+      "vertex_count_min": {
+        "group": 0,
+        "path": "/work/edih210/data/unique_polytopes.parquet",
+        "value": 6
+      }
+    },
+    "files": [
+      {
+        "bytes": 84398447184,
+        "groups": 2267,
+        "path": "/work/edih210/data/unique_polytopes.parquet",
+        "rows": 2377115412
+      }
+    ],
+    "footer_seconds": 0.09391060494817793,
+    "groups": 2267,
+    "rows": 2377115412
+  }
+}

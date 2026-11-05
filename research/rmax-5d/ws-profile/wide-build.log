@@ -1,0 +1,337 @@
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/class.c: In function ‘LocalPrintUsage’:
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/class.c:196:5: warning: ignoring return value of ‘scanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  196 |     scanf("%s", &hc);
+      |     ^~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Coord.c: In function ‘ReadCwsPp’:
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Coord.c:213:7: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  213 |       fscanf(inFILE, "%d", &IN[i]);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Coord.c:260:11: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  260 |           fscanf(inFILE, "%d", &X);
+      |           ^~~~~~~~~~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Coord.c:267:11: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  267 |           fscanf(inFILE, "%d", &X);
+      |           ^~~~~~~~~~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Coord.c: In function ‘Read_PP’:
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Coord.c:378:7: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  378 |       fscanf(inFILE, "%d", &IN[i]);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Coord.c:428:11: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  428 |           fscanf(inFILE, "%d", &X);
+      |           ^~~~~~~~~~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Coord.c:435:11: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  435 |           fscanf(inFILE, "%d", &X);
+      |           ^~~~~~~~~~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Coord.c: In function ‘Read_CWS’:
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Coord.c:473:7: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  473 |       fscanf(inFILE, "%d", &IN[i]);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c: In function ‘Einstein_Metric’:
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c:2408:5: warning: ‘Make_VEPM’ accessing 1310720 bytes in a region of size 131072 [-Wstringop-overflow=]
+ 2408 |     Make_VEPM(P, V, E, PM);
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c:2408:5: note: referencing argument 4 of type ‘long int (*)[128]’
+In file included from /home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c:1:
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Global.h:434:6: note: in a call to function ‘Make_VEPM’
+  434 | void Make_VEPM(PolyPointList *P, VertexNumList *VNL, EqList *EL, PairMat PM);
+      |      ^~~~~~~~~
+In function ‘Fiber_Rec_New_Point’,
+    inlined from ‘Fiber_Rec_New_Point’ at /home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c:2725:9,
+    inlined from ‘Fiber_Rec_New_Point’ at /home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c:2725:9,
+    inlined from ‘Fiber_Rec_New_Point’ at /home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c:2725:9,
+    inlined from ‘Fiber_Rec_New_Point’ at /home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c:2725:9,
+    inlined from ‘Reflexive_Fibrations’ at /home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c:2757:5:
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c:2717:14: warning: ‘__builtin_memset’ writing between 8 and 17179869128 bytes into a region of size 0 overflows the destination [-Wstringop-overflow=]
+ 2717 |         X[i] = 0;
+      |         ~~~~~^~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c: In function ‘Reflexive_Fibrations’:
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c:2733:11: note: at offset 248 into destination object ‘T’ of size 240
+ 2733 |   GL_Long T[POLY_Dmax + 1][POLY_Dmax], *X = T[0], **G[POLY_Dmax], *GN[POLY_Dmax],
+      |           ^
+In function ‘Fiber_Rec_New_Point’,
+    inlined from ‘Fiber_Rec_New_Point’ at /home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c:2725:9,
+    inlined from ‘Fiber_Rec_New_Point’ at /home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c:2725:9,
+    inlined from ‘Fiber_Rec_New_Point’ at /home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c:2725:9,
+    inlined from ‘Fiber_Rec_New_Point’ at /home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c:2725:9,
+    inlined from ‘Fiber_Rec_New_Point’ at /home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c:2725:9,
+    inlined from ‘Reflexive_Fibrations’ at /home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c:2757:5:
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c:2717:14: warning: ‘__builtin_memset’ writing between 8 and 17179869120 bytes into a region of size 0 overflows the destination [-Wstringop-overflow=]
+ 2717 |         X[i] = 0;
+      |         ~~~~~^~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c: In function ‘Reflexive_Fibrations’:
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c:2733:11: note: at offset 296 into destination object ‘T’ of size 240
+ 2733 |   GL_Long T[POLY_Dmax + 1][POLY_Dmax], *X = T[0], **G[POLY_Dmax], *GN[POLY_Dmax],
+      |           ^
+In function ‘Fiber_Rec_New_Point’,
+    inlined from ‘Fiber_Rec_New_Point’ at /home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c:2725:9,
+    inlined from ‘Fiber_Rec_New_Point’ at /home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c:2725:9,
+    inlined from ‘Fiber_Rec_New_Point’ at /home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c:2725:9,
+    inlined from ‘Fiber_Rec_New_Point’ at /home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c:2725:9,
+    inlined from ‘Fiber_Rec_New_Point’ at /home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c:2725:9,
+    inlined from ‘Fiber_Rec_New_Point’ at /home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c:2725:9,
+    inlined from ‘Reflexive_Fibrations’ at /home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c:2757:5:
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c:2717:14: warning: ‘__builtin_memset’ writing between 8 and 17179869112 bytes into a region of size 0 overflows the destination [-Wstringop-overflow=]
+ 2717 |         X[i] = 0;
+      |         ~~~~~^~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c: In function ‘Reflexive_Fibrations’:
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c:2733:11: note: at offset 344 into destination object ‘T’ of size 240
+ 2733 |   GL_Long T[POLY_Dmax + 1][POLY_Dmax], *X = T[0], **G[POLY_Dmax], *GN[POLY_Dmax],
+      |           ^
+In function ‘Fiber_Rec_New_Point’,
+    inlined from ‘Fiber_Rec_New_Point’ at /home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c:2725:9,
+    inlined from ‘Fiber_Rec_New_Point’ at /home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c:2725:9,
+    inlined from ‘Fiber_Rec_New_Point’ at /home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c:2725:9,
+    inlined from ‘Fiber_Rec_New_Point’ at /home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c:2725:9,
+    inlined from ‘Fiber_Rec_New_Point’ at /home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c:2725:9,
+    inlined from ‘Fiber_Rec_New_Point’ at /home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c:2725:9,
+    inlined from ‘Fiber_Rec_New_Point’ at /home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c:2725:9,
+    inlined from ‘Reflexive_Fibrations’ at /home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c:2757:5:
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c:2717:14: warning: ‘__builtin_memset’ writing between 8 and 17179869104 bytes into a region of size 0 overflows the destination [-Wstringop-overflow=]
+ 2717 |         X[i] = 0;
+      |         ~~~~~^~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c: In function ‘Reflexive_Fibrations’:
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c:2733:11: note: at offset 392 into destination object ‘T’ of size 240
+ 2733 |   GL_Long T[POLY_Dmax + 1][POLY_Dmax], *X = T[0], **G[POLY_Dmax], *GN[POLY_Dmax],
+      |           ^
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c: In function ‘AuxDPolyData’:
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c:2769:3: warning: ‘Make_VEPM’ accessing 1310720 bytes in a region of size 131072 [-Wstringop-overflow=]
+ 2769 |   Make_VEPM(A, &V, &E, X);
+      |   ^~~~~~~~~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c:2769:3: note: referencing argument 4 of type ‘long int (*)[128]’
+In file included from /home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c:1:
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Global.h:434:6: note: in a call to function ‘Make_VEPM’
+  434 | void Make_VEPM(PolyPointList *P, VertexNumList *VNL, EqList *EL, PairMat PM);
+      |      ^~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c: In function ‘Print_Fiber_PolyData’:
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c:3282:5: warning: ‘Make_VEPM’ accessing 1310720 bytes in a region of size 131072 [-Wstringop-overflow=]
+ 3282 |     Make_VEPM(F, &v, &e, X);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c:3282:5: note: referencing argument 4 of type ‘long int (*)[128]’
+In file included from /home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c:1:
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Global.h:434:6: note: in a call to function ‘Make_VEPM’
+  434 | void Make_VEPM(PolyPointList *P, VertexNumList *VNL, EqList *EL, PairMat PM);
+      |      ^~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c:3292:7: warning: ‘Make_VEPM’ accessing 1310720 bytes in a region of size 131072 [-Wstringop-overflow=]
+ 3292 |       Make_VEPM(F, &v, &e, X);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c:3292:7: note: referencing argument 4 of type ‘long int (*)[128]’
+In file included from /home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c:1:
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Global.h:434:6: note: in a call to function ‘Make_VEPM’
+  434 | void Make_VEPM(PolyPointList *P, VertexNumList *VNL, EqList *EL, PairMat PM);
+      |      ^~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c:3351:7: warning: ‘Make_VEPM’ accessing 1310720 bytes in a region of size 131072 [-Wstringop-overflow=]
+ 3351 |       Make_VEPM(F, &v, &e, PM);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c:3351:7: note: referencing argument 4 of type ‘long int (*)[128]’
+In file included from /home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c:1:
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Global.h:434:6: note: in a call to function ‘Make_VEPM’
+  434 | void Make_VEPM(PolyPointList *P, VertexNumList *VNL, EqList *EL, PairMat PM);
+      |      ^~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c: In function ‘Print_Fibrations’:
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c:3474:7: warning: ‘Make_VEPM’ accessing 1310720 bytes in a region of size 131072 [-Wstringop-overflow=]
+ 3474 |       Make_VEPM(F->P, &V, &E, X);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c:3474:7: note: referencing argument 4 of type ‘long int (*)[128]’
+In file included from /home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c:1:
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Global.h:434:6: note: in a call to function ‘Make_VEPM’
+  434 | void Make_VEPM(PolyPointList *P, VertexNumList *VNL, EqList *EL, PairMat PM);
+      |      ^~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c: In function ‘Fano5d’:
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c:5104:17: warning: ‘SimplexVolume’ accessing 48 bytes in a region of size 40 [-Wstringop-overflow=]
+ 5104 |       if (1 != (SimplexVolume(Y, d)))
+      |                ~^~~~~~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c:5104:17: note: referencing argument 1 of type ‘long int **’
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Polynf.c:1479:6: note: in a call to function ‘SimplexVolume’
+ 1479 | Long SimplexVolume(Long *V[POLY_Dmax + 1], int d) {
+      |      ^~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subadd.c: In function ‘fgetUI’:
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subadd.c:234:3: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  234 |   fscanf(F, "%c%c%c%c", &A, &B, &C, &D);
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c: In function ‘Init_DB’:
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c:198:3: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  198 |   fscanf(DB->Finfo, "%d  %d %d %d  %d  %lld %d %lld %lld  %d %d %d %d", &d, &DB->nV, &DB->nVmax,
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  199 |          &DB->NUCmax, &list_num, &DB->nNF, &DB->nSM, &DB->nNM, &DB->NB, &sl_nNF, &sl_SM, &sl_NM,
+      |          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  200 |          &sl_NB);
+      |          ~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c:216:5: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  216 |     fscanf(DB->Finfo, "%d", &v);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c:217:5: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  217 |     fscanf(DB->Finfo, "%d", &(DB->nNUC[v]));
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c:219:7: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  219 |       fscanf(DB->Finfo, "%d", &nu);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c:220:7: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  220 |       fscanf(DB->Finfo, "%d", &(DB->NFnum[v][nu]));
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c: In function ‘Add_Polya_2_DBi’:
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c:401:3: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  401 |   fscanf(FI, "%d%d%d%d%d%lld%d%lld %lld %d%d%d%d", &d, &i, &j, &nu, &Ili, &FIi.nNF, &FIi.nSM,
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  402 |          &FIi.nNM, &FIi.NB, &IslNF, &IslSM, &IslNM, &IslNB);
+      |          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c:410:5: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  410 |     fscanf(FI, "%d", &v);
+      |     ^~~~~~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c:411:5: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  411 |     fscanf(FI, "%d", &j);
+      |     ^~~~~~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c:414:7: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  414 |       fscanf(FI, "%d", &nu);
+      |       ^~~~~~~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c:415:7: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  415 |       fscanf(FI, "%d", &FIi.NFnum[v][nu]);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c: In function ‘Check_NF_Order’:
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c:892:5: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  892 |     fscanf(F, "%d%d%d%d%d%lld%d%lld %lld %d%d%d%d", &d, &i, &j, &nu, &list_num, &L.nNF, &L.nSM,
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  893 |            &L.nNM, &L.NB, &sl_nNF, &sl_SM, &sl_NM, &sl_NB);
+      |            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c:905:7: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  905 |       fscanf(F, "%d", &v);
+      |       ^~~~~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c:906:7: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  906 |       fscanf(F, "%d", &j);
+      |       ^~~~~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c:912:9: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  912 |         fscanf(F, "%d", &nu);
+      |         ^~~~~~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c:913:9: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  913 |         fscanf(F, "%d", &L.NFnum[v][nu]);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c: In function ‘Reduce_Aux_File’:
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c:1165:7: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+ 1165 |       fscanf(FS, "%d%d%d%d%d%lld%d%lld %lld %d%d%d%lld", &d, &i, &j, &nu, &Sli, &sNF, &FIs.nSM,
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1166 |              &sNM, &FIs.NB, &SslNF, &SslSM, &SslNM, &SslNB);
+      |              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c:1174:7: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+ 1174 |       fscanf(FS, "%d", &v);
+      |       ^~~~~~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c:1175:7: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+ 1175 |       fscanf(FS, "%d", &j);
+      |       ^~~~~~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c:1178:9: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+ 1178 |         fscanf(FS, "%d", &nu);
+      |         ^~~~~~~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c:1179:9: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+ 1179 |         fscanf(FS, "%d", &FIs.NFnum[v][nu]);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c: In function ‘Bin2aDBsl’:
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c:1778:3: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+ 1778 |   fscanf(F, "%d%d%d%d%d%lld%d%lld %lld %d%d%d%d", &d, &i, &j, &nu, &list_num, &L.nNF, &L.nSM,
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1779 |          &L.nNM, &L.NB, &sl_nNF, &sl_SM, &sl_NM, &sl_NB);
+      |          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c: In function ‘DB_to_Hodge’:
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c:1906:3: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+ 1906 |   fscanf(DB.Finfo, "%d  %d %d %d  %d  %lld %d %lld %lld  %d %d %d %d", &d, &DB.nV, &DB.nVmax,
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1907 |          &DB.NUCmax, &list_num, &DB.nNF, &DB.nSM, &DB.nNM, &DB.NB, &sl_nNF, &sl_SM, &sl_NM, &sl_NB);
+      |          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c:1918:5: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+ 1918 |     fscanf(DB.Finfo, "%d", &v);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c:1919:5: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+ 1919 |     fscanf(DB.Finfo, "%d", &(DB.nNUC[v]));
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c:1921:7: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+ 1921 |       fscanf(DB.Finfo, "%d", &nu);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c:1922:7: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+ 1922 |       fscanf(DB.Finfo, "%d", &(DB.NFnum[v][nu]));
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c: In function ‘Sort_Hodge’:
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c:2063:5: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+ 2063 |     fscanf(Fvinfo, "%d  %d", &nd, &(nnf_v[v]));
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c:2066:7: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+ 2066 |       fscanf(Fvinfo, "%d", &dh);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c:2067:7: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+ 2067 |       fscanf(Fvinfo, "%d", &(nnf_vd[v][dh]));
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c: In function ‘Test_Hodge_db’:
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c:2207:5: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+ 2207 |     fscanf(Fhinfo, "%d  %d", &nh, &(nnf_d[dh]));
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c:2210:7: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+ 2210 |       fscanf(Fhinfo, "%d", &h12);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c:2211:7: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+ 2211 |       fscanf(Fhinfo, "%d", &(nnf_dh[dh][h12]));
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c: In function ‘Extract_from_Hodge_db’:
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c:2415:5: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+ 2415 |     fscanf(Fhinfo, "%d  %d", &nh, &(nnf_d[dh]));
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c:2418:7: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+ 2418 |       fscanf(Fhinfo, "%d", &h12);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c:2419:7: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+ 2419 |       fscanf(Fhinfo, "%d", &(nnf_dh[dh][h12]));
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c: In function ‘Open_DB’:
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c:2606:3: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+ 2606 |   fscanf(DB->Finfo, "%d  %d %d %d  %d  %lld %d %lld %lld  %d %d %d %d", &DB->d, &DB->nV, &DB->nVmax,
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 2607 |          &DB->NUCmax, &DB->list_num, &DB->nNF, &DB->nSM, &DB->nNM, &DB->NB, &DB->sl_nNF, &DB->sl_SM,
+      |          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 2608 |          &DB->sl_NM, &DB->sl_NB);
+      |          ~~~~~~~~~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c:2619:5: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+ 2619 |     fscanf(DB->Finfo, "%d", &v);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c:2620:5: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+ 2620 |     fscanf(DB->Finfo, "%d", &(DB->nNUC[v]));
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c:2622:7: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+ 2622 |       fscanf(DB->Finfo, "%d", &nu);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c:2623:7: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+ 2623 |       fscanf(DB->Finfo, "%d", &(DB->NFnum[v][nu]));
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c: In function ‘Bin_2_ANF_DBsl’:
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c:3235:3: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+ 3235 |   fscanf(F, "%d%d%d%d%d%lld%d%lld %lld %d%d%d%d", &d, &i, &j, &nu, &list_num, &L.nNF, &L.nSM,
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 3236 |          &L.nNM, &L.NB, &sl_nNF, &sl_SM, &sl_NM, &sl_NB);
+      |          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c: In function ‘PH_Sublat_Polys.constprop’:
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c:2958:5: warning: ‘Make_VEPM’ accessing 1310720 bytes in a region of size 131072 [-Wstringop-overflow=]
+ 2958 |     Make_VEPM(_P, &V, &E, PM);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c:2958:5: note: referencing argument 4 of type ‘long int (*)[128]’
+In file included from /home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c:1:
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Global.h:434:6: note: in a call to function ‘Make_VEPM’
+  434 | void Make_VEPM(PolyPointList *P, VertexNumList *VNL, EqList *EL, PairMat PM);
+      |      ^~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c: In function ‘PH_Sublat_Polys’:
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c:2958:5: warning: ‘Make_VEPM’ accessing 1310720 bytes in a region of size 131072 [-Wstringop-overflow=]
+ 2958 |     Make_VEPM(_P, &V, &E, PM);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c:2958:5: note: referencing argument 4 of type ‘long int (*)[128]’
+In file included from /home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c:1:
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Global.h:434:6: note: in a call to function ‘Make_VEPM’
+  434 | void Make_VEPM(PolyPointList *P, VertexNumList *VNL, EqList *EL, PairMat PM);
+      |      ^~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c:2958:5: warning: ‘Make_VEPM’ accessing 1310720 bytes in a region of size 131072 [-Wstringop-overflow=]
+ 2958 |     Make_VEPM(_P, &V, &E, PM);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c:2958:5: note: referencing argument 4 of type ‘long int (*)[128]’
+In file included from /home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subdb.c:1:
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Global.h:434:6: note: in a call to function ‘Make_VEPM’
+  434 | void Make_VEPM(PolyPointList *P, VertexNumList *VNL, EqList *EL, PairMat PM);
+      |      ^~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subpoly.c: In function ‘Start_Make_All_Subpolys’:
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subpoly.c:676:5: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  676 |     fscanf(inFILE, "%d", &(KL.nk));
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/ahat01/.copilot/session-state/5025fcda-7597-418d-a161-02ccdff0d888/files/ws-profile/backend128/Subpoly.c:679:7: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  679 |       fscanf(inFILE, "%d", &j);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~

@@ -1,0 +1,78 @@
+{
+  "source": "Statistics supplied by the user before the catalogue profiling.",
+  "qualification": "Selected vertex rows are partial histograms, not catalogue totals. Input-WS multiplicities and deduplication rates must not be applied again to the unique-row counts.",
+  "reflexive": {
+    "primal_points": { "min": 7, "median": 211, "mean": 1018, "max": 355785 },
+    "dual_points": { "min": 7, "median": 2996, "mean": 6505, "max": 355785 },
+    "primal_vertices": { "min": 6, "median": 18, "mean": 18, "max": 46 },
+    "dual_vertices": { "min": 6, "median": 22, "mean": 22, "max": 57 },
+    "selected_rows_columns": [
+      "vertices",
+      "unique_polytopes",
+      "input_WS",
+      "deduplication_rate"
+    ],
+    "selected_rows": [
+      [6, 50001, 1311836904, "100.0%"],
+      [7, 378704, 4874884611, "100.0%"],
+      [8, 1856608, 9902640868, "100.0%"],
+      [9, 6489821, 14677828293, "100.0%"],
+      [10, 17780875, 18353141669, "99.9%"],
+      [12, 72971112, 20851929309, "99.7%"],
+      [15, 206745591, 15281826497, "98.6%"],
+      [17, 252478090, 9449906723, "97.3%"],
+      [20, 199461767, 3207144257, "93.8%"],
+      [25, 47130256, 253436021, "81.4%"],
+      [30, 4208369, 10975775, "61.7%"],
+      [35, 158968, 244018, "34.9%"],
+      [40, 3254, 3691, "11.8%"],
+      [45, 6, 6, "0.0%"],
+      [46, 3, 3, "0.0%"]
+    ]
+  },
+  "nonreflexive_ip": {
+    "primal_points": { "min": 7, "mean": 892.5, "max": 222426 },
+    "vertices": { "min": 6, "max": 49 },
+    "facets": { "min": 6, "max": 63 },
+    "distinct_vertex_facet_pairs": 1615,
+    "vertex_peak": {
+      "vertices": 20,
+      "containers": 1121036726,
+      "rounded_percent": 9.8
+    },
+    "facet_peak": {
+      "facets": 25,
+      "containers": 827809033,
+      "rounded_percent": 7.2
+    },
+    "selected_rows_columns": [
+      "vertices",
+      "unique_polytopes",
+      "input_WS",
+      "deduplication_rate"
+    ],
+    "selected_rows": [
+      [6, 6528, 27865493, "100.0%"],
+      [7, 122666, 308260822, "100.0%"],
+      [8, 991211, 1034441892, "99.9%"],
+      [9, 4913054, 2291848579, "99.8%"],
+      [10, 17522984, 4160133119, "99.6%"],
+      [12, 110065798, 8814355268, "98.8%"],
+      [15, 536533946, 13166105020, "95.9%"],
+      [17, 906148080, 12496700969, "92.7%"],
+      [20, 1121036726, 8083485980, "86.1%"],
+      [25, 526289240, 1835659746, "71.3%"],
+      [30, 87177333, 184930954, "52.9%"],
+      [35, 5448559, 7920394, "31.2%"],
+      [40, 109782, 122552, "10.4%"],
+      [45, 433, 433, "0.0%"],
+      [49, 2, 2, "0.0%"]
+    ]
+  },
+  "later_verified_unique_rows": {
+    "nonreflexive_ip": 11469405637,
+    "reflexive": 2377115412,
+    "WS_total": 13846521049
+  },
+  "CWS_status_at_profiling": "Still loading; approximately one billion IP plus reflexive records reported, typically point-heavier. Not profiled."
+}

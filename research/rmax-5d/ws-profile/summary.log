@@ -1,0 +1,284 @@
+{
+  "date": "2026-11-04",
+  "counts": {
+    "ip": 11469405637,
+    "reflexive": 2377115412
+  },
+  "ws_total": 13846521049,
+  "sample_records": 538,
+  "prime_states_measured": 81776,
+  "native_statuses": {
+    "complete": 538
+  },
+  "lattice_statuses": {
+    "complete": 538
+  },
+  "random_statistics": {
+    "ip": {
+      "random_records": 256,
+      "point_seconds": {
+        "n": 256,
+        "min": 1.224e-05,
+        "median": 8.57255e-05,
+        "mean": 9.7857625e-05,
+        "p95": 0.000195376,
+        "max": 0.000382261,
+        "cluster_bootstrap_mean_95": [
+          8.999532529296876e-05,
+          0.00010539394296874998
+        ]
+      },
+      "hull_seconds": {
+        "n": 256,
+        "min": 2.4e-05,
+        "median": 0.00011146499999999999,
+        "mean": 0.00030130331640625,
+        "p95": 0.0011867545,
+        "max": 0.004192508,
+        "cluster_bootstrap_mean_95": [
+          0.00023705614482421873,
+          0.000370709867578125
+        ]
+      },
+      "vertex_hull_seconds": {
+        "n": 256,
+        "min": 1.099e-05,
+        "median": 3.2309999999999994e-05,
+        "mean": 3.5294207031250004e-05,
+        "p95": 6.235999999999999e-05,
+        "max": 8.49e-05,
+        "cluster_bootstrap_mean_95": [
+          3.357979765625e-05,
+          3.72350859375e-05
+        ]
+      },
+      "nf_seconds": {
+        "n": 256,
+        "min": 1.284e-05,
+        "median": 3.1129999999999995e-05,
+        "mean": 3.25794453125e-05,
+        "p95": 5.0845e-05,
+        "max": 6.38e-05,
+        "cluster_bootstrap_mean_95": [
+          3.148484609375e-05,
+          3.38166345703125e-05
+        ]
+      },
+      "dual_seconds": {
+        "n": 256,
+        "min": 0.0,
+        "median": 0.0,
+        "mean": 0.0,
+        "p95": 0.0,
+        "max": 0.0,
+        "cluster_bootstrap_mean_95": [
+          0.0,
+          0.0
+        ]
+      },
+      "root_reconstruction_seconds": {
+        "n": 256,
+        "min": 4.711e-05,
+        "median": 0.0002101405,
+        "mean": 0.00039916094140625,
+        "p95": 0.001345312,
+        "max": 0.004571819,
+        "cluster_bootstrap_mean_95": [
+          0.0003292284358398438,
+          0.0004742678673828125
+        ]
+      },
+      "lattice_kernel_seconds": {
+        "n": 256,
+        "min": 0.000471501,
+        "median": 0.001995064,
+        "mean": 0.004484709453125,
+        "p95": 0.01604624,
+        "max": 0.070340232
+      },
+      "lattice_counts": {
+        "states": 38912,
+        "cheap_non_ip": 26125,
+        "hull_calls": 12787,
+        "ip": 748,
+        "reflexive": 286,
+        "ip_nonreflexive": 462
+      },
+      "lattice_counts_per_root": {
+        "states": 152.0,
+        "cheap_non_ip": 102.05078125,
+        "hull_calls": 49.94921875,
+        "ip": 2.921875,
+        "reflexive": 1.1171875,
+        "ip_nonreflexive": 1.8046875
+      }
+    },
+    "reflexive": {
+      "random_records": 256,
+      "point_seconds": {
+        "n": 256,
+        "min": 4.52e-06,
+        "median": 6.531500000000001e-05,
+        "mean": 7.96909296875e-05,
+        "p95": 0.00018682025,
+        "max": 0.000513781,
+        "cluster_bootstrap_mean_95": [
+          7.279695019531251e-05,
+          8.7468871875e-05
+        ]
+      },
+      "hull_seconds": {
+        "n": 256,
+        "min": 1.082e-05,
+        "median": 8.2655e-05,
+        "mean": 0.00023545449609375,
+        "p95": 0.00094594925,
+        "max": 0.004140688,
+        "cluster_bootstrap_mean_95": [
+          0.00017615952841796876,
+          0.0003105342131835936
+        ]
+      },
+      "vertex_hull_seconds": {
+        "n": 256,
+        "min": 6.09e-06,
+        "median": 2.393e-05,
+        "mean": 2.73438828125e-05,
+        "p95": 5.6105e-05,
+        "max": 8.5151e-05,
+        "cluster_bootstrap_mean_95": [
+          2.5568345996093748e-05,
+          2.9175613964843752e-05
+        ]
+      },
+      "nf_seconds": {
+        "n": 256,
+        "min": 7.53e-06,
+        "median": 2.5614999999999998e-05,
+        "mean": 2.6773890625e-05,
+        "p95": 4.5902499999999996e-05,
+        "max": 5.439e-05,
+        "cluster_bootstrap_mean_95": [
+          2.5580269335937497e-05,
+          2.793842666015625e-05
+        ]
+      },
+      "dual_seconds": {
+        "n": 256,
+        "min": 0.00010431,
+        "median": 0.0037124425,
+        "mean": 0.00810924192578125,
+        "p95": 0.026345007,
+        "max": 0.131175046,
+        "cluster_bootstrap_mean_95": [
+          0.0066914360731445315,
+          0.009710906785449216
+        ]
+      },
+      "root_reconstruction_seconds": {
+        "n": 256,
+        "min": 1.897e-05,
+        "median": 0.0001622105,
+        "mean": 0.00031514542578125,
+        "p95": 0.00113440925,
+        "max": 0.004654469,
+        "cluster_bootstrap_mean_95": [
+          0.0002502894513671875,
+          0.00039686931142578116
+        ]
+      },
+      "lattice_kernel_seconds": {
+        "n": 256,
+        "min": 0.000431001,
+        "median": 0.0017911289999999998,
+        "mean": 0.0043520977070312505,
+        "p95": 0.014319532,
+        "max": 0.06961196
+      },
+      "lattice_counts": {
+        "states": 38912,
+        "cheap_non_ip": 26445,
+        "hull_calls": 12467,
+        "ip": 707,
+        "reflexive": 424,
+        "ip_nonreflexive": 283
+      },
+      "lattice_counts_per_root": {
+        "states": 152.0,
+        "cheap_non_ip": 103.30078125,
+        "hull_calls": 48.69921875,
+        "ip": 2.76171875,
+        "reflexive": 1.65625,
+        "ip_nonreflexive": 1.10546875
+      }
+    }
+  },
+  "conditional_scaling_original_and_indices_2_3_only": {
+    "baseline_geometry_calls": 702498035586.9805,
+    "nonreflexive_starting_states": 34795925425.63281,
+    "root_single_worker_days": 61.65828472315951,
+    "lattice_single_worker_years": 1.9577658128594353,
+    "extra_nodes_scenarios": {
+      "10": 1050457289843.3086,
+      "100": 4182090578150.2617,
+      "1000": 35498423461219.8,
+      "25000": 870600633676407.2
+    },
+    "prune_fraction_for_100B_with_b1000": 0.9975720866252327,
+    "note": "No root reduction or cross-record caching. Scenario b is additional nodes per nonreflexive start, not an observed completed-search mean. Other indices, CWS and global maximality costs excluded."
+  },
+  "limitations": [
+    "Metadata counts are not independent validation of every record or deduplication.",
+    "Only representative WS records and bounded search obligations were tested.",
+    "Elapsed native kernel time is used as single-worker cost, not a hardware CPU counter.",
+    "Bootstrap intervals account for 64 sampled clusters, not unseen extreme tails.",
+    "No complete lattice enumeration or complete 5D classification was performed.",
+    "CWS timing is not inferred from WS timing.",
+    "Global maximality probes use reflexive WS roots, not post-pruning leaf candidates."
+  ],
+  "random_recursive": {
+    "n": 64,
+    "statuses": {
+      "censored": 63,
+      "complete": 1
+    },
+    "observed_nodes": {
+      "n": 64,
+      "min": 6.0,
+      "median": 1000.0,
+      "mean": 979.25,
+      "p95": 1000.0,
+      "max": 1000.0
+    },
+    "first_leaf_found": 52,
+    "note": "Censored node counts are lower bounds, never completed-search estimates."
+  },
+  "maximality": {
+    "default_8MiB_stack": {
+      "error": 62,
+      "complete": 16
+    },
+    "stack_256MiB_VERT64": {
+      "complete": 47,
+      "error": 20,
+      "censored": 11
+    },
+    "failed_cases_stack_1GiB_VERT128": {
+      "censored": 25,
+      "complete": 8
+    },
+    "combined_statuses": {
+      "complete": 53,
+      "censored": 25
+    },
+    "completed_seconds": {
+      "n": 53,
+      "min": 0.0035920069785788655,
+      "median": 0.3537261850433424,
+      "mean": 0.8787751531289926,
+      "p95": 4.223916436242871,
+      "max": 4.801413789973594
+    },
+    "note": "Completed-only times are selection-biased. All unresolved final cases censored at five seconds. Function counters are from separate instrumented repeats."
+  }
+}

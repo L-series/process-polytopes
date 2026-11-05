@@ -1,0 +1,38 @@
+[
+  {
+    "id": 1,
+    "reference_hull_seconds": 0.003944467986002564
+  },
+  {
+    "id": 10,
+    "reference_hull_seconds": 0.003972926991991699
+  },
+  {
+    "id": 24,
+    "reference_hull_seconds": 0.005300570046529174
+  },
+  {
+    "id": 32,
+    "reference_hull_seconds": 0.8720554289175197
+  },
+  {
+    "id": 33,
+    "reference_hull_seconds": 0.01403758698143065
+  },
+  {
+    "id": 87,
+    "reference_hull_seconds": 0.00897216796875
+  },
+  {
+    "id": 103,
+    "reference_hull_seconds": 0.004325788002461195
+  },
+  {
+    "id": 122,
+    "reference_hull_seconds": 0.015322480932809412
+  },
+  {
+    "id": 141,
+    "reference_hull_seconds": 1.3358120790217072
+  }
+]

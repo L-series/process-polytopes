@@ -1,0 +1,78 @@
+{"id": 76, "status": "error", "seconds": 0.26479685702361166, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 77, "status": "error", "seconds": 0.3289979479741305, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 78, "status": "error", "seconds": 0.22499982209410518, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 80, "status": "complete", "seconds": 0.01816566300112754, "maximal": false, "counts": {"IP_Check": 22, "Ref_Check": 0, "Aided_IP_Check": 5, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 79, "status": "error", "seconds": 0.3368978319922462, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 82, "status": "error", "seconds": 0.24434272898361087, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 81, "status": "error", "seconds": 0.7020542179234326, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 83, "status": "error", "seconds": 0.39427963097114116, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 85, "status": "error", "seconds": 0.3126665069721639, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 86, "status": "complete", "seconds": 0.027797193033620715, "maximal": false, "counts": {"IP_Check": 25, "Ref_Check": 0, "Aided_IP_Check": 7, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 87, "status": "complete", "seconds": 0.003906417987309396, "maximal": true, "counts": {"IP_Check": 8, "Ref_Check": 0, "Aided_IP_Check": 0, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 88, "status": "error", "seconds": 0.29788511991500854, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 89, "status": "error", "seconds": 0.3604741470189765, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 90, "status": "error", "seconds": 0.2802844160469249, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 91, "status": "error", "seconds": 0.22846439899876714, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 84, "status": "error", "seconds": 1.9948922669282183, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 92, "status": "error", "seconds": 0.4222391030052677, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 93, "status": "error", "seconds": 0.32598459196742624, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 94, "status": "error", "seconds": 0.34159217204432935, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 95, "status": "complete", "seconds": 0.055676305084489286, "maximal": false, "counts": {"IP_Check": 16, "Ref_Check": 0, "Aided_IP_Check": 113, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 96, "status": "error", "seconds": 0.30025308404583484, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 97, "status": "error", "seconds": 0.3260458030272275, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 98, "status": "error", "seconds": 0.3004341940395534, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 99, "status": "error", "seconds": 0.28858954191673547, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 101, "status": "complete", "seconds": 0.01064133900217712, "maximal": false, "counts": {"IP_Check": 27, "Ref_Check": 0, "Aided_IP_Check": 1, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 100, "status": "error", "seconds": 0.294750633998774, "returncode": -6, "stderr": "class-5d.x: Vertex.c:1122: Finish_IP_Check: Assertion `_V->nv < VERT_Nmax' failed.\n", "stdout": ""}
+{"id": 102, "status": "error", "seconds": 0.3138165900018066, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 103, "status": "complete", "seconds": 0.07908074907027185, "maximal": false, "counts": {"IP_Check": 8, "Ref_Check": 0, "Aided_IP_Check": 112, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 104, "status": "error", "seconds": 0.31976707105059177, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 106, "status": "complete", "seconds": 0.011326140956953168, "maximal": false, "counts": {"IP_Check": 23, "Ref_Check": 0, "Aided_IP_Check": 1, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 105, "status": "error", "seconds": 0.3433607049519196, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 107, "status": "complete", "seconds": 0.04099174705334008, "maximal": false, "counts": {"IP_Check": 25, "Ref_Check": 0, "Aided_IP_Check": 1, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 109, "status": "error", "seconds": 0.2980649209348485, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 108, "status": "error", "seconds": 0.4866282839793712, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 110, "status": "error", "seconds": 0.2910477159311995, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 111, "status": "error", "seconds": 0.36883866298012435, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 112, "status": "error", "seconds": 0.2809294480830431, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 114, "status": "complete", "seconds": 0.007799524930305779, "maximal": false, "counts": {"IP_Check": 19, "Ref_Check": 0, "Aided_IP_Check": 1, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 115, "status": "error", "seconds": 0.41495971800759435, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 113, "status": "error", "seconds": 0.6090563830221072, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 117, "status": "complete", "seconds": 0.03321842197328806, "maximal": false, "counts": {"IP_Check": 17, "Ref_Check": 0, "Aided_IP_Check": 35, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 118, "status": "complete", "seconds": 0.011261450941674411, "maximal": false, "counts": {"IP_Check": 17, "Ref_Check": 0, "Aided_IP_Check": 1, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 116, "status": "error", "seconds": 0.2878096509957686, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 120, "status": "error", "seconds": 0.2991952310549095, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 121, "status": "complete", "seconds": 0.015446988982148468, "maximal": false, "counts": {"IP_Check": 20, "Ref_Check": 0, "Aided_IP_Check": 18, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 119, "status": "error", "seconds": 0.4199742089258507, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 123, "status": "error", "seconds": 0.35970972606446594, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 122, "status": "error", "seconds": 0.44728723994921893, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 124, "status": "error", "seconds": 0.28976559394504875, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 125, "status": "error", "seconds": 0.29375833203084767, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 127, "status": "error", "seconds": 0.23613703297451138, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 126, "status": "error", "seconds": 0.45521562499925494, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 128, "status": "error", "seconds": 0.3941540699452162, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 129, "status": "error", "seconds": 0.35072957002557814, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 130, "status": "error", "seconds": 0.4106458309106529, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 131, "status": "error", "seconds": 0.3742707029450685, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 133, "status": "complete", "seconds": 0.01087065995670855, "maximal": false, "counts": {"IP_Check": 11, "Ref_Check": 0, "Aided_IP_Check": 13, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 132, "status": "error", "seconds": 0.2915220980066806, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 134, "status": "error", "seconds": 0.2719622510485351, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 135, "status": "error", "seconds": 0.39131920400541276, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 136, "status": "error", "seconds": 0.39479487005155534, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 138, "status": "error", "seconds": 0.2360829630633816, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 137, "status": "error", "seconds": 0.376280177035369, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 139, "status": "complete", "seconds": 0.11837375303730369, "maximal": false, "counts": {"IP_Check": 31, "Ref_Check": 0, "Aided_IP_Check": 18, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 140, "status": "error", "seconds": 0.3216791049344465, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 141, "status": "complete", "seconds": 0.1325692490208894, "maximal": true, "counts": {"IP_Check": 8, "Ref_Check": 0, "Aided_IP_Check": 0, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 142, "status": "error", "seconds": 0.3094104010378942, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 143, "status": "error", "seconds": 0.3464869010495022, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 144, "status": "error", "seconds": 0.31525396299548447, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 145, "status": "error", "seconds": 0.27265842200722545, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 146, "status": "error", "seconds": 0.45993082399945706, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 147, "status": "error", "seconds": 0.4208457700442523, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 148, "status": "error", "seconds": 0.3828894889447838, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 149, "status": "error", "seconds": 0.33983062801416963, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 150, "status": "error", "seconds": 0.31235857703723013, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 152, "status": "error", "seconds": 0.28720328002236784, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 153, "status": "complete", "seconds": 0.014529336942359805, "maximal": false, "counts": {"IP_Check": 18, "Ref_Check": 0, "Aided_IP_Check": 13, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 151, "status": "error", "seconds": 0.556214964017272, "returncode": -11, "stderr": "", "stdout": ""}

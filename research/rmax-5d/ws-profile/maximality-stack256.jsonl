@@ -1,0 +1,78 @@
+{"id": 76, "status": "complete", "seconds": 0.08156359102576971, "maximal": false, "counts": {"IP_Check": 8, "Ref_Check": 0, "Aided_IP_Check": 132, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 78, "status": "complete", "seconds": 0.08937310590408742, "maximal": false, "counts": {"IP_Check": 18, "Ref_Check": 0, "Aided_IP_Check": 153, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 77, "status": "complete", "seconds": 0.6006366100627929, "maximal": false, "counts": {"IP_Check": 20, "Ref_Check": 0, "Aided_IP_Check": 964, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 80, "status": "complete", "seconds": 0.018424395937472582, "maximal": false, "counts": {"IP_Check": 22, "Ref_Check": 0, "Aided_IP_Check": 5, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 79, "status": "error", "seconds": 1.899329829029739, "returncode": -6, "stderr": "class-5d.x: Vertex.c:1122: Finish_IP_Check: Assertion `_V->nv < VERT_Nmax' failed.\n", "stdout": ""}
+{"id": 82, "status": "complete", "seconds": 0.12378304393496364, "maximal": false, "counts": {"IP_Check": 20, "Ref_Check": 0, "Aided_IP_Check": 168, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 81, "status": "censored", "timeout_seconds": 5, "seconds": 5.019335753982887}
+{"id": 83, "status": "censored", "timeout_seconds": 5, "seconds": 5.032880690996535}
+{"id": 85, "status": "complete", "seconds": 0.7249822319718078, "maximal": false, "counts": {"IP_Check": 26, "Ref_Check": 0, "Aided_IP_Check": 1088, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 86, "status": "complete", "seconds": 0.027951015043072402, "maximal": false, "counts": {"IP_Check": 25, "Ref_Check": 0, "Aided_IP_Check": 7, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 87, "status": "complete", "seconds": 0.003940028022043407, "maximal": true, "counts": {"IP_Check": 8, "Ref_Check": 0, "Aided_IP_Check": 0, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 88, "status": "complete", "seconds": 0.3537261850433424, "maximal": false, "counts": {"IP_Check": 28, "Ref_Check": 0, "Aided_IP_Check": 646, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 84, "status": "censored", "timeout_seconds": 5, "seconds": 5.02567718597129}
+{"id": 89, "status": "error", "seconds": 1.7961398349143565, "returncode": -6, "stderr": "class-5d.x: Vertex.c:1122: Finish_IP_Check: Assertion `_V->nv < VERT_Nmax' failed.\n", "stdout": ""}
+{"id": 90, "status": "complete", "seconds": 0.42311813100241125, "maximal": false, "counts": {"IP_Check": 19, "Ref_Check": 0, "Aided_IP_Check": 1195, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 91, "status": "complete", "seconds": 0.6870579679962248, "maximal": false, "counts": {"IP_Check": 18, "Ref_Check": 0, "Aided_IP_Check": 1249, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 92, "status": "error", "seconds": 3.3991642529144883, "returncode": -6, "stderr": "class-5d.x: Vertex.c:1122: Finish_IP_Check: Assertion `_V->nv < VERT_Nmax' failed.\n", "stdout": ""}
+{"id": 94, "status": "complete", "seconds": 0.37762893992476165, "maximal": false, "counts": {"IP_Check": 20, "Ref_Check": 0, "Aided_IP_Check": 883, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 95, "status": "complete", "seconds": 0.05150247097481042, "maximal": false, "counts": {"IP_Check": 16, "Ref_Check": 0, "Aided_IP_Check": 113, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 96, "status": "complete", "seconds": 0.5828834940912202, "maximal": false, "counts": {"IP_Check": 25, "Ref_Check": 0, "Aided_IP_Check": 1276, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 97, "status": "complete", "seconds": 0.27320229599718004, "maximal": false, "counts": {"IP_Check": 23, "Ref_Check": 0, "Aided_IP_Check": 407, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 98, "status": "error", "seconds": 0.49681003391742706, "returncode": -6, "stderr": "class-5d.x: Vertex.c:1122: Finish_IP_Check: Assertion `_V->nv < VERT_Nmax' failed.\n", "stdout": ""}
+{"id": 99, "status": "complete", "seconds": 0.30032401997596025, "maximal": false, "counts": {"IP_Check": 15, "Ref_Check": 0, "Aided_IP_Check": 845, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 100, "status": "error", "seconds": 0.27209642389789224, "returncode": -6, "stderr": "class-5d.x: Vertex.c:1122: Finish_IP_Check: Assertion `_V->nv < VERT_Nmax' failed.\n", "stdout": ""}
+{"id": 101, "status": "complete", "seconds": 0.01002920896280557, "maximal": false, "counts": {"IP_Check": 27, "Ref_Check": 0, "Aided_IP_Check": 1, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 93, "status": "complete", "seconds": 2.939050168963149, "maximal": false, "counts": {"IP_Check": 19, "Ref_Check": 0, "Aided_IP_Check": 3933, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 103, "status": "complete", "seconds": 0.06803142302669585, "maximal": false, "counts": {"IP_Check": 8, "Ref_Check": 0, "Aided_IP_Check": 112, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 104, "status": "error", "seconds": 1.069296019966714, "returncode": -6, "stderr": "class-5d.x: Vertex.c:1122: Finish_IP_Check: Assertion `_V->nv < VERT_Nmax' failed.\n", "stdout": ""}
+{"id": 105, "status": "error", "seconds": 0.978313639992848, "returncode": -6, "stderr": "class-5d.x: Vertex.c:1122: Finish_IP_Check: Assertion `_V->nv < VERT_Nmax' failed.\n", "stdout": ""}
+{"id": 106, "status": "complete", "seconds": 0.00988242996390909, "maximal": false, "counts": {"IP_Check": 23, "Ref_Check": 0, "Aided_IP_Check": 1, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 107, "status": "complete", "seconds": 0.03924602793995291, "maximal": false, "counts": {"IP_Check": 25, "Ref_Check": 0, "Aided_IP_Check": 1, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 102, "status": "complete", "seconds": 1.715911909006536, "maximal": false, "counts": {"IP_Check": 26, "Ref_Check": 0, "Aided_IP_Check": 2871, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 109, "status": "complete", "seconds": 0.5521177229238674, "maximal": false, "counts": {"IP_Check": 33, "Ref_Check": 0, "Aided_IP_Check": 941, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 108, "status": "error", "seconds": 2.4095032090554014, "returncode": -6, "stderr": "class-5d.x: Vertex.c:1122: Finish_IP_Check: Assertion `_V->nv < VERT_Nmax' failed.\n", "stdout": ""}
+{"id": 110, "status": "complete", "seconds": 0.37534392601810396, "maximal": false, "counts": {"IP_Check": 20, "Ref_Check": 0, "Aided_IP_Check": 602, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 111, "status": "error", "seconds": 3.723617998068221, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 112, "status": "censored", "timeout_seconds": 5, "seconds": 5.0221852459944785}
+{"id": 114, "status": "complete", "seconds": 0.0035920069785788655, "maximal": false, "counts": {"IP_Check": 19, "Ref_Check": 0, "Aided_IP_Check": 1, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 113, "status": "censored", "timeout_seconds": 5, "seconds": 5.028164588031359}
+{"id": 115, "status": "censored", "timeout_seconds": 5, "seconds": 5.024942031945102}
+{"id": 117, "status": "complete", "seconds": 0.03601099201478064, "maximal": false, "counts": {"IP_Check": 17, "Ref_Check": 0, "Aided_IP_Check": 35, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 118, "status": "complete", "seconds": 0.011448121978901327, "maximal": false, "counts": {"IP_Check": 17, "Ref_Check": 0, "Aided_IP_Check": 1, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 116, "status": "complete", "seconds": 1.6488086660392582, "maximal": false, "counts": {"IP_Check": 16, "Ref_Check": 0, "Aided_IP_Check": 2764, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 119, "status": "error", "seconds": 2.8712783250957727, "returncode": -6, "stderr": "class-5d.x: Vertex.c:1122: Finish_IP_Check: Assertion `_V->nv < VERT_Nmax' failed.\n", "stdout": ""}
+{"id": 121, "status": "complete", "seconds": 0.01574974099639803, "maximal": false, "counts": {"IP_Check": 20, "Ref_Check": 0, "Aided_IP_Check": 18, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 122, "status": "error", "seconds": 0.4611477949656546, "returncode": -6, "stderr": "class-5d.x: Vertex.c:1122: Finish_IP_Check: Assertion `_V->nv < VERT_Nmax' failed.\n", "stdout": ""}
+{"id": 120, "status": "complete", "seconds": 1.5609932930674404, "maximal": false, "counts": {"IP_Check": 21, "Ref_Check": 0, "Aided_IP_Check": 3437, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 123, "status": "complete", "seconds": 1.9240923060569912, "maximal": false, "counts": {"IP_Check": 26, "Ref_Check": 0, "Aided_IP_Check": 3156, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 125, "status": "complete", "seconds": 0.23569323308765888, "maximal": false, "counts": {"IP_Check": 20, "Ref_Check": 0, "Aided_IP_Check": 485, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 124, "status": "censored", "timeout_seconds": 5, "seconds": 5.013381388038397}
+{"id": 127, "status": "complete", "seconds": 0.6165888200048357, "maximal": false, "counts": {"IP_Check": 25, "Ref_Check": 0, "Aided_IP_Check": 1253, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 126, "status": "censored", "timeout_seconds": 5, "seconds": 5.035203251056373}
+{"id": 128, "status": "error", "seconds": 4.763837047968991, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 129, "status": "error", "seconds": 4.500499741989188, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 130, "status": "complete", "seconds": 1.1912346869939938, "maximal": false, "counts": {"IP_Check": 17, "Ref_Check": 0, "Aided_IP_Check": 1102, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 132, "status": "complete", "seconds": 0.2139808899955824, "maximal": false, "counts": {"IP_Check": 26, "Ref_Check": 0, "Aided_IP_Check": 340, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 133, "status": "complete", "seconds": 0.009774098987691104, "maximal": false, "counts": {"IP_Check": 11, "Ref_Check": 0, "Aided_IP_Check": 13, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 134, "status": "complete", "seconds": 0.34874541393946856, "maximal": false, "counts": {"IP_Check": 23, "Ref_Check": 0, "Aided_IP_Check": 658, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 131, "status": "complete", "seconds": 1.9360524989897385, "maximal": false, "counts": {"IP_Check": 27, "Ref_Check": 0, "Aided_IP_Check": 3045, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 135, "status": "error", "seconds": 2.643816526979208, "returncode": -6, "stderr": "class-5d.x: Vertex.c:1122: Finish_IP_Check: Assertion `_V->nv < VERT_Nmax' failed.\n", "stdout": ""}
+{"id": 137, "status": "error", "seconds": 0.40342301200143993, "returncode": -6, "stderr": "class-5d.x: Vertex.c:1122: Finish_IP_Check: Assertion `_V->nv < VERT_Nmax' failed.\n", "stdout": ""}
+{"id": 136, "status": "error", "seconds": 4.705612984020263, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 139, "status": "complete", "seconds": 0.12085179693531245, "maximal": false, "counts": {"IP_Check": 31, "Ref_Check": 0, "Aided_IP_Check": 18, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 138, "status": "censored", "timeout_seconds": 5, "seconds": 5.0094368300633505}
+{"id": 141, "status": "complete", "seconds": 0.12548518599942327, "maximal": true, "counts": {"IP_Check": 8, "Ref_Check": 0, "Aided_IP_Check": 0, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 140, "status": "complete", "seconds": 1.1896545729832724, "maximal": false, "counts": {"IP_Check": 24, "Ref_Check": 0, "Aided_IP_Check": 2251, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 142, "status": "error", "seconds": 0.5496115389978513, "returncode": -6, "stderr": "class-5d.x: Vertex.c:1122: Finish_IP_Check: Assertion `_V->nv < VERT_Nmax' failed.\n", "stdout": ""}
+{"id": 144, "status": "complete", "seconds": 0.10955551499500871, "maximal": false, "counts": {"IP_Check": 21, "Ref_Check": 0, "Aided_IP_Check": 150, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 145, "status": "complete", "seconds": 0.10283888201229274, "maximal": false, "counts": {"IP_Check": 19, "Ref_Check": 0, "Aided_IP_Check": 134, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 143, "status": "error", "seconds": 3.9854211999336258, "returncode": -11, "stderr": "", "stdout": ""}
+{"id": 146, "status": "censored", "timeout_seconds": 5, "seconds": 5.024492739932612}
+{"id": 147, "status": "complete", "seconds": 1.8826395439682528, "maximal": false, "counts": {"IP_Check": 20, "Ref_Check": 0, "Aided_IP_Check": 1216, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 149, "status": "error", "seconds": 0.7244010909926146, "returncode": -6, "stderr": "class-5d.x: Vertex.c:1122: Finish_IP_Check: Assertion `_V->nv < VERT_Nmax' failed.\n", "stdout": ""}
+{"id": 150, "status": "complete", "seconds": 0.48768899706192315, "maximal": false, "counts": {"IP_Check": 29, "Ref_Check": 0, "Aided_IP_Check": 723, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 148, "status": "censored", "timeout_seconds": 5, "seconds": 5.023806095938198}
+{"id": 152, "status": "error", "seconds": 0.5092757489765063, "returncode": -6, "stderr": "class-5d.x: Vertex.c:1122: Finish_IP_Check: Assertion `_V->nv < VERT_Nmax' failed.\n", "stdout": ""}
+{"id": 153, "status": "complete", "seconds": 0.01442055799998343, "maximal": false, "counts": {"IP_Check": 18, "Ref_Check": 0, "Aided_IP_Check": 13, "Make_Dual_Poly": 1, "Complete_Poly": 1}}
+{"id": 151, "status": "complete", "seconds": 0.9733242590446025, "maximal": false, "counts": {"IP_Check": 19, "Ref_Check": 0, "Aided_IP_Check": 783, "Make_Dual_Poly": 1, "Complete_Poly": 1}}

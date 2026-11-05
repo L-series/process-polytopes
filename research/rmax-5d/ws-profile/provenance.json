@@ -1,0 +1,14 @@
+{
+  "platform": "Linux-5.15.0-202-generic-x86_64-with-glibc2.35",
+  "cpus": 64,
+  "workers": 2,
+  "native_timeout_seconds": 30,
+  "repeats": 4,
+  "note": "Exclude first native repetition from steady-state summaries; process time includes all four repetitions and file dumps.",
+  "hashes": {
+    "native.c": "b821272cede113e8d302d6f353ff402ea086613e1b86b50e6ceaf5eaa1855595",
+    "native": "90713f47475ea192b8b6d1c033bc29b3ad3eac896f7b8ce3989fcc6603f65c1e",
+    "sample.py": "b615ec4a89ee2d69b9490690a4e7f53de4cc98d078d9d0d77d339e5f5e85a133"
+  },
+  "palp_commit": "ccc8e5e3f96ab2d424649f4bed3707a206c50bd2"
+}

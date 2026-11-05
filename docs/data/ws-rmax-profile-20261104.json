@@ -1,0 +1,2140 @@
+{
+  "conditional_scaling_original_and_indices_2_3_only": {
+    "baseline_geometry_calls": 702498035586.9805,
+    "extra_nodes_scenarios": {
+      "10": 1050457289843.3086,
+      "100": 4182090578150.2617,
+      "1000": 35498423461219.8,
+      "25000": 870600633676407.2
+    },
+    "lattice_single_worker_years": 1.9577658128594353,
+    "nonreflexive_starting_states": 34795925425.63281,
+    "note": "No root reduction or cross-record caching. Scenario b is additional nodes per nonreflexive start, not an observed completed-search mean. Other indices, CWS and global maximality costs excluded.",
+    "prune_fraction_for_100B_with_b1000": 0.9975720866252327,
+    "root_single_worker_days": 61.65828472315951
+  },
+  "containment_certificate_probe": {
+    "anchors": [
+      87,
+      141,
+      32
+    ],
+    "certified": 10,
+    "maps_per_anchor": 3840,
+    "note": "Search over signed permutations only, not all GL(5,Z). Failure is inconclusive. Root removal is safe only while retaining the anchor's complete lattice-descendant obligation.",
+    "random_inputs": 512,
+    "search_seconds": 6.328005560906604,
+    "verification_mean_ns": 6960.008311688313
+  },
+  "counts": {
+    "ip": 11469405637,
+    "reflexive": 2377115412
+  },
+  "date": "2026-11-04",
+  "hardware": {
+    "cpu": "AMD EPYC 9554P 64-Core Processor",
+    "logical_cpus_available": 64,
+    "maximum_workers_per_phase": 2,
+    "native_threads_per_process": 1,
+    "note": "Several bounded phases ran concurrently; no cold-cache or isolated-host claim."
+  },
+  "lattice_statuses": {
+    "complete": 538
+  },
+  "lattice_tree": [
+    {
+      "blind_smooth_lattices": 13481086,
+      "cap": 36,
+      "id": 1,
+      "note": "All 2,3-smooth indices through cap only; other primes are not covered. Kernel also evaluates some redundant/over-cap candidates; unique counts describe a scheduler that deduplicates before hull work.",
+      "pending_ip_parents": 0,
+      "primes": [
+        2,
+        3
+      ],
+      "seconds": 0.14162056799978018,
+      "stats": {
+        "cheap_non_ip": 110,
+        "hull_calls": 42,
+        "ip_parents_expanded": 1,
+        "kernel_ns": 585961,
+        "non_ip": 152,
+        "unique_lattices_tested": 152
+      },
+      "status": "complete"
+    },
+    {
+      "blind_smooth_lattices": 648276,
+      "cap": 22,
+      "id": 10,
+      "note": "All 2,3-smooth indices through cap only; other primes are not covered. Kernel also evaluates some redundant/over-cap candidates; unique counts describe a scheduler that deduplicates before hull work.",
+      "pending_ip_parents": 0,
+      "primes": [
+        2,
+        3
+      ],
+      "seconds": 0.22287606704048812,
+      "stats": {
+        "cheap_non_ip": 303,
+        "hull_calls": 1,
+        "ip_children": 1,
+        "ip_parents_expanded": 2,
+        "kernel_ns": 411262,
+        "non_ip": 303,
+        "reflexive_children": 0,
+        "unique_lattices_tested": 304
+      },
+      "status": "complete"
+    },
+    {
+      "blind_smooth_lattices": 13481086,
+      "cap": 36,
+      "id": 3,
+      "note": "All 2,3-smooth indices through cap only; other primes are not covered. Kernel also evaluates some redundant/over-cap candidates; unique counts describe a scheduler that deduplicates before hull work.",
+      "pending_ip_parents": 0,
+      "primes": [
+        2,
+        3
+      ],
+      "seconds": 0.12547176599036902,
+      "stats": {
+        "cheap_non_ip": 110,
+        "hull_calls": 42,
+        "ip_parents_expanded": 1,
+        "kernel_ns": 1634213,
+        "non_ip": 152,
+        "unique_lattices_tested": 152
+      },
+      "status": "complete"
+    },
+    {
+      "blind_smooth_lattices": 13481086,
+      "cap": 36,
+      "id": 0,
+      "note": "All 2,3-smooth indices through cap only; other primes are not covered. Kernel also evaluates some redundant/over-cap candidates; unique counts describe a scheduler that deduplicates before hull work.",
+      "pending_ip_parents": 0,
+      "primes": [
+        2,
+        3
+      ],
+      "seconds": 0.843457623035647,
+      "stats": {
+        "cheap_non_ip": 907,
+        "duplicate_lattices": 6,
+        "hull_calls": 151,
+        "ip_children": 6,
+        "ip_parents_expanded": 7,
+        "kernel_ns": 2914945,
+        "non_ip": 1052,
+        "reflexive_children": 2,
+        "unique_lattices_tested": 1058
+      },
+      "status": "complete"
+    },
+    {
+      "blind_smooth_lattices": 13481086,
+      "cap": 36,
+      "id": 33,
+      "note": "All 2,3-smooth indices through cap only; other primes are not covered. Kernel also evaluates some redundant/over-cap candidates; unique counts describe a scheduler that deduplicates before hull work.",
+      "pending_ip_parents": 0,
+      "primes": [
+        2,
+        3
+      ],
+      "seconds": 0.7836387270363048,
+      "stats": {
+        "cheap_non_ip": 593,
+        "duplicate_lattices": 2,
+        "hull_calls": 317,
+        "ip_children": 5,
+        "ip_parents_expanded": 6,
+        "kernel_ns": 20384521,
+        "non_ip": 905,
+        "reflexive_children": 1,
+        "unique_lattices_tested": 910
+      },
+      "status": "complete"
+    },
+    {
+      "blind_smooth_lattices": 648276,
+      "cap": 21,
+      "id": 103,
+      "note": "All 2,3-smooth indices through cap only; other primes are not covered. Kernel also evaluates some redundant/over-cap candidates; unique counts describe a scheduler that deduplicates before hull work.",
+      "pending_ip_parents": 0,
+      "primes": [
+        2,
+        3
+      ],
+      "seconds": 0.0678353130351752,
+      "stats": {
+        "cheap_non_ip": 151,
+        "hull_calls": 1,
+        "ip_parents_expanded": 1,
+        "kernel_ns": 206370,
+        "non_ip": 152,
+        "unique_lattices_tested": 152
+      },
+      "status": "complete"
+    },
+    {
+      "blind_smooth_lattices": 13481086,
+      "cap": 36,
+      "id": 32,
+      "note": "All 2,3-smooth indices through cap only; other primes are not covered. Kernel also evaluates some redundant/over-cap candidates; unique counts describe a scheduler that deduplicates before hull work.",
+      "pending_ip_parents": 0,
+      "primes": [
+        2,
+        3
+      ],
+      "seconds": 2.8242138070054352,
+      "stats": {
+        "cheap_non_ip": 856,
+        "duplicate_lattices": 5,
+        "hull_calls": 417,
+        "ip_children": 13,
+        "ip_parents_expanded": 10,
+        "kernel_ns": 1098374081,
+        "non_ip": 1260,
+        "reflexive_children": 3,
+        "unique_lattices_tested": 1273
+      },
+      "status": "complete"
+    },
+    {
+      "blind_smooth_lattices": 13481086,
+      "cap": 36,
+      "id": 141,
+      "note": "All 2,3-smooth indices through cap only; other primes are not covered. Kernel also evaluates some redundant/over-cap candidates; unique counts describe a scheduler that deduplicates before hull work.",
+      "pending_ip_parents": 0,
+      "primes": [
+        2,
+        3
+      ],
+      "seconds": 3.8501309680286795,
+      "stats": {
+        "cheap_non_ip": 856,
+        "duplicate_lattices": 5,
+        "hull_calls": 417,
+        "ip_children": 13,
+        "ip_parents_expanded": 10,
+        "kernel_ns": 1493167805,
+        "non_ip": 1260,
+        "reflexive_children": 9,
+        "unique_lattices_tested": 1273
+      },
+      "status": "complete"
+    },
+    {
+      "blind_smooth_lattices": 13481086,
+      "cap": 36,
+      "id": 76,
+      "note": "All 2,3-smooth indices through cap only; other primes are not covered. Kernel also evaluates some redundant/over-cap candidates; unique counts describe a scheduler that deduplicates before hull work.",
+      "pending_ip_parents": 0,
+      "primes": [
+        2,
+        3
+      ],
+      "seconds": 1.9750366020016372,
+      "stats": {
+        "cheap_non_ip": 1546,
+        "duplicate_lattices": 14,
+        "hull_calls": 568,
+        "ip_children": 13,
+        "ip_parents_expanded": 14,
+        "kernel_ns": 11096399,
+        "non_ip": 2101,
+        "reflexive_children": 13,
+        "unique_lattices_tested": 2114
+      },
+      "status": "complete"
+    },
+    {
+      "blind_smooth_lattices": 13481086,
+      "cap": 36,
+      "id": 77,
+      "note": "All 2,3-smooth indices through cap only; other primes are not covered. Kernel also evaluates some redundant/over-cap candidates; unique counts describe a scheduler that deduplicates before hull work.",
+      "pending_ip_parents": 0,
+      "primes": [
+        2,
+        3
+      ],
+      "seconds": 0.14283927902579308,
+      "stats": {
+        "cheap_non_ip": 114,
+        "hull_calls": 38,
+        "ip_parents_expanded": 1,
+        "kernel_ns": 475871,
+        "non_ip": 152,
+        "unique_lattices_tested": 152
+      },
+      "status": "complete"
+    },
+    {
+      "blind_smooth_lattices": 13481086,
+      "cap": 36,
+      "id": 78,
+      "note": "All 2,3-smooth indices through cap only; other primes are not covered. Kernel also evaluates some redundant/over-cap candidates; unique counts describe a scheduler that deduplicates before hull work.",
+      "pending_ip_parents": 0,
+      "primes": [
+        2,
+        3
+      ],
+      "seconds": 1.4152627839939669,
+      "stats": {
+        "cheap_non_ip": 1208,
+        "duplicate_lattices": 11,
+        "hull_calls": 301,
+        "ip_children": 9,
+        "ip_parents_expanded": 10,
+        "kernel_ns": 5965282,
+        "non_ip": 1500,
+        "reflexive_children": 6,
+        "unique_lattices_tested": 1509
+      },
+      "status": "complete"
+    },
+    {
+      "blind_smooth_lattices": 13481086,
+      "cap": 36,
+      "id": 87,
+      "note": "All 2,3-smooth indices through cap only; other primes are not covered. Kernel also evaluates some redundant/over-cap candidates; unique counts describe a scheduler that deduplicates before hull work.",
+      "pending_ip_parents": 6190,
+      "primes": [
+        2,
+        3
+      ],
+      "seconds": 10.623560486943461,
+      "stats": {
+        "cheap_non_ip": 1542,
+        "duplicate_lattices": 3914,
+        "hull_calls": 9744,
+        "ip_children": 6289,
+        "ip_parents_expanded": 100,
+        "kernel_ns": 937042637,
+        "non_ip": 4997,
+        "reflexive_children": 1315,
+        "unique_lattices_tested": 11286
+      },
+      "status": "censored"
+    }
+  ],
+  "limitations": [
+    "Metadata counts are not independent validation of every record or deduplication.",
+    "Only representative WS records and bounded search obligations were tested.",
+    "Elapsed native kernel time is used as single-worker cost, not a hardware CPU counter.",
+    "Bootstrap intervals account for 64 sampled clusters, not unseen extreme tails.",
+    "No complete lattice enumeration or complete 5D classification was performed.",
+    "CWS timing is not inferred from WS timing.",
+    "Global maximality probes use reflexive WS roots, not post-pruning leaf candidates."
+  ],
+  "maximality": {
+    "combined_statuses": {
+      "censored": 25,
+      "complete": 53
+    },
+    "completed_seconds": {
+      "max": 4.801413789973594,
+      "mean": 0.8787751531289926,
+      "median": 0.3537261850433424,
+      "min": 0.0035920069785788655,
+      "n": 53,
+      "p95": 4.223916436242871
+    },
+    "default_8MiB_stack": {
+      "complete": 16,
+      "error": 62
+    },
+    "failed_cases_stack_1GiB_VERT128": {
+      "censored": 25,
+      "complete": 8
+    },
+    "note": "Completed-only times are selection-biased. All unresolved final cases censored at five seconds. Function counters are from separate instrumented repeats.",
+    "stack_256MiB_VERT64": {
+      "censored": 11,
+      "complete": 47,
+      "error": 20
+    }
+  },
+  "native_statuses": {
+    "complete": 538
+  },
+  "prime_states_measured": 81776,
+  "provenance": {
+    "cpus": 64,
+    "hashes": {
+      "native": "90713f47475ea192b8b6d1c033bc29b3ad3eac896f7b8ce3989fcc6603f65c1e",
+      "native.c": "b821272cede113e8d302d6f353ff402ea086613e1b86b50e6ceaf5eaa1855595",
+      "sample.py": "b615ec4a89ee2d69b9490690a4e7f53de4cc98d078d9d0d77d339e5f5e85a133"
+    },
+    "native_timeout_seconds": 30,
+    "note": "Exclude first native repetition from steady-state summaries; process time includes all four repetitions and file dumps.",
+    "palp_commit": "ccc8e5e3f96ab2d424649f4bed3707a206c50bd2",
+    "platform": "Linux-5.15.0-202-generic-x86_64-with-glibc2.35",
+    "repeats": 4,
+    "workers": 2
+  },
+  "random_recursive": {
+    "first_leaf_found": 52,
+    "n": 64,
+    "note": "Censored node counts are lower bounds, never completed-search estimates.",
+    "observed_nodes": {
+      "max": 1000.0,
+      "mean": 979.25,
+      "median": 1000.0,
+      "min": 6.0,
+      "n": 64,
+      "p95": 1000.0
+    },
+    "statuses": {
+      "censored": 63,
+      "complete": 1
+    }
+  },
+  "random_statistics": {
+    "ip": {
+      "dual_seconds": {
+        "cluster_bootstrap_mean_95": [
+          0.0,
+          0.0
+        ],
+        "max": 0.0,
+        "mean": 0.0,
+        "median": 0.0,
+        "min": 0.0,
+        "n": 256,
+        "p95": 0.0
+      },
+      "hull_seconds": {
+        "cluster_bootstrap_mean_95": [
+          0.00023705614482421873,
+          0.000370709867578125
+        ],
+        "max": 0.004192508,
+        "mean": 0.00030130331640625,
+        "median": 0.00011146499999999999,
+        "min": 2.4e-05,
+        "n": 256,
+        "p95": 0.0011867545
+      },
+      "lattice_counts": {
+        "cheap_non_ip": 26125,
+        "hull_calls": 12787,
+        "ip": 748,
+        "ip_nonreflexive": 462,
+        "reflexive": 286,
+        "states": 38912
+      },
+      "lattice_counts_per_root": {
+        "cheap_non_ip": 102.05078125,
+        "hull_calls": 49.94921875,
+        "ip": 2.921875,
+        "ip_nonreflexive": 1.8046875,
+        "reflexive": 1.1171875,
+        "states": 152.0
+      },
+      "lattice_kernel_seconds": {
+        "max": 0.070340232,
+        "mean": 0.004484709453125,
+        "median": 0.001995064,
+        "min": 0.000471501,
+        "n": 256,
+        "p95": 0.01604624
+      },
+      "nf_seconds": {
+        "cluster_bootstrap_mean_95": [
+          3.148484609375e-05,
+          3.38166345703125e-05
+        ],
+        "max": 6.38e-05,
+        "mean": 3.25794453125e-05,
+        "median": 3.1129999999999995e-05,
+        "min": 1.284e-05,
+        "n": 256,
+        "p95": 5.0845e-05
+      },
+      "point_seconds": {
+        "cluster_bootstrap_mean_95": [
+          8.999532529296876e-05,
+          0.00010539394296874998
+        ],
+        "max": 0.000382261,
+        "mean": 9.7857625e-05,
+        "median": 8.57255e-05,
+        "min": 1.224e-05,
+        "n": 256,
+        "p95": 0.000195376
+      },
+      "random_records": 256,
+      "root_reconstruction_seconds": {
+        "cluster_bootstrap_mean_95": [
+          0.0003292284358398438,
+          0.0004742678673828125
+        ],
+        "max": 0.004571819,
+        "mean": 0.00039916094140625,
+        "median": 0.0002101405,
+        "min": 4.711e-05,
+        "n": 256,
+        "p95": 0.001345312
+      },
+      "vertex_hull_seconds": {
+        "cluster_bootstrap_mean_95": [
+          3.357979765625e-05,
+          3.72350859375e-05
+        ],
+        "max": 8.49e-05,
+        "mean": 3.5294207031250004e-05,
+        "median": 3.2309999999999994e-05,
+        "min": 1.099e-05,
+        "n": 256,
+        "p95": 6.235999999999999e-05
+      }
+    },
+    "reflexive": {
+      "dual_seconds": {
+        "cluster_bootstrap_mean_95": [
+          0.0066914360731445315,
+          0.009710906785449216
+        ],
+        "max": 0.131175046,
+        "mean": 0.00810924192578125,
+        "median": 0.0037124425,
+        "min": 0.00010431,
+        "n": 256,
+        "p95": 0.026345007
+      },
+      "hull_seconds": {
+        "cluster_bootstrap_mean_95": [
+          0.00017615952841796876,
+          0.0003105342131835936
+        ],
+        "max": 0.004140688,
+        "mean": 0.00023545449609375,
+        "median": 8.2655e-05,
+        "min": 1.082e-05,
+        "n": 256,
+        "p95": 0.00094594925
+      },
+      "lattice_counts": {
+        "cheap_non_ip": 26445,
+        "hull_calls": 12467,
+        "ip": 707,
+        "ip_nonreflexive": 283,
+        "reflexive": 424,
+        "states": 38912
+      },
+      "lattice_counts_per_root": {
+        "cheap_non_ip": 103.30078125,
+        "hull_calls": 48.69921875,
+        "ip": 2.76171875,
+        "ip_nonreflexive": 1.10546875,
+        "reflexive": 1.65625,
+        "states": 152.0
+      },
+      "lattice_kernel_seconds": {
+        "max": 0.06961196,
+        "mean": 0.0043520977070312505,
+        "median": 0.0017911289999999998,
+        "min": 0.000431001,
+        "n": 256,
+        "p95": 0.014319532
+      },
+      "nf_seconds": {
+        "cluster_bootstrap_mean_95": [
+          2.5580269335937497e-05,
+          2.793842666015625e-05
+        ],
+        "max": 5.439e-05,
+        "mean": 2.6773890625e-05,
+        "median": 2.5614999999999998e-05,
+        "min": 7.53e-06,
+        "n": 256,
+        "p95": 4.5902499999999996e-05
+      },
+      "point_seconds": {
+        "cluster_bootstrap_mean_95": [
+          7.279695019531251e-05,
+          8.7468871875e-05
+        ],
+        "max": 0.000513781,
+        "mean": 7.96909296875e-05,
+        "median": 6.531500000000001e-05,
+        "min": 4.52e-06,
+        "n": 256,
+        "p95": 0.00018682025
+      },
+      "random_records": 256,
+      "root_reconstruction_seconds": {
+        "cluster_bootstrap_mean_95": [
+          0.0002502894513671875,
+          0.00039686931142578116
+        ],
+        "max": 0.004654469,
+        "mean": 0.00031514542578125,
+        "median": 0.0001622105,
+        "min": 1.897e-05,
+        "n": 256,
+        "p95": 0.00113440925
+      },
+      "vertex_hull_seconds": {
+        "cluster_bootstrap_mean_95": [
+          2.5568345996093748e-05,
+          2.9175613964843752e-05
+        ],
+        "max": 8.5151e-05,
+        "mean": 2.73438828125e-05,
+        "median": 2.393e-05,
+        "min": 6.09e-06,
+        "n": 256,
+        "p95": 5.6105e-05
+      }
+    }
+  },
+  "reference_source_sha256": "f21f2863095ae54400c17f543dec7671c32c6436917904951512ef791831f972",
+  "sample_records": 538,
+  "selected_cases": [
+    {
+      "cover_probes": [
+        {
+          "distinct_coordinate_leaves": 148,
+          "first_leaf_seconds": 0.00039411091711372137,
+          "geometry_seconds": 0.5396973009919748,
+          "id": 0,
+          "pending": 39,
+          "policy": "lex",
+          "seconds": 0.9209691300056875,
+          "stats": {
+            "bad_facet_nodes": 6864,
+            "duplicate_nodes": 9282,
+            "max_depth": 31,
+            "nodes": 25000,
+            "non_ip": 17988,
+            "reflexive_leaves": 148
+          },
+          "status": "censored"
+        },
+        {
+          "distinct_coordinate_leaves": 1855,
+          "first_leaf_seconds": 0.0004585209535434842,
+          "geometry_seconds": 0.7010385683970526,
+          "id": 0,
+          "pending": 47,
+          "policy": "distance",
+          "seconds": 1.1647917090449482,
+          "stats": {
+            "bad_facet_nodes": 7639,
+            "duplicate_nodes": 13149,
+            "max_depth": 30,
+            "nodes": 25000,
+            "non_ip": 15506,
+            "reflexive_leaves": 1855
+          },
+          "status": "censored"
+        },
+        {
+          "distinct_coordinate_leaves": 95,
+          "first_leaf_seconds": 0.0003868209896609187,
+          "geometry_seconds": 0.666476440266706,
+          "id": 0,
+          "pending": 0,
+          "policy": "partition",
+          "seconds": 1.1964732200140134,
+          "stats": {
+            "bad_facet_nodes": 13035,
+            "kept_obstructions": 2240,
+            "max_depth": 31,
+            "nodes": 15716,
+            "non_ip": 2586,
+            "reflexive_leaves": 95
+          },
+          "status": "complete"
+        },
+        {
+          "distinct_coordinate_leaves": 60,
+          "first_leaf_seconds": 0.025101257022470236,
+          "geometry_calls": 1000,
+          "id": 0,
+          "label": "identity",
+          "oracle_seconds": 3.795362421660684,
+          "pending": 50,
+          "seconds": 4.077383775962517,
+          "stats": {
+            "bad_facet_nodes": 252,
+            "duplicate_nodes": 211,
+            "max_depth": 30,
+            "nodes": 1000,
+            "non_ip": 688,
+            "reflexive_leaves": 60
+          },
+          "status": "censored"
+        }
+      ],
+      "determinant_probe": {
+        "D_exact": 225,
+        "D_lower": 225,
+        "D_ws_upper": 256,
+        "all_frames": 6,
+        "determinants": 6,
+        "hnf_count_lower": 116615320305,
+        "id": 0,
+        "seconds": 0.00020136998500674963,
+        "status": "complete"
+      },
+      "dual_point_count": null,
+      "facet_count": 6,
+      "id": 0,
+      "kind": "ip",
+      "labels": [
+        "vertex_count_min",
+        "facet_count_min"
+      ],
+      "native_runs": [
+        {
+          "dual_ns": 0,
+          "hull_ns": 25180,
+          "nf_ns": 117510,
+          "point_ns": 34010,
+          "vertex_hull_ns": 6360
+        },
+        {
+          "dual_ns": 0,
+          "hull_ns": 10130,
+          "nf_ns": 23641,
+          "point_ns": 16100,
+          "vertex_hull_ns": 4260
+        },
+        {
+          "dual_ns": 0,
+          "hull_ns": 7410,
+          "nf_ns": 11260,
+          "point_ns": 14840,
+          "vertex_hull_ns": 3730
+        },
+        {
+          "dual_ns": 0,
+          "hull_ns": 5970,
+          "nf_ns": 9700,
+          "point_ns": 14200,
+          "vertex_hull_ns": 3640
+        }
+      ],
+      "point_count": 37,
+      "vertex_count": 6,
+      "weights": [
+        30,
+        65,
+        76,
+        227,
+        240,
+        562
+      ]
+    },
+    {
+      "cover_probes": [
+        {
+          "distinct_coordinate_leaves": 7,
+          "first_leaf_seconds": 0.0003999709151685238,
+          "geometry_seconds": 0.0008037211373448372,
+          "id": 1,
+          "pending": 0,
+          "policy": "lex",
+          "seconds": 0.001247401931323111,
+          "stats": {
+            "bad_facet_nodes": 5,
+            "duplicate_nodes": 1,
+            "max_depth": 4,
+            "nodes": 25,
+            "non_ip": 13,
+            "reflexive_leaves": 7
+          },
+          "status": "complete"
+        },
+        {
+          "distinct_coordinate_leaves": 9,
+          "first_leaf_seconds": 0.000401271041482687,
+          "geometry_seconds": 0.0011084018042311072,
+          "id": 1,
+          "pending": 0,
+          "policy": "distance",
+          "seconds": 0.0017173730302602053,
+          "stats": {
+            "bad_facet_nodes": 8,
+            "duplicate_nodes": 4,
+            "max_depth": 5,
+            "nodes": 37,
+            "non_ip": 20,
+            "reflexive_leaves": 9
+          },
+          "status": "complete"
+        },
+        {
+          "distinct_coordinate_leaves": 5,
+          "first_leaf_seconds": 0.00040781102143228054,
+          "geometry_seconds": 0.0006769306492060423,
+          "id": 1,
+          "pending": 0,
+          "policy": "partition",
+          "seconds": 0.0010982820531353354,
+          "stats": {
+            "bad_facet_nodes": 5,
+            "max_depth": 4,
+            "nodes": 19,
+            "non_ip": 9,
+            "reflexive_leaves": 5
+          },
+          "status": "complete"
+        },
+        {
+          "distinct_coordinate_leaves": 7,
+          "first_leaf_seconds": 0.01755139301531017,
+          "geometry_calls": 25,
+          "id": 1,
+          "label": "identity",
+          "oracle_seconds": 0.09269166353624314,
+          "pending": 0,
+          "seconds": 0.1008853199891746,
+          "stats": {
+            "bad_facet_nodes": 5,
+            "duplicate_nodes": 1,
+            "max_depth": 4,
+            "nodes": 25,
+            "non_ip": 13,
+            "reflexive_leaves": 7
+          },
+          "status": "complete"
+        }
+      ],
+      "determinant_probe": {
+        "D_exact": 60,
+        "D_lower": 60,
+        "D_ws_upper": 166,
+        "all_frames": 252,
+        "determinants": 252,
+        "hnf_count_lower": 162071998,
+        "id": 1,
+        "seconds": 0.010349808959290385,
+        "status": "complete"
+      },
+      "dual_point_count": null,
+      "facet_count": 16,
+      "id": 1,
+      "kind": "ip",
+      "labels": [
+        "points-0-32"
+      ],
+      "native_runs": [
+        {
+          "dual_ns": 0,
+          "hull_ns": 44470,
+          "nf_ns": 126071,
+          "point_ns": 60350,
+          "vertex_hull_ns": 14960
+        },
+        {
+          "dual_ns": 0,
+          "hull_ns": 19140,
+          "nf_ns": 30230,
+          "point_ns": 45430,
+          "vertex_hull_ns": 11440
+        },
+        {
+          "dual_ns": 0,
+          "hull_ns": 15610,
+          "nf_ns": 16790,
+          "point_ns": 44510,
+          "vertex_hull_ns": 9690
+        },
+        {
+          "dual_ns": 0,
+          "hull_ns": 13120,
+          "nf_ns": 14300,
+          "point_ns": 43460,
+          "vertex_hull_ns": 8450
+        }
+      ],
+      "point_count": 27,
+      "vertex_count": 10,
+      "weights": [
+        48,
+        79,
+        135,
+        190,
+        477,
+        739
+      ]
+    },
+    {
+      "cover_probes": [
+        {
+          "distinct_coordinate_leaves": 174,
+          "first_leaf_seconds": 0.004197968984954059,
+          "geometry_seconds": 0.5970861591631547,
+          "id": 2,
+          "pending": 68,
+          "policy": "lex",
+          "seconds": 1.0024558029836044,
+          "stats": {
+            "bad_facet_nodes": 7157,
+            "duplicate_nodes": 10718,
+            "max_depth": 41,
+            "nodes": 25000,
+            "non_ip": 17669,
+            "reflexive_leaves": 174
+          },
+          "status": "censored"
+        },
+        {
+          "distinct_coordinate_leaves": 383,
+          "first_leaf_seconds": 0.0031764759914949536,
+          "geometry_seconds": 0.6346838095923886,
+          "id": 2,
+          "pending": 53,
+          "policy": "distance",
+          "seconds": 1.0680804059375077,
+          "stats": {
+            "bad_facet_nodes": 7996,
+            "duplicate_nodes": 14928,
+            "max_depth": 41,
+            "nodes": 25000,
+            "non_ip": 16621,
+            "reflexive_leaves": 383
+          },
+          "status": "censored"
+        },
+        {
+          "distinct_coordinate_leaves": 208,
+          "first_leaf_seconds": 0.001997554092667997,
+          "geometry_seconds": 0.9498332038056105,
+          "id": 2,
+          "pending": 0,
+          "policy": "partition",
+          "seconds": 1.5414257970405743,
+          "stats": {
+            "bad_facet_nodes": 14887,
+            "kept_obstructions": 4090,
+            "max_depth": 40,
+            "nodes": 17681,
+            "non_ip": 2586,
+            "reflexive_leaves": 208
+          },
+          "status": "complete"
+        },
+        {
+          "distinct_coordinate_leaves": 30,
+          "first_leaf_seconds": 0.17793902393896133,
+          "geometry_calls": 1000,
+          "id": 2,
+          "label": "identity",
+          "oracle_seconds": 3.795132954372093,
+          "pending": 75,
+          "seconds": 4.0996864079497755,
+          "stats": {
+            "bad_facet_nodes": 263,
+            "duplicate_nodes": 241,
+            "max_depth": 38,
+            "nodes": 1000,
+            "non_ip": 707,
+            "reflexive_leaves": 30
+          },
+          "status": "censored"
+        }
+      ],
+      "determinant_probe": {
+        "D_exact": 174,
+        "D_lower": 174,
+        "D_ws_upper": 357,
+        "all_frames": 2002,
+        "determinants": 2002,
+        "hnf_count_lower": 32359013015,
+        "id": 2,
+        "seconds": 0.06818446703255177,
+        "status": "complete"
+      },
+      "dual_point_count": null,
+      "facet_count": 20,
+      "id": 2,
+      "kind": "ip",
+      "labels": [
+        "points-33-100"
+      ],
+      "native_runs": [
+        {
+          "dual_ns": 0,
+          "hull_ns": 67930,
+          "nf_ns": 143841,
+          "point_ns": 93680,
+          "vertex_hull_ns": 31910
+        },
+        {
+          "dual_ns": 0,
+          "hull_ns": 38830,
+          "nf_ns": 37740,
+          "point_ns": 71690,
+          "vertex_hull_ns": 24150
+        },
+        {
+          "dual_ns": 0,
+          "hull_ns": 34880,
+          "nf_ns": 22110,
+          "point_ns": 70470,
+          "vertex_hull_ns": 21240
+        },
+        {
+          "dual_ns": 0,
+          "hull_ns": 44310,
+          "nf_ns": 19180,
+          "point_ns": 69911,
+          "vertex_hull_ns": 22020
+        }
+      ],
+      "point_count": 47,
+      "vertex_count": 14,
+      "weights": [
+        90,
+        119,
+        457,
+        999,
+        2331,
+        3996
+      ]
+    },
+    {
+      "cover_probes": [
+        {
+          "distinct_coordinate_leaves": 185,
+          "first_leaf_seconds": 0.005900390911847353,
+          "geometry_seconds": 0.6689812102122232,
+          "id": 3,
+          "pending": 425,
+          "policy": "lex",
+          "seconds": 1.3221058229682967,
+          "stats": {
+            "bad_facet_nodes": 7145,
+            "duplicate_nodes": 10301,
+            "max_depth": 199,
+            "nodes": 25000,
+            "non_ip": 17670,
+            "reflexive_leaves": 185
+          },
+          "status": "censored"
+        },
+        {
+          "distinct_coordinate_leaves": 875,
+          "first_leaf_seconds": 0.016761781997047365,
+          "geometry_seconds": 0.7431200424907729,
+          "id": 3,
+          "pending": 302,
+          "policy": "distance",
+          "seconds": 1.4405350270681083,
+          "stats": {
+            "bad_facet_nodes": 7627,
+            "duplicate_nodes": 12834,
+            "max_depth": 201,
+            "nodes": 25000,
+            "non_ip": 16498,
+            "reflexive_leaves": 875
+          },
+          "status": "censored"
+        },
+        {
+          "distinct_coordinate_leaves": 1,
+          "first_leaf_seconds": 0.005062949960120022,
+          "geometry_seconds": 1.6281515270238742,
+          "id": 3,
+          "pending": 196,
+          "policy": "partition",
+          "seconds": 2.6276691110106185,
+          "stats": {
+            "bad_facet_nodes": 18513,
+            "kept_obstructions": 1914,
+            "max_depth": 151,
+            "nodes": 25000,
+            "non_ip": 6486,
+            "reflexive_leaves": 1
+          },
+          "status": "censored"
+        },
+        {
+          "distinct_coordinate_leaves": 32,
+          "first_leaf_seconds": 0.3560891980305314,
+          "geometry_calls": 1000,
+          "id": 3,
+          "label": "identity",
+          "oracle_seconds": 5.779772854293697,
+          "pending": 425,
+          "seconds": 6.403262231964618,
+          "stats": {
+            "bad_facet_nodes": 320,
+            "duplicate_nodes": 176,
+            "max_depth": 190,
+            "nodes": 1000,
+            "non_ip": 648,
+            "reflexive_leaves": 32
+          },
+          "status": "censored"
+        }
+      ],
+      "determinant_probe": {
+        "D_exact": 1092,
+        "D_lower": 1092,
+        "D_ws_upper": 1895,
+        "all_frames": 98280,
+        "determinants": 98280,
+        "hnf_count_lower": 311269752711554,
+        "id": 3,
+        "seconds": 3.6994268459966406,
+        "status": "complete"
+      },
+      "dual_point_count": null,
+      "facet_count": 30,
+      "id": 3,
+      "kind": "ip",
+      "labels": [
+        "points-101-300"
+      ],
+      "native_runs": [
+        {
+          "dual_ns": 0,
+          "hull_ns": 174221,
+          "nf_ns": 162320,
+          "point_ns": 122860,
+          "vertex_hull_ns": 79410
+        },
+        {
+          "dual_ns": 0,
+          "hull_ns": 136001,
+          "nf_ns": 59430,
+          "point_ns": 95680,
+          "vertex_hull_ns": 66780
+        },
+        {
+          "dual_ns": 0,
+          "hull_ns": 125610,
+          "nf_ns": 41590,
+          "point_ns": 94760,
+          "vertex_hull_ns": 57100
+        },
+        {
+          "dual_ns": 0,
+          "hull_ns": 122180,
+          "nf_ns": 38340,
+          "point_ns": 93791,
+          "vertex_hull_ns": 54110
+        }
+      ],
+      "point_count": 211,
+      "vertex_count": 28,
+      "weights": [
+        13,
+        163,
+        171,
+        694,
+        1577,
+        2618
+      ]
+    },
+    {
+      "cover_probes": [
+        {
+          "distinct_coordinate_leaves": 51,
+          "first_leaf_seconds": 0.0008310510311275721,
+          "geometry_seconds": 0.6299168798141181,
+          "id": 8,
+          "pending": 58,
+          "policy": "lex",
+          "seconds": 1.1242707710480317,
+          "stats": {
+            "bad_facet_nodes": 8499,
+            "duplicate_nodes": 17438,
+            "max_depth": 48,
+            "nodes": 25000,
+            "non_ip": 16450,
+            "reflexive_leaves": 51
+          },
+          "status": "censored"
+        },
+        {
+          "distinct_coordinate_leaves": 382,
+          "first_leaf_seconds": 0.000884742010384798,
+          "geometry_seconds": 0.6235481163021177,
+          "id": 8,
+          "pending": 62,
+          "policy": "distance",
+          "seconds": 1.1512245910707861,
+          "stats": {
+            "bad_facet_nodes": 8777,
+            "duplicate_nodes": 18824,
+            "max_depth": 47,
+            "nodes": 25000,
+            "non_ip": 15841,
+            "reflexive_leaves": 382
+          },
+          "status": "censored"
+        },
+        {
+          "distinct_coordinate_leaves": 42,
+          "first_leaf_seconds": 0.0007406410295516253,
+          "geometry_seconds": 0.4748347345739603,
+          "id": 8,
+          "pending": 0,
+          "policy": "partition",
+          "seconds": 0.8090136180398986,
+          "stats": {
+            "bad_facet_nodes": 7334,
+            "kept_obstructions": 750,
+            "max_depth": 47,
+            "nodes": 9905,
+            "non_ip": 2529,
+            "reflexive_leaves": 42
+          },
+          "status": "complete"
+        },
+        {
+          "distinct_coordinate_leaves": 30,
+          "first_leaf_seconds": 0.07543377100955695,
+          "geometry_calls": 1000,
+          "id": 8,
+          "label": "identity",
+          "oracle_seconds": 8.637168691377155,
+          "pending": 58,
+          "seconds": 9.018111073994078,
+          "stats": {
+            "bad_facet_nodes": 265,
+            "duplicate_nodes": 268,
+            "max_depth": 47,
+            "nodes": 1000,
+            "non_ip": 705,
+            "reflexive_leaves": 30
+          },
+          "status": "censored"
+        }
+      ],
+      "determinant_probe": {
+        "D_exact": 273,
+        "D_lower": 273,
+        "D_ws_upper": 458,
+        "all_frames": 1287,
+        "determinants": 1287,
+        "hnf_count_lower": 306063690569,
+        "id": 8,
+        "seconds": 0.05044702405575663,
+        "status": "complete"
+      },
+      "dual_point_count": null,
+      "facet_count": 18,
+      "id": 8,
+      "kind": "ip",
+      "labels": [
+        "random-30"
+      ],
+      "native_runs": [
+        {
+          "dual_ns": 0,
+          "hull_ns": 50770,
+          "nf_ns": 128610,
+          "point_ns": 131941,
+          "vertex_hull_ns": 20670
+        },
+        {
+          "dual_ns": 0,
+          "hull_ns": 29320,
+          "nf_ns": 30381,
+          "point_ns": 114590,
+          "vertex_hull_ns": 15180
+        },
+        {
+          "dual_ns": 0,
+          "hull_ns": 25030,
+          "nf_ns": 17520,
+          "point_ns": 115180,
+          "vertex_hull_ns": 13110
+        },
+        {
+          "dual_ns": 0,
+          "hull_ns": 22280,
+          "nf_ns": 16100,
+          "point_ns": 113930,
+          "vertex_hull_ns": 12750
+        }
+      ],
+      "point_count": 59,
+      "vertex_count": 13,
+      "weights": [
+        221,
+        402,
+        1077,
+        5490,
+        14380,
+        21570
+      ]
+    },
+    {
+      "cover_probes": [
+        {
+          "distinct_coordinate_leaves": 0,
+          "first_leaf_seconds": null,
+          "geometry_seconds": 0.00022438005544245243,
+          "id": 10,
+          "pending": 0,
+          "policy": "lex",
+          "seconds": 0.00033642095513641834,
+          "stats": {
+            "bad_facet_nodes": 1,
+            "max_depth": 1,
+            "nodes": 6,
+            "non_ip": 5
+          },
+          "status": "complete"
+        },
+        {
+          "distinct_coordinate_leaves": 0,
+          "first_leaf_seconds": null,
+          "geometry_seconds": 0.0001868999097496271,
+          "id": 10,
+          "pending": 0,
+          "policy": "distance",
+          "seconds": 0.0002960400888696313,
+          "stats": {
+            "bad_facet_nodes": 1,
+            "max_depth": 1,
+            "nodes": 6,
+            "non_ip": 5
+          },
+          "status": "complete"
+        },
+        {
+          "distinct_coordinate_leaves": 0,
+          "first_leaf_seconds": null,
+          "geometry_seconds": 0.00033057108521461487,
+          "id": 10,
+          "pending": 0,
+          "policy": "partition",
+          "seconds": 0.0005150310462340713,
+          "stats": {
+            "bad_facet_nodes": 1,
+            "max_depth": 1,
+            "nodes": 6,
+            "non_ip": 5
+          },
+          "status": "complete"
+        },
+        {
+          "distinct_coordinate_leaves": 0,
+          "first_leaf_seconds": null,
+          "geometry_calls": 6,
+          "id": 10,
+          "label": "identity",
+          "oracle_seconds": 0.07490934210363775,
+          "pending": 0,
+          "seconds": 0.0762535729445517,
+          "stats": {
+            "bad_facet_nodes": 1,
+            "max_depth": 1,
+            "nodes": 6,
+            "non_ip": 5
+          },
+          "status": "complete"
+        }
+      ],
+      "determinant_probe": {
+        "D_exact": 9,
+        "D_lower": 9,
+        "D_ws_upper": 22,
+        "all_frames": 6,
+        "determinants": 6,
+        "hnf_count_lower": 15333,
+        "id": 10,
+        "seconds": 0.000146019970998168,
+        "status": "complete"
+      },
+      "dual_point_count": null,
+      "facet_count": 6,
+      "id": 10,
+      "kind": "ip",
+      "labels": [
+        "point_count_min"
+      ],
+      "native_runs": [
+        {
+          "dual_ns": 0,
+          "hull_ns": 22470,
+          "nf_ns": 405970,
+          "point_ns": 67120,
+          "vertex_hull_ns": 7550
+        },
+        {
+          "dual_ns": 0,
+          "hull_ns": 8160,
+          "nf_ns": 278950,
+          "point_ns": 46370,
+          "vertex_hull_ns": 4950
+        },
+        {
+          "dual_ns": 0,
+          "hull_ns": 7100,
+          "nf_ns": 221211,
+          "point_ns": 46630,
+          "vertex_hull_ns": 4780
+        },
+        {
+          "dual_ns": 0,
+          "hull_ns": 6370,
+          "nf_ns": 216940,
+          "point_ns": 45540,
+          "vertex_hull_ns": 4600
+        }
+      ],
+      "point_count": 7,
+      "vertex_count": 6,
+      "weights": [
+        123,
+        133,
+        165,
+        172,
+        287,
+        440
+      ]
+    },
+    {
+      "cover_probes": [
+        {
+          "distinct_coordinate_leaves": 0,
+          "first_leaf_seconds": null,
+          "geometry_seconds": 7.436664918903261,
+          "id": 32,
+          "pending": 201,
+          "policy": "lex",
+          "seconds": 10.002754066954367,
+          "stats": {
+            "bad_facet_nodes": 206,
+            "max_depth": 206,
+            "nodes": 830,
+            "non_ip": 624
+          },
+          "status": "censored"
+        },
+        {
+          "distinct_coordinate_leaves": 0,
+          "first_leaf_seconds": null,
+          "geometry_seconds": 7.678053618175909,
+          "id": 32,
+          "pending": 242,
+          "policy": "distance",
+          "seconds": 10.007650302024558,
+          "stats": {
+            "bad_facet_nodes": 214,
+            "max_depth": 214,
+            "nodes": 829,
+            "non_ip": 615
+          },
+          "status": "censored"
+        },
+        {
+          "distinct_coordinate_leaves": 0,
+          "first_leaf_seconds": null,
+          "geometry_seconds": 8.603066896786913,
+          "id": 32,
+          "pending": 309,
+          "policy": "partition",
+          "seconds": 10.012357041006908,
+          "stats": {
+            "bad_facet_nodes": 552,
+            "max_depth": 551,
+            "nodes": 556,
+            "non_ip": 4
+          },
+          "status": "censored"
+        },
+        {
+          "distinct_coordinate_leaves": 0,
+          "first_leaf_seconds": null,
+          "geometry_calls": 15,
+          "id": 32,
+          "label": "identity",
+          "oracle_seconds": 2.3795361219672486,
+          "pending": 5,
+          "seconds": 10.153607605025172,
+          "stats": {
+            "bad_facet_nodes": 4,
+            "max_depth": 4,
+            "nodes": 16,
+            "non_ip": 11
+          },
+          "status": "censored"
+        }
+      ],
+      "determinant_probe": {
+        "D_exact": 2038071,
+        "D_lower": 2038071,
+        "D_ws_upper": 2038522,
+        "all_frames": 8568,
+        "determinants": 8568,
+        "hnf_count_lower": 7032780702108048431562935608412,
+        "id": 32,
+        "seconds": 0.343980825971812,
+        "status": "complete"
+      },
+      "dual_point_count": null,
+      "facet_count": 18,
+      "id": 32,
+      "kind": "ip",
+      "labels": [
+        "point_count_max"
+      ],
+      "native_runs": [
+        {
+          "dual_ns": 0,
+          "hull_ns": 55594944,
+          "nf_ns": 145370,
+          "point_ns": 11158052,
+          "vertex_hull_ns": 32430
+        },
+        {
+          "dual_ns": 0,
+          "hull_ns": 36245209,
+          "nf_ns": 39060,
+          "point_ns": 3448926,
+          "vertex_hull_ns": 16450
+        },
+        {
+          "dual_ns": 0,
+          "hull_ns": 22418742,
+          "nf_ns": 9310,
+          "point_ns": 3165606,
+          "vertex_hull_ns": 11520
+        },
+        {
+          "dual_ns": 0,
+          "hull_ns": 22361163,
+          "nf_ns": 10620,
+          "point_ns": 1993853,
+          "vertex_hull_ns": 9330
+        }
+      ],
+      "point_count": 222426,
+      "vertex_count": 18,
+      "weights": [
+        1,
+        2,
+        105,
+        645,
+        1505,
+        2257
+      ]
+    },
+    {
+      "cover_probes": [
+        {
+          "distinct_coordinate_leaves": 904,
+          "first_leaf_seconds": 0.11506531701888889,
+          "geometry_seconds": 1.2207003817893565,
+          "id": 33,
+          "pending": 1980,
+          "policy": "lex",
+          "seconds": 2.836275637964718,
+          "stats": {
+            "bad_facet_nodes": 7308,
+            "duplicate_nodes": 9561,
+            "max_depth": 942,
+            "nodes": 25000,
+            "non_ip": 16788,
+            "reflexive_leaves": 904
+          },
+          "status": "censored"
+        },
+        {
+          "distinct_coordinate_leaves": 1283,
+          "first_leaf_seconds": 0.14995062397792935,
+          "geometry_seconds": 1.297066610888578,
+          "id": 33,
+          "pending": 1868,
+          "policy": "distance",
+          "seconds": 3.09574984095525,
+          "stats": {
+            "bad_facet_nodes": 8156,
+            "duplicate_nodes": 13913,
+            "max_depth": 942,
+            "nodes": 25000,
+            "non_ip": 15561,
+            "reflexive_leaves": 1283
+          },
+          "status": "censored"
+        },
+        {
+          "distinct_coordinate_leaves": 2,
+          "first_leaf_seconds": 0.09651421895250678,
+          "geometry_seconds": 2.2031284268014133,
+          "id": 33,
+          "pending": 1555,
+          "policy": "partition",
+          "seconds": 4.435064508928917,
+          "stats": {
+            "bad_facet_nodes": 24989,
+            "kept_obstructions": 5012,
+            "max_depth": 926,
+            "nodes": 25000,
+            "non_ip": 9,
+            "reflexive_leaves": 2
+          },
+          "status": "censored"
+        },
+        {
+          "distinct_coordinate_leaves": 2,
+          "first_leaf_seconds": 9.643939448986202,
+          "geometry_calls": 381,
+          "id": 33,
+          "label": "identity",
+          "oracle_seconds": 8.535505450796336,
+          "pending": 554,
+          "seconds": 10.002589983050711,
+          "stats": {
+            "bad_facet_nodes": 187,
+            "max_depth": 187,
+            "nodes": 382,
+            "non_ip": 192,
+            "reflexive_leaves": 2
+          },
+          "status": "censored"
+        }
+      ],
+      "determinant_probe": {
+        "D_exact": null,
+        "D_lower": 5070,
+        "D_ws_upper": 8174,
+        "all_frames": 1906884,
+        "determinants": 125696,
+        "hnf_count_lower": 670322684769425831,
+        "id": 33,
+        "seconds": 5.0018266109982505,
+        "status": "censored"
+      },
+      "dual_point_count": null,
+      "facet_count": 47,
+      "id": 33,
+      "kind": "ip",
+      "labels": [
+        "vertex_count_max"
+      ],
+      "native_runs": [
+        {
+          "dual_ns": 0,
+          "hull_ns": 1066992,
+          "nf_ns": 244711,
+          "point_ns": 113541,
+          "vertex_hull_ns": 355020
+        },
+        {
+          "dual_ns": 0,
+          "hull_ns": 1011302,
+          "nf_ns": 140690,
+          "point_ns": 63150,
+          "vertex_hull_ns": 305671
+        },
+        {
+          "dual_ns": 0,
+          "hull_ns": 951822,
+          "nf_ns": 118600,
+          "point_ns": 62530,
+          "vertex_hull_ns": 284221
+        },
+        {
+          "dual_ns": 0,
+          "hull_ns": 919642,
+          "nf_ns": 110461,
+          "point_ns": 62470,
+          "vertex_hull_ns": 261220
+        }
+      ],
+      "point_count": 949,
+      "vertex_count": 49,
+      "weights": [
+        5,
+        6,
+        62,
+        141,
+        214,
+        395
+      ]
+    },
+    {
+      "cover_probes": [
+        {
+          "distinct_coordinate_leaves": 1,
+          "first_leaf_seconds": 0.00010153010953217745,
+          "geometry_seconds": 9.461992885917425e-05,
+          "id": 84,
+          "pending": 0,
+          "policy": "lex",
+          "seconds": 0.00010410009417682886,
+          "stats": {
+            "max_depth": 0,
+            "nodes": 1,
+            "reflexive_leaves": 1
+          },
+          "status": "complete"
+        },
+        {
+          "distinct_coordinate_leaves": 1,
+          "first_leaf_seconds": 0.11421581404283643,
+          "geometry_calls": 1,
+          "id": 84,
+          "label": "identity",
+          "oracle_seconds": 0.11280147102661431,
+          "pending": 0,
+          "seconds": 0.1142245939699933,
+          "stats": {
+            "max_depth": 0,
+            "nodes": 1,
+            "reflexive_leaves": 1
+          },
+          "status": "complete"
+        }
+      ],
+      "determinant_probe": {
+        "D_exact": 1806,
+        "D_lower": 1806,
+        "D_ws_upper": 1934,
+        "all_frames": 6,
+        "determinants": 6,
+        "hnf_count_lower": 3847864004217415,
+        "id": 84,
+        "seconds": 0.0001387899974361062,
+        "status": "complete"
+      },
+      "dual_point_count": 355785,
+      "facet_count": 6,
+      "id": 84,
+      "kind": "reflexive",
+      "labels": [
+        "dual_point_count_max"
+      ],
+      "native_runs": [
+        {
+          "dual_ns": 378667461,
+          "hull_ns": 46420,
+          "nf_ns": 116060,
+          "point_ns": 165371,
+          "vertex_hull_ns": 5830
+        },
+        {
+          "dual_ns": 380199124,
+          "hull_ns": 15370,
+          "nf_ns": 18850,
+          "point_ns": 56160,
+          "vertex_hull_ns": 2240
+        },
+        {
+          "dual_ns": 319069119,
+          "hull_ns": 17070,
+          "nf_ns": 9750,
+          "point_ns": 56050,
+          "vertex_hull_ns": 2420
+        },
+        {
+          "dual_ns": 317944237,
+          "hull_ns": 15360,
+          "nf_ns": 8470,
+          "point_ns": 55330,
+          "vertex_hull_ns": 1920
+        }
+      ],
+      "point_count": 355,
+      "vertex_count": 6,
+      "weights": [
+        183,
+        1433,
+        11954,
+        75505,
+        178150,
+        267225
+      ]
+    },
+    {
+      "cover_probes": [
+        {
+          "distinct_coordinate_leaves": 1,
+          "first_leaf_seconds": 0.0001781700411811471,
+          "geometry_seconds": 0.00016707007307559252,
+          "id": 87,
+          "pending": 0,
+          "policy": "lex",
+          "seconds": 0.0001821999903768301,
+          "stats": {
+            "max_depth": 0,
+            "nodes": 1,
+            "reflexive_leaves": 1
+          },
+          "status": "complete"
+        },
+        {
+          "distinct_coordinate_leaves": 1,
+          "first_leaf_seconds": 0.005318069946952164,
+          "geometry_calls": 1,
+          "id": 87,
+          "label": "identity",
+          "oracle_seconds": 0.004028187016956508,
+          "pending": 0,
+          "seconds": 0.005326929967850447,
+          "stats": {
+            "max_depth": 0,
+            "nodes": 1,
+            "reflexive_leaves": 1
+          },
+          "status": "complete"
+        }
+      ],
+      "determinant_probe": {
+        "D_exact": 3456,
+        "D_lower": 3456,
+        "D_ws_upper": 3456,
+        "all_frames": 6,
+        "determinants": 6,
+        "hnf_count_lower": 98676280640352960,
+        "id": 87,
+        "seconds": 0.00014592998195439577,
+        "status": "complete"
+      },
+      "dual_point_count": 7,
+      "facet_count": 6,
+      "id": 87,
+      "kind": "reflexive",
+      "labels": [
+        "dual_point_count_min"
+      ],
+      "native_runs": [
+        {
+          "dual_ns": 1394213,
+          "hull_ns": 73940,
+          "nf_ns": 117200,
+          "point_ns": 106140,
+          "vertex_hull_ns": 5650
+        },
+        {
+          "dual_ns": 308781,
+          "hull_ns": 52390,
+          "nf_ns": 33160,
+          "point_ns": 70510,
+          "vertex_hull_ns": 4390
+        },
+        {
+          "dual_ns": 297761,
+          "hull_ns": 49320,
+          "nf_ns": 18680,
+          "point_ns": 70040,
+          "vertex_hull_ns": 3340
+        },
+        {
+          "dual_ns": 298111,
+          "hull_ns": 48700,
+          "nf_ns": 17030,
+          "point_ns": 69130,
+          "vertex_hull_ns": 3260
+        }
+      ],
+      "point_count": 603,
+      "vertex_count": 6,
+      "weights": [
+        1,
+        1,
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "cover_probes": [
+        {
+          "distinct_coordinate_leaves": 1,
+          "first_leaf_seconds": 0.0001345400232821703,
+          "geometry_seconds": 0.00012724008411169052,
+          "id": 103,
+          "pending": 0,
+          "policy": "lex",
+          "seconds": 0.0001375499414280057,
+          "stats": {
+            "max_depth": 0,
+            "nodes": 1,
+            "reflexive_leaves": 1
+          },
+          "status": "complete"
+        },
+        {
+          "distinct_coordinate_leaves": 1,
+          "first_leaf_seconds": 0.004071388044394553,
+          "geometry_calls": 1,
+          "id": 103,
+          "label": "identity",
+          "oracle_seconds": 0.003867767984047532,
+          "pending": 0,
+          "seconds": 0.004080477985553443,
+          "stats": {
+            "max_depth": 0,
+            "nodes": 1,
+            "reflexive_leaves": 1
+          },
+          "status": "complete"
+        }
+      ],
+      "determinant_probe": {
+        "D_exact": 3,
+        "D_lower": 3,
+        "D_ws_upper": 21,
+        "all_frames": 6,
+        "determinants": 6,
+        "hnf_count_lower": 98,
+        "id": 103,
+        "seconds": 0.00015284097753465176,
+        "status": "complete"
+      },
+      "dual_point_count": 407,
+      "facet_count": 6,
+      "id": 103,
+      "kind": "reflexive",
+      "labels": [
+        "point_count_min"
+      ],
+      "native_runs": [
+        {
+          "dual_ns": 2125644,
+          "hull_ns": 21280,
+          "nf_ns": 142290,
+          "point_ns": 50451,
+          "vertex_hull_ns": 6760
+        },
+        {
+          "dual_ns": 875492,
+          "hull_ns": 7200,
+          "nf_ns": 32190,
+          "point_ns": 32010,
+          "vertex_hull_ns": 4620
+        },
+        {
+          "dual_ns": 880881,
+          "hull_ns": 5390,
+          "nf_ns": 17270,
+          "point_ns": 30820,
+          "vertex_hull_ns": 3900
+        },
+        {
+          "dual_ns": 889362,
+          "hull_ns": 5220,
+          "nf_ns": 15040,
+          "point_ns": 30710,
+          "vertex_hull_ns": 3730
+        }
+      ],
+      "point_count": 7,
+      "vertex_count": 6,
+      "weights": [
+        60,
+        79,
+        114,
+        129,
+        134,
+        152
+      ]
+    },
+    {
+      "cover_probes": [
+        {
+          "distinct_coordinate_leaves": 1,
+          "first_leaf_seconds": 0.0006734710186719894,
+          "geometry_seconds": 0.0006647709524258971,
+          "id": 122,
+          "pending": 0,
+          "policy": "lex",
+          "seconds": 0.0006786610465496778,
+          "stats": {
+            "max_depth": 0,
+            "nodes": 1,
+            "reflexive_leaves": 1
+          },
+          "status": "complete"
+        },
+        {
+          "distinct_coordinate_leaves": 1,
+          "first_leaf_seconds": 0.009775407961569726,
+          "geometry_calls": 1,
+          "id": 122,
+          "label": "identity",
+          "oracle_seconds": 0.005392750026658177,
+          "pending": 0,
+          "seconds": 0.009789258008822799,
+          "stats": {
+            "max_depth": 0,
+            "nodes": 1,
+            "reflexive_leaves": 1
+          },
+          "status": "complete"
+        }
+      ],
+      "determinant_probe": {
+        "D_exact": null,
+        "D_lower": 6435,
+        "D_ws_upper": 10524,
+        "all_frames": 1370754,
+        "determinants": 129536,
+        "hnf_count_lower": 2207707129514842098,
+        "id": 122,
+        "seconds": 5.006892642006278,
+        "status": "censored"
+      },
+      "dual_point_count": 3552,
+      "facet_count": 46,
+      "id": 122,
+      "kind": "reflexive",
+      "labels": [
+        "vertex_count_max"
+      ],
+      "native_runs": [
+        {
+          "dual_ns": 4866619,
+          "hull_ns": 1033032,
+          "nf_ns": 215821,
+          "point_ns": 109290,
+          "vertex_hull_ns": 295880
+        },
+        {
+          "dual_ns": 3596636,
+          "hull_ns": 976832,
+          "nf_ns": 127131,
+          "point_ns": 61520,
+          "vertex_hull_ns": 266320
+        },
+        {
+          "dual_ns": 3612926,
+          "hull_ns": 959792,
+          "nf_ns": 106160,
+          "point_ns": 59770,
+          "vertex_hull_ns": 255091
+        },
+        {
+          "dual_ns": 3585827,
+          "hull_ns": 956452,
+          "nf_ns": 102790,
+          "point_ns": 60020,
+          "vertex_hull_ns": 242111
+        }
+      ],
+      "point_count": 1191,
+      "vertex_count": 46,
+      "weights": [
+        4,
+        15,
+        158,
+        354,
+        531,
+        1019
+      ]
+    },
+    {
+      "cover_probes": [
+        {
+          "distinct_coordinate_leaves": 1,
+          "first_leaf_seconds": 0.020860499003902078,
+          "geometry_seconds": 0.020845319028012455,
+          "id": 141,
+          "pending": 0,
+          "policy": "lex",
+          "seconds": 0.020867579034529626,
+          "stats": {
+            "max_depth": 0,
+            "nodes": 1,
+            "reflexive_leaves": 1
+          },
+          "status": "complete"
+        },
+        {
+          "distinct_coordinate_leaves": 1,
+          "first_leaf_seconds": 0.9831617360468954,
+          "geometry_calls": 1,
+          "id": 141,
+          "label": "identity",
+          "oracle_seconds": 0.13705696701072156,
+          "pending": 0,
+          "seconds": 0.9831730660516769,
+          "stats": {
+            "max_depth": 0,
+            "nodes": 1,
+            "reflexive_leaves": 1
+          },
+          "status": "complete"
+        }
+      ],
+      "determinant_probe": {
+        "D_exact": 3261636,
+        "D_lower": 3261636,
+        "D_ws_upper": 3261636,
+        "all_frames": 6,
+        "determinants": 6,
+        "hnf_count_lower": 73825736509205671165074273998274,
+        "id": 141,
+        "seconds": 0.0001404000213369727,
+        "status": "complete"
+      },
+      "dual_point_count": 355,
+      "facet_count": 6,
+      "id": 141,
+      "kind": "reflexive",
+      "labels": [
+        "point_count_max"
+      ],
+      "native_runs": [
+        {
+          "dual_ns": 94841718,
+          "hull_ns": 26031439,
+          "nf_ns": 135200,
+          "point_ns": 18789916,
+          "vertex_hull_ns": 7320
+        },
+        {
+          "dual_ns": 65887393,
+          "hull_ns": 10415720,
+          "nf_ns": 24190,
+          "point_ns": 3283626,
+          "vertex_hull_ns": 2530
+        },
+        {
+          "dual_ns": 66067894,
+          "hull_ns": 10700751,
+          "nf_ns": 7810,
+          "point_ns": 3078896,
+          "vertex_hull_ns": 2440
+        },
+        {
+          "dual_ns": 65798664,
+          "hull_ns": 10292759,
+          "nf_ns": 7350,
+          "point_ns": 3130696,
+          "vertex_hull_ns": 2390
+        }
+      ],
+      "point_count": 355785,
+      "vertex_count": 6,
+      "weights": [
+        1,
+        1,
+        84,
+        516,
+        1204,
+        1806
+      ]
+    }
+  ],
+  "validation": {
+    "branch_policies_exhaustively_checked": [
+      "lex",
+      "distance",
+      "partition"
+    ],
+    "existing_regressions_passed": 10,
+    "lattice_states_scalar_cross_checked": 1368,
+    "native_shared_and_cli_hulls_agree": 9,
+    "synthetic_points": 14,
+    "synthetic_reflexive_subsets": 5,
+    "vertex_facet_incidence_lists_checked": 538
+  },
+  "verified_counts_method": "Sum of Parquet footer row counts; not a full-content or deduplication audit.",
+  "ws_total": 13846521049
+}

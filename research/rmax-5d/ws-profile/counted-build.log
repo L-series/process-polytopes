@@ -1,0 +1,337 @@
+PALP/class.c: In function ‘LocalPrintUsage’:
+PALP/class.c:196:5: warning: ignoring return value of ‘scanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  196 |     scanf("%s", &hc);
+      |     ^~~~~~~~~~~~~~~~
+PALP/Coord.c: In function ‘ReadCwsPp’:
+PALP/Coord.c:213:7: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  213 |       fscanf(inFILE, "%d", &IN[i]);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PALP/Coord.c:260:11: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  260 |           fscanf(inFILE, "%d", &X);
+      |           ^~~~~~~~~~~~~~~~~~~~~~~~
+PALP/Coord.c:267:11: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  267 |           fscanf(inFILE, "%d", &X);
+      |           ^~~~~~~~~~~~~~~~~~~~~~~~
+PALP/Coord.c: In function ‘Read_PP’:
+PALP/Coord.c:378:7: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  378 |       fscanf(inFILE, "%d", &IN[i]);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PALP/Coord.c:428:11: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  428 |           fscanf(inFILE, "%d", &X);
+      |           ^~~~~~~~~~~~~~~~~~~~~~~~
+PALP/Coord.c:435:11: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  435 |           fscanf(inFILE, "%d", &X);
+      |           ^~~~~~~~~~~~~~~~~~~~~~~~
+PALP/Coord.c: In function ‘Read_CWS’:
+PALP/Coord.c:473:7: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  473 |       fscanf(inFILE, "%d", &IN[i]);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PALP/Polynf.c: In function ‘AuxDPolyData’:
+PALP/Polynf.c:2769:3: warning: ‘Make_VEPM’ accessing 655360 bytes in a region of size 32768 [-Wstringop-overflow=]
+ 2769 |   Make_VEPM(A, &V, &E, X);
+      |   ^~~~~~~~~~~~~~~~~~~~~~~
+PALP/Polynf.c:2769:3: note: referencing argument 4 of type ‘long int (*)[64]’
+In file included from PALP/Polynf.c:1:
+PALP/Global.h:434:6: note: in a call to function ‘Make_VEPM’
+  434 | void Make_VEPM(PolyPointList *P, VertexNumList *VNL, EqList *EL, PairMat PM);
+      |      ^~~~~~~~~
+PALP/Polynf.c: In function ‘Print_Fibrations’:
+PALP/Polynf.c:3474:7: warning: ‘Make_VEPM’ accessing 655360 bytes in a region of size 32768 [-Wstringop-overflow=]
+ 3474 |       Make_VEPM(F->P, &V, &E, X);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~
+PALP/Polynf.c:3474:7: note: referencing argument 4 of type ‘long int (*)[64]’
+In file included from PALP/Polynf.c:1:
+PALP/Global.h:434:6: note: in a call to function ‘Make_VEPM’
+  434 | void Make_VEPM(PolyPointList *P, VertexNumList *VNL, EqList *EL, PairMat PM);
+      |      ^~~~~~~~~
+In function ‘Fiber_Rec_New_Point’,
+    inlined from ‘Fiber_Rec_New_Point’ at PALP/Polynf.c:2725:9,
+    inlined from ‘Fiber_Rec_New_Point’ at PALP/Polynf.c:2725:9,
+    inlined from ‘Fiber_Rec_New_Point’ at PALP/Polynf.c:2725:9,
+    inlined from ‘Fiber_Rec_New_Point’ at PALP/Polynf.c:2725:9,
+    inlined from ‘Reflexive_Fibrations’ at PALP/Polynf.c:2757:5:
+PALP/Polynf.c:2717:14: warning: ‘__builtin_memset’ writing between 8 and 17179869128 bytes into a region of size 0 overflows the destination [-Wstringop-overflow=]
+ 2717 |         X[i] = 0;
+      |         ~~~~~^~~
+PALP/Polynf.c: In function ‘Reflexive_Fibrations’:
+PALP/Polynf.c:2733:11: note: at offset 248 into destination object ‘T’ of size 240
+ 2733 |   GL_Long T[POLY_Dmax + 1][POLY_Dmax], *X = T[0], **G[POLY_Dmax], *GN[POLY_Dmax],
+      |           ^
+In function ‘Fiber_Rec_New_Point’,
+    inlined from ‘Fiber_Rec_New_Point’ at PALP/Polynf.c:2725:9,
+    inlined from ‘Fiber_Rec_New_Point’ at PALP/Polynf.c:2725:9,
+    inlined from ‘Fiber_Rec_New_Point’ at PALP/Polynf.c:2725:9,
+    inlined from ‘Fiber_Rec_New_Point’ at PALP/Polynf.c:2725:9,
+    inlined from ‘Fiber_Rec_New_Point’ at PALP/Polynf.c:2725:9,
+    inlined from ‘Reflexive_Fibrations’ at PALP/Polynf.c:2757:5:
+PALP/Polynf.c:2717:14: warning: ‘__builtin_memset’ writing between 8 and 17179869120 bytes into a region of size 0 overflows the destination [-Wstringop-overflow=]
+ 2717 |         X[i] = 0;
+      |         ~~~~~^~~
+PALP/Polynf.c: In function ‘Reflexive_Fibrations’:
+PALP/Polynf.c:2733:11: note: at offset 296 into destination object ‘T’ of size 240
+ 2733 |   GL_Long T[POLY_Dmax + 1][POLY_Dmax], *X = T[0], **G[POLY_Dmax], *GN[POLY_Dmax],
+      |           ^
+In function ‘Fiber_Rec_New_Point’,
+    inlined from ‘Fiber_Rec_New_Point’ at PALP/Polynf.c:2725:9,
+    inlined from ‘Fiber_Rec_New_Point’ at PALP/Polynf.c:2725:9,
+    inlined from ‘Fiber_Rec_New_Point’ at PALP/Polynf.c:2725:9,
+    inlined from ‘Fiber_Rec_New_Point’ at PALP/Polynf.c:2725:9,
+    inlined from ‘Fiber_Rec_New_Point’ at PALP/Polynf.c:2725:9,
+    inlined from ‘Fiber_Rec_New_Point’ at PALP/Polynf.c:2725:9,
+    inlined from ‘Reflexive_Fibrations’ at PALP/Polynf.c:2757:5:
+PALP/Polynf.c:2717:14: warning: ‘__builtin_memset’ writing between 8 and 17179869112 bytes into a region of size 0 overflows the destination [-Wstringop-overflow=]
+ 2717 |         X[i] = 0;
+      |         ~~~~~^~~
+PALP/Polynf.c: In function ‘Reflexive_Fibrations’:
+PALP/Polynf.c:2733:11: note: at offset 344 into destination object ‘T’ of size 240
+ 2733 |   GL_Long T[POLY_Dmax + 1][POLY_Dmax], *X = T[0], **G[POLY_Dmax], *GN[POLY_Dmax],
+      |           ^
+In function ‘Fiber_Rec_New_Point’,
+    inlined from ‘Fiber_Rec_New_Point’ at PALP/Polynf.c:2725:9,
+    inlined from ‘Fiber_Rec_New_Point’ at PALP/Polynf.c:2725:9,
+    inlined from ‘Fiber_Rec_New_Point’ at PALP/Polynf.c:2725:9,
+    inlined from ‘Fiber_Rec_New_Point’ at PALP/Polynf.c:2725:9,
+    inlined from ‘Fiber_Rec_New_Point’ at PALP/Polynf.c:2725:9,
+    inlined from ‘Fiber_Rec_New_Point’ at PALP/Polynf.c:2725:9,
+    inlined from ‘Fiber_Rec_New_Point’ at PALP/Polynf.c:2725:9,
+    inlined from ‘Reflexive_Fibrations’ at PALP/Polynf.c:2757:5:
+PALP/Polynf.c:2717:14: warning: ‘__builtin_memset’ writing between 8 and 17179869104 bytes into a region of size 0 overflows the destination [-Wstringop-overflow=]
+ 2717 |         X[i] = 0;
+      |         ~~~~~^~~
+PALP/Polynf.c: In function ‘Reflexive_Fibrations’:
+PALP/Polynf.c:2733:11: note: at offset 392 into destination object ‘T’ of size 240
+ 2733 |   GL_Long T[POLY_Dmax + 1][POLY_Dmax], *X = T[0], **G[POLY_Dmax], *GN[POLY_Dmax],
+      |           ^
+PALP/Polynf.c: In function ‘Einstein_Metric’:
+PALP/Polynf.c:2408:5: warning: ‘Make_VEPM’ accessing 655360 bytes in a region of size 32768 [-Wstringop-overflow=]
+ 2408 |     Make_VEPM(P, V, E, PM);
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+PALP/Polynf.c:2408:5: note: referencing argument 4 of type ‘long int (*)[64]’
+In file included from PALP/Polynf.c:1:
+PALP/Global.h:434:6: note: in a call to function ‘Make_VEPM’
+  434 | void Make_VEPM(PolyPointList *P, VertexNumList *VNL, EqList *EL, PairMat PM);
+      |      ^~~~~~~~~
+PALP/Polynf.c: In function ‘Print_Fiber_PolyData’:
+PALP/Polynf.c:3282:5: warning: ‘Make_VEPM’ accessing 655360 bytes in a region of size 32768 [-Wstringop-overflow=]
+ 3282 |     Make_VEPM(F, &v, &e, X);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~
+PALP/Polynf.c:3282:5: note: referencing argument 4 of type ‘long int (*)[64]’
+In file included from PALP/Polynf.c:1:
+PALP/Global.h:434:6: note: in a call to function ‘Make_VEPM’
+  434 | void Make_VEPM(PolyPointList *P, VertexNumList *VNL, EqList *EL, PairMat PM);
+      |      ^~~~~~~~~
+PALP/Polynf.c:3292:7: warning: ‘Make_VEPM’ accessing 655360 bytes in a region of size 32768 [-Wstringop-overflow=]
+ 3292 |       Make_VEPM(F, &v, &e, X);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~
+PALP/Polynf.c:3292:7: note: referencing argument 4 of type ‘long int (*)[64]’
+In file included from PALP/Polynf.c:1:
+PALP/Global.h:434:6: note: in a call to function ‘Make_VEPM’
+  434 | void Make_VEPM(PolyPointList *P, VertexNumList *VNL, EqList *EL, PairMat PM);
+      |      ^~~~~~~~~
+PALP/Polynf.c:3351:7: warning: ‘Make_VEPM’ accessing 655360 bytes in a region of size 32768 [-Wstringop-overflow=]
+ 3351 |       Make_VEPM(F, &v, &e, PM);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~
+PALP/Polynf.c:3351:7: note: referencing argument 4 of type ‘long int (*)[64]’
+In file included from PALP/Polynf.c:1:
+PALP/Global.h:434:6: note: in a call to function ‘Make_VEPM’
+  434 | void Make_VEPM(PolyPointList *P, VertexNumList *VNL, EqList *EL, PairMat PM);
+      |      ^~~~~~~~~
+PALP/Polynf.c: In function ‘Fano5d’:
+PALP/Polynf.c:5104:17: warning: ‘SimplexVolume’ accessing 48 bytes in a region of size 40 [-Wstringop-overflow=]
+ 5104 |       if (1 != (SimplexVolume(Y, d)))
+      |                ~^~~~~~~~~~~~~~~~~~~~
+PALP/Polynf.c:5104:17: note: referencing argument 1 of type ‘long int **’
+PALP/Polynf.c:1479:6: note: in a call to function ‘SimplexVolume’
+ 1479 | Long SimplexVolume(Long *V[POLY_Dmax + 1], int d) {
+      |      ^~~~~~~~~~~~~
+PALP/Subpoly.c: In function ‘Start_Make_All_Subpolys’:
+PALP/Subpoly.c:676:5: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  676 |     fscanf(inFILE, "%d", &(KL.nk));
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PALP/Subpoly.c:679:7: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  679 |       fscanf(inFILE, "%d", &j);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~
+PALP/Subadd.c: In function ‘fgetUI’:
+PALP/Subadd.c:234:3: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  234 |   fscanf(F, "%c%c%c%c", &A, &B, &C, &D);
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PALP/Subdb.c: In function ‘Init_DB’:
+PALP/Subdb.c:198:3: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  198 |   fscanf(DB->Finfo, "%d  %d %d %d  %d  %lld %d %lld %lld  %d %d %d %d", &d, &DB->nV, &DB->nVmax,
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  199 |          &DB->NUCmax, &list_num, &DB->nNF, &DB->nSM, &DB->nNM, &DB->NB, &sl_nNF, &sl_SM, &sl_NM,
+      |          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  200 |          &sl_NB);
+      |          ~~~~~~~
+PALP/Subdb.c:216:5: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  216 |     fscanf(DB->Finfo, "%d", &v);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+PALP/Subdb.c:217:5: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  217 |     fscanf(DB->Finfo, "%d", &(DB->nNUC[v]));
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PALP/Subdb.c:219:7: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  219 |       fscanf(DB->Finfo, "%d", &nu);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PALP/Subdb.c:220:7: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  220 |       fscanf(DB->Finfo, "%d", &(DB->NFnum[v][nu]));
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PALP/Subdb.c: In function ‘Add_Polya_2_DBi’:
+PALP/Subdb.c:401:3: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  401 |   fscanf(FI, "%d%d%d%d%d%lld%d%lld %lld %d%d%d%d", &d, &i, &j, &nu, &Ili, &FIi.nNF, &FIi.nSM,
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  402 |          &FIi.nNM, &FIi.NB, &IslNF, &IslSM, &IslNM, &IslNB);
+      |          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PALP/Subdb.c:410:5: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  410 |     fscanf(FI, "%d", &v);
+      |     ^~~~~~~~~~~~~~~~~~~~
+PALP/Subdb.c:411:5: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  411 |     fscanf(FI, "%d", &j);
+      |     ^~~~~~~~~~~~~~~~~~~~
+PALP/Subdb.c:414:7: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  414 |       fscanf(FI, "%d", &nu);
+      |       ^~~~~~~~~~~~~~~~~~~~~
+PALP/Subdb.c:415:7: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  415 |       fscanf(FI, "%d", &FIi.NFnum[v][nu]);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PALP/Subdb.c: In function ‘Check_NF_Order’:
+PALP/Subdb.c:892:5: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  892 |     fscanf(F, "%d%d%d%d%d%lld%d%lld %lld %d%d%d%d", &d, &i, &j, &nu, &list_num, &L.nNF, &L.nSM,
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  893 |            &L.nNM, &L.NB, &sl_nNF, &sl_SM, &sl_NM, &sl_NB);
+      |            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PALP/Subdb.c:905:7: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  905 |       fscanf(F, "%d", &v);
+      |       ^~~~~~~~~~~~~~~~~~~
+PALP/Subdb.c:906:7: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  906 |       fscanf(F, "%d", &j);
+      |       ^~~~~~~~~~~~~~~~~~~
+PALP/Subdb.c:912:9: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  912 |         fscanf(F, "%d", &nu);
+      |         ^~~~~~~~~~~~~~~~~~~~
+PALP/Subdb.c:913:9: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  913 |         fscanf(F, "%d", &L.NFnum[v][nu]);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PALP/Subdb.c: In function ‘Reduce_Aux_File’:
+PALP/Subdb.c:1165:7: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+ 1165 |       fscanf(FS, "%d%d%d%d%d%lld%d%lld %lld %d%d%d%lld", &d, &i, &j, &nu, &Sli, &sNF, &FIs.nSM,
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1166 |              &sNM, &FIs.NB, &SslNF, &SslSM, &SslNM, &SslNB);
+      |              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PALP/Subdb.c:1174:7: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+ 1174 |       fscanf(FS, "%d", &v);
+      |       ^~~~~~~~~~~~~~~~~~~~
+PALP/Subdb.c:1175:7: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+ 1175 |       fscanf(FS, "%d", &j);
+      |       ^~~~~~~~~~~~~~~~~~~~
+PALP/Subdb.c:1178:9: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+ 1178 |         fscanf(FS, "%d", &nu);
+      |         ^~~~~~~~~~~~~~~~~~~~~
+PALP/Subdb.c:1179:9: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+ 1179 |         fscanf(FS, "%d", &FIs.NFnum[v][nu]);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PALP/Subdb.c: In function ‘Bin2aDBsl’:
+PALP/Subdb.c:1778:3: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+ 1778 |   fscanf(F, "%d%d%d%d%d%lld%d%lld %lld %d%d%d%d", &d, &i, &j, &nu, &list_num, &L.nNF, &L.nSM,
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1779 |          &L.nNM, &L.NB, &sl_nNF, &sl_SM, &sl_NM, &sl_NB);
+      |          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PALP/Subdb.c: In function ‘DB_to_Hodge’:
+PALP/Subdb.c:1906:3: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+ 1906 |   fscanf(DB.Finfo, "%d  %d %d %d  %d  %lld %d %lld %lld  %d %d %d %d", &d, &DB.nV, &DB.nVmax,
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1907 |          &DB.NUCmax, &list_num, &DB.nNF, &DB.nSM, &DB.nNM, &DB.NB, &sl_nNF, &sl_SM, &sl_NM, &sl_NB);
+      |          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PALP/Subdb.c:1918:5: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+ 1918 |     fscanf(DB.Finfo, "%d", &v);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~
+PALP/Subdb.c:1919:5: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+ 1919 |     fscanf(DB.Finfo, "%d", &(DB.nNUC[v]));
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PALP/Subdb.c:1921:7: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+ 1921 |       fscanf(DB.Finfo, "%d", &nu);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+PALP/Subdb.c:1922:7: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+ 1922 |       fscanf(DB.Finfo, "%d", &(DB.NFnum[v][nu]));
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PALP/Subdb.c: In function ‘Sort_Hodge’:
+PALP/Subdb.c:2063:5: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+ 2063 |     fscanf(Fvinfo, "%d  %d", &nd, &(nnf_v[v]));
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PALP/Subdb.c:2066:7: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+ 2066 |       fscanf(Fvinfo, "%d", &dh);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~
+PALP/Subdb.c:2067:7: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+ 2067 |       fscanf(Fvinfo, "%d", &(nnf_vd[v][dh]));
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PALP/Subdb.c: In function ‘Test_Hodge_db’:
+PALP/Subdb.c:2207:5: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+ 2207 |     fscanf(Fhinfo, "%d  %d", &nh, &(nnf_d[dh]));
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PALP/Subdb.c:2210:7: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+ 2210 |       fscanf(Fhinfo, "%d", &h12);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~
+PALP/Subdb.c:2211:7: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+ 2211 |       fscanf(Fhinfo, "%d", &(nnf_dh[dh][h12]));
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PALP/Subdb.c: In function ‘Extract_from_Hodge_db’:
+PALP/Subdb.c:2415:5: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+ 2415 |     fscanf(Fhinfo, "%d  %d", &nh, &(nnf_d[dh]));
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PALP/Subdb.c:2418:7: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+ 2418 |       fscanf(Fhinfo, "%d", &h12);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~
+PALP/Subdb.c:2419:7: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+ 2419 |       fscanf(Fhinfo, "%d", &(nnf_dh[dh][h12]));
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PALP/Subdb.c: In function ‘Open_DB’:
+PALP/Subdb.c:2606:3: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+ 2606 |   fscanf(DB->Finfo, "%d  %d %d %d  %d  %lld %d %lld %lld  %d %d %d %d", &DB->d, &DB->nV, &DB->nVmax,
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 2607 |          &DB->NUCmax, &DB->list_num, &DB->nNF, &DB->nSM, &DB->nNM, &DB->NB, &DB->sl_nNF, &DB->sl_SM,
+      |          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 2608 |          &DB->sl_NM, &DB->sl_NB);
+      |          ~~~~~~~~~~~~~~~~~~~~~~~
+PALP/Subdb.c:2619:5: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+ 2619 |     fscanf(DB->Finfo, "%d", &v);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+PALP/Subdb.c:2620:5: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+ 2620 |     fscanf(DB->Finfo, "%d", &(DB->nNUC[v]));
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PALP/Subdb.c:2622:7: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+ 2622 |       fscanf(DB->Finfo, "%d", &nu);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PALP/Subdb.c:2623:7: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+ 2623 |       fscanf(DB->Finfo, "%d", &(DB->NFnum[v][nu]));
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PALP/Subdb.c: In function ‘Bin_2_ANF_DBsl’:
+PALP/Subdb.c:3235:3: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+ 3235 |   fscanf(F, "%d%d%d%d%d%lld%d%lld %lld %d%d%d%d", &d, &i, &j, &nu, &list_num, &L.nNF, &L.nSM,
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 3236 |          &L.nNM, &L.NB, &sl_nNF, &sl_SM, &sl_NM, &sl_NB);
+      |          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PALP/Subdb.c: In function ‘PH_Sublat_Polys.constprop’:
+PALP/Subdb.c:2958:5: warning: ‘Make_VEPM’ accessing 655360 bytes in a region of size 32768 [-Wstringop-overflow=]
+ 2958 |     Make_VEPM(_P, &V, &E, PM);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~
+PALP/Subdb.c:2958:5: note: referencing argument 4 of type ‘long int (*)[64]’
+In file included from PALP/Subdb.c:1:
+PALP/Global.h:434:6: note: in a call to function ‘Make_VEPM’
+  434 | void Make_VEPM(PolyPointList *P, VertexNumList *VNL, EqList *EL, PairMat PM);
+      |      ^~~~~~~~~
+PALP/Subdb.c: In function ‘PH_Sublat_Polys’:
+PALP/Subdb.c:2958:5: warning: ‘Make_VEPM’ accessing 655360 bytes in a region of size 32768 [-Wstringop-overflow=]
+ 2958 |     Make_VEPM(_P, &V, &E, PM);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~
+PALP/Subdb.c:2958:5: note: referencing argument 4 of type ‘long int (*)[64]’
+In file included from PALP/Subdb.c:1:
+PALP/Global.h:434:6: note: in a call to function ‘Make_VEPM’
+  434 | void Make_VEPM(PolyPointList *P, VertexNumList *VNL, EqList *EL, PairMat PM);
+      |      ^~~~~~~~~
+PALP/Subdb.c:2958:5: warning: ‘Make_VEPM’ accessing 655360 bytes in a region of size 32768 [-Wstringop-overflow=]
+ 2958 |     Make_VEPM(_P, &V, &E, PM);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~
+PALP/Subdb.c:2958:5: note: referencing argument 4 of type ‘long int (*)[64]’
+In file included from PALP/Subdb.c:1:
+PALP/Global.h:434:6: note: in a call to function ‘Make_VEPM’
+  434 | void Make_VEPM(PolyPointList *P, VertexNumList *VNL, EqList *EL, PairMat PM);
+      |      ^~~~~~~~~

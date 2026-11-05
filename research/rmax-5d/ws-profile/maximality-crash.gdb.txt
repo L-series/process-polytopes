@@ -1,0 +1,22 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+
+Program received signal SIGSEGV, Segmentation fault.
+0x0000555555595bfd in Poly_Complete (n=n@entry=1, n_polyfacets=n_polyfacets@entry=0x7fffff8084ac, poly=poly@entry=0x7fffff81e5b0, polyfacets=polyfacets@entry=0x7fffff8084b0) at Subpoly.c:114
+114	INCI Poly_Complete(int n, int *n_polyfacets, INCI *poly, INCI *polyfacets) {
+#0  0x0000555555595bfd in Poly_Complete (n=n@entry=1, n_polyfacets=n_polyfacets@entry=0x7fffff8084ac, poly=poly@entry=0x7fffff81e5b0, polyfacets=polyfacets@entry=0x7fffff8084b0) at Subpoly.c:114
+#1  0x0000555555595e22 in List_Complete (facets=0x7fffff80acb0, polys=0x7fffff8084b0, n_facets=3, n_polys=<optimized out>, n=1) at Subpoly.c:138
+#2  Poly_Complete (n=n@entry=2, n_polyfacets=n_polyfacets@entry=0x7fffff81e5ac, poly=poly@entry=0x7fffff8346b0, polyfacets=polyfacets@entry=0x7fffff81e5b0) at Subpoly.c:125
+#3  0x0000555555595e22 in List_Complete (facets=0x7fffff820db0, polys=0x7fffff81e5b0, n_facets=6, n_polys=<optimized out>, n=2) at Subpoly.c:138
+#4  Poly_Complete (n=n@entry=3, n_polyfacets=n_polyfacets@entry=0x7fffff8346ac, poly=poly@entry=0x7fffff84a8c0, polyfacets=polyfacets@entry=0x7fffff8346b0) at Subpoly.c:125
+#5  0x0000555555595e22 in List_Complete (facets=0x7fffff836eb0, polys=0x3, n_facets=13, n_polys=<optimized out>, n=3) at Subpoly.c:138
+#6  Poly_Complete (n=n@entry=4, n_polyfacets=n_polyfacets@entry=0x7fffff84a82c, poly=poly@entry=0x7fffff860a70, polyfacets=polyfacets@entry=0x7fffff84a8c0) at Subpoly.c:125
+#7  0x0000555555596b29 in List_Complete (facets=0x7fffff84d0c0, polys=0x7fffff860a70, n_facets=17, n_polys=<optimized out>, n=4) at Subpoly.c:138
+#8  Close_the_Hole (_P=_P@entry=0x7fffaf562010, _V=_V@entry=0x7fffff8883e0, _E=_E@entry=0x7fffff888600, _CEq=_CEq@entry=0x7fffff865a70, old_ne=old_ne@entry=8, n_old_v=n_old_v@entry=7, n_Hole_Faces=<optimized out>, E_INCI=0x7fffff863270, CEq_INCI=0x7fffff860a70, Hole_Verts=127, Hole_Faces=0x7fffff874a80) at Subpoly.c:275
+#9  0x00005555555972bd in Aided_IP_Check (_P=_P@entry=0x7fffaf562010, _V=_V@entry=0x7fffff8883e0, _E=_E@entry=0x7fffff888600, n_irrel=n_irrel@entry=3, n_old_v=7) at Subpoly.c:408
+#10 0x000055555559bdad in Find_RSP_Drop_and_Keep (_P=_P@entry=0x7fffee4e2010, _V=_V@entry=0x7fffff897970, _E=_E@entry=0x7fffff897a80, _KL=_KL@entry=0x7fffff897680, drop_num=3, rd=rd@entry=0x7ffffffd089c) at Subpoly.c:1799
+#11 0x000055555559b98a in Find_Ref_Subpoly (_P=_P@entry=0x7fffee4e2010, _E=_E@entry=0x7fffff897a80, _V=_V@entry=0x7fffff897970, _KL=_KL@entry=0x7fffff8a6b00, rd=rd@entry=0x7ffffffd089c) at Subpoly.c:1962
+#12 0x000055555559c0ec in Find_RSP_Drop_and_Keep (_P=_P@entry=0x7fffee4e2010, _V=_V@entry=0x7fffff8a6df0, _E=_E@entry=0x7fffff8a6f00, _KL=_KL@entry=0x7fffff8a6b00, drop_num=3, rd=rd@entry=0x7ffffffd089c) at Subpoly.c:1853
+#13 0x000055555559b98a in Find_Ref_Subpoly (_P=_P@entry=0x7fffee4e2010, _E=_E@entry=0x7fffff8a6f00, _V=_V@entry=0x7fffff8a6df0, _KL=_KL@entry=0x7fffff8b5f80, rd=rd@entry=0x7ffffffd089c) at Subpoly.c:1962
+#14 0x000055555559c0ec in Find_RSP_Drop_and_Keep (_P=_P@entry=0x7fffee4e2010, _V=_V@entry=0x7fffff8b6270, _E=_E@entry=0x7fffff8b6380, _KL=_KL@entry=0x7fffff8b5f80, drop_num=3, rd=rd@entry=0x7ffffffd089c) at Subpoly.c:1853
+#15 0x000055555559b98a in Find_Ref_Subpoly (_P=_P@entry=0x7fffee4e2010, _E=_E@entry=0x7fffff8b6380, _V=_V@entry=0x7fffff8b6270, _KL=_KL@entry=0x7fffff8c5400, rd=rd@entry=0x7ffffffd089c) at Subpoly.c:1962

@@ -1,0 +1,156 @@
+PALP/Coord.c: In function ‘ReadCwsPp’:
+PALP/Coord.c:213:7: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  213 |       fscanf(inFILE, "%d", &IN[i]);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PALP/Coord.c:260:11: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  260 |           fscanf(inFILE, "%d", &X);
+      |           ^~~~~~~~~~~~~~~~~~~~~~~~
+PALP/Coord.c:267:11: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  267 |           fscanf(inFILE, "%d", &X);
+      |           ^~~~~~~~~~~~~~~~~~~~~~~~
+PALP/Coord.c: In function ‘Read_PP’:
+PALP/Coord.c:378:7: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  378 |       fscanf(inFILE, "%d", &IN[i]);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PALP/Coord.c:428:11: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  428 |           fscanf(inFILE, "%d", &X);
+      |           ^~~~~~~~~~~~~~~~~~~~~~~~
+PALP/Coord.c:435:11: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  435 |           fscanf(inFILE, "%d", &X);
+      |           ^~~~~~~~~~~~~~~~~~~~~~~~
+PALP/Coord.c: In function ‘Read_CWS’:
+PALP/Coord.c:473:7: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  473 |       fscanf(inFILE, "%d", &IN[i]);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PALP/Polynf.c: In function ‘Einstein_Metric’:
+PALP/Polynf.c:2408:5: warning: ‘Make_VEPM’ accessing 655360 bytes in a region of size 32768 [-Wstringop-overflow=]
+ 2408 |     Make_VEPM(P, V, E, PM);
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+PALP/Polynf.c:2408:5: note: referencing argument 4 of type ‘long int (*)[64]’
+In file included from PALP/Polynf.c:1:
+PALP/Global.h:434:6: note: in a call to function ‘Make_VEPM’
+  434 | void Make_VEPM(PolyPointList *P, VertexNumList *VNL, EqList *EL, PairMat PM);
+      |      ^~~~~~~~~
+In function ‘Fiber_Rec_New_Point’,
+    inlined from ‘Fiber_Rec_New_Point’ at PALP/Polynf.c:2725:9,
+    inlined from ‘Fiber_Rec_New_Point’ at PALP/Polynf.c:2725:9,
+    inlined from ‘Fiber_Rec_New_Point’ at PALP/Polynf.c:2725:9,
+    inlined from ‘Fiber_Rec_New_Point’ at PALP/Polynf.c:2725:9,
+    inlined from ‘Reflexive_Fibrations’ at PALP/Polynf.c:2757:5:
+PALP/Polynf.c:2717:14: warning: ‘__builtin_memset’ writing between 8 and 17179869128 bytes into a region of size 0 overflows the destination [-Wstringop-overflow=]
+ 2717 |         X[i] = 0;
+      |         ~~~~~^~~
+PALP/Polynf.c: In function ‘Reflexive_Fibrations’:
+PALP/Polynf.c:2733:11: note: at offset 248 into destination object ‘T’ of size 240
+ 2733 |   GL_Long T[POLY_Dmax + 1][POLY_Dmax], *X = T[0], **G[POLY_Dmax], *GN[POLY_Dmax],
+      |           ^
+In function ‘Fiber_Rec_New_Point’,
+    inlined from ‘Fiber_Rec_New_Point’ at PALP/Polynf.c:2725:9,
+    inlined from ‘Fiber_Rec_New_Point’ at PALP/Polynf.c:2725:9,
+    inlined from ‘Fiber_Rec_New_Point’ at PALP/Polynf.c:2725:9,
+    inlined from ‘Fiber_Rec_New_Point’ at PALP/Polynf.c:2725:9,
+    inlined from ‘Fiber_Rec_New_Point’ at PALP/Polynf.c:2725:9,
+    inlined from ‘Reflexive_Fibrations’ at PALP/Polynf.c:2757:5:
+PALP/Polynf.c:2717:14: warning: ‘__builtin_memset’ writing between 8 and 17179869120 bytes into a region of size 0 overflows the destination [-Wstringop-overflow=]
+ 2717 |         X[i] = 0;
+      |         ~~~~~^~~
+PALP/Polynf.c: In function ‘Reflexive_Fibrations’:
+PALP/Polynf.c:2733:11: note: at offset 296 into destination object ‘T’ of size 240
+ 2733 |   GL_Long T[POLY_Dmax + 1][POLY_Dmax], *X = T[0], **G[POLY_Dmax], *GN[POLY_Dmax],
+      |           ^
+In function ‘Fiber_Rec_New_Point’,
+    inlined from ‘Fiber_Rec_New_Point’ at PALP/Polynf.c:2725:9,
+    inlined from ‘Fiber_Rec_New_Point’ at PALP/Polynf.c:2725:9,
+    inlined from ‘Fiber_Rec_New_Point’ at PALP/Polynf.c:2725:9,
+    inlined from ‘Fiber_Rec_New_Point’ at PALP/Polynf.c:2725:9,
+    inlined from ‘Fiber_Rec_New_Point’ at PALP/Polynf.c:2725:9,
+    inlined from ‘Fiber_Rec_New_Point’ at PALP/Polynf.c:2725:9,
+    inlined from ‘Reflexive_Fibrations’ at PALP/Polynf.c:2757:5:
+PALP/Polynf.c:2717:14: warning: ‘__builtin_memset’ writing between 8 and 17179869112 bytes into a region of size 0 overflows the destination [-Wstringop-overflow=]
+ 2717 |         X[i] = 0;
+      |         ~~~~~^~~
+PALP/Polynf.c: In function ‘Reflexive_Fibrations’:
+PALP/Polynf.c:2733:11: note: at offset 344 into destination object ‘T’ of size 240
+ 2733 |   GL_Long T[POLY_Dmax + 1][POLY_Dmax], *X = T[0], **G[POLY_Dmax], *GN[POLY_Dmax],
+      |           ^
+In function ‘Fiber_Rec_New_Point’,
+    inlined from ‘Fiber_Rec_New_Point’ at PALP/Polynf.c:2725:9,
+    inlined from ‘Fiber_Rec_New_Point’ at PALP/Polynf.c:2725:9,
+    inlined from ‘Fiber_Rec_New_Point’ at PALP/Polynf.c:2725:9,
+    inlined from ‘Fiber_Rec_New_Point’ at PALP/Polynf.c:2725:9,
+    inlined from ‘Fiber_Rec_New_Point’ at PALP/Polynf.c:2725:9,
+    inlined from ‘Fiber_Rec_New_Point’ at PALP/Polynf.c:2725:9,
+    inlined from ‘Fiber_Rec_New_Point’ at PALP/Polynf.c:2725:9,
+    inlined from ‘Reflexive_Fibrations’ at PALP/Polynf.c:2757:5:
+PALP/Polynf.c:2717:14: warning: ‘__builtin_memset’ writing between 8 and 17179869104 bytes into a region of size 0 overflows the destination [-Wstringop-overflow=]
+ 2717 |         X[i] = 0;
+      |         ~~~~~^~~
+PALP/Polynf.c: In function ‘Reflexive_Fibrations’:
+PALP/Polynf.c:2733:11: note: at offset 392 into destination object ‘T’ of size 240
+ 2733 |   GL_Long T[POLY_Dmax + 1][POLY_Dmax], *X = T[0], **G[POLY_Dmax], *GN[POLY_Dmax],
+      |           ^
+PALP/Polynf.c: In function ‘AuxDPolyData’:
+PALP/Polynf.c:2769:3: warning: ‘Make_VEPM’ accessing 655360 bytes in a region of size 32768 [-Wstringop-overflow=]
+ 2769 |   Make_VEPM(A, &V, &E, X);
+      |   ^~~~~~~~~~~~~~~~~~~~~~~
+PALP/Polynf.c:2769:3: note: referencing argument 4 of type ‘long int (*)[64]’
+In file included from PALP/Polynf.c:1:
+PALP/Global.h:434:6: note: in a call to function ‘Make_VEPM’
+  434 | void Make_VEPM(PolyPointList *P, VertexNumList *VNL, EqList *EL, PairMat PM);
+      |      ^~~~~~~~~
+PALP/Polynf.c: In function ‘Print_Fiber_PolyData’:
+PALP/Polynf.c:3282:5: warning: ‘Make_VEPM’ accessing 655360 bytes in a region of size 32768 [-Wstringop-overflow=]
+ 3282 |     Make_VEPM(F, &v, &e, X);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~
+PALP/Polynf.c:3282:5: note: referencing argument 4 of type ‘long int (*)[64]’
+In file included from PALP/Polynf.c:1:
+PALP/Global.h:434:6: note: in a call to function ‘Make_VEPM’
+  434 | void Make_VEPM(PolyPointList *P, VertexNumList *VNL, EqList *EL, PairMat PM);
+      |      ^~~~~~~~~
+PALP/Polynf.c:3292:7: warning: ‘Make_VEPM’ accessing 655360 bytes in a region of size 32768 [-Wstringop-overflow=]
+ 3292 |       Make_VEPM(F, &v, &e, X);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~
+PALP/Polynf.c:3292:7: note: referencing argument 4 of type ‘long int (*)[64]’
+In file included from PALP/Polynf.c:1:
+PALP/Global.h:434:6: note: in a call to function ‘Make_VEPM’
+  434 | void Make_VEPM(PolyPointList *P, VertexNumList *VNL, EqList *EL, PairMat PM);
+      |      ^~~~~~~~~
+PALP/Polynf.c:3351:7: warning: ‘Make_VEPM’ accessing 655360 bytes in a region of size 32768 [-Wstringop-overflow=]
+ 3351 |       Make_VEPM(F, &v, &e, PM);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~
+PALP/Polynf.c:3351:7: note: referencing argument 4 of type ‘long int (*)[64]’
+In file included from PALP/Polynf.c:1:
+PALP/Global.h:434:6: note: in a call to function ‘Make_VEPM’
+  434 | void Make_VEPM(PolyPointList *P, VertexNumList *VNL, EqList *EL, PairMat PM);
+      |      ^~~~~~~~~
+PALP/Polynf.c: In function ‘Print_Fibrations’:
+PALP/Polynf.c:3474:7: warning: ‘Make_VEPM’ accessing 655360 bytes in a region of size 32768 [-Wstringop-overflow=]
+ 3474 |       Make_VEPM(F->P, &V, &E, X);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~
+PALP/Polynf.c:3474:7: note: referencing argument 4 of type ‘long int (*)[64]’
+In file included from PALP/Polynf.c:1:
+PALP/Global.h:434:6: note: in a call to function ‘Make_VEPM’
+  434 | void Make_VEPM(PolyPointList *P, VertexNumList *VNL, EqList *EL, PairMat PM);
+      |      ^~~~~~~~~
+PALP/Polynf.c: In function ‘Fano5d’:
+PALP/Polynf.c:5104:17: warning: ‘SimplexVolume’ accessing 48 bytes in a region of size 40 [-Wstringop-overflow=]
+ 5104 |       if (1 != (SimplexVolume(Y, d)))
+      |                ~^~~~~~~~~~~~~~~~~~~~
+PALP/Polynf.c:5104:17: note: referencing argument 1 of type ‘long int **’
+PALP/Polynf.c:1479:6: note: in a call to function ‘SimplexVolume’
+ 1479 | Long SimplexVolume(Long *V[POLY_Dmax + 1], int d) {
+      |      ^~~~~~~~~~~~~
+PALP/LG.c: In function ‘Read_WZ_PP’:
+PALP/LG.c:65:3: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+   65 |   fscanf(inFILE, "%d", I);
+      |   ^~~~~~~~~~~~~~~~~~~~~~~
+PALP/LG.c:71:7: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+   71 |       fscanf(inFILE, "%d", &I[i]);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+PALP/LG.c: In function ‘Read_Weight’:
+PALP/LG.c:437:3: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  437 |   fscanf(inFILE, "%d", I);
+      |   ^~~~~~~~~~~~~~~~~~~~~~~
+PALP/LG.c:443:7: warning: ignoring return value of ‘fscanf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  443 |       fscanf(inFILE, "%d", &I[i]);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~

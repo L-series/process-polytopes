@@ -1,0 +1,1 @@
+{"containers": 308, "hull_nodes": 17248, "input_sha256": "ec508b31269103bf9325cf67d8cd01eea3abf4a480cd10d1f2c586639ea6ff53", "lattice_search_truncated": true, "lattices": 17248, "maximal_classes": 334, "maximality_checks": 2640, "non_ip_nodes": 11729, "reflexive_leaves": 5519}

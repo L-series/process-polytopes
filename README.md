@@ -98,6 +98,14 @@ is in the [literature notes](docs/learning/README.md) and their
 [single-weight paper](docs/learning/SINGLE_WS_5d.tex) concerns a different
 scientific deliverable.
 
+For the maximal-only reduction, lattice-completeness argument, reference
+implementation and 4D 340-polytope regression, see
+[r-maximal search](docs/R_MAXIMAL_SEARCH.md). Its unrestricted algorithm is
+complete under exact geometry contracts; practical 5D scalability is not yet
+established.
+The [shareable research bundle](research/rmax-5d/README.md) includes the raw
+profiling and validation artifacts, workload assumptions, and replay tools.
+
 ## Development and provenance
 
 Use Conventional Commits; enable the message hook with

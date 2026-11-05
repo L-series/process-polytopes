@@ -1,0 +1,455 @@
+{
+  "note": "Hashes of retained generated artifacts before packaging. Downloaded literature, tool/session internals, and previously cleaned temporary point dumps are excluded.",
+  "files": [
+    {
+      "source_relative_path": "4d-333.nf",
+      "bundle_path": "research/rmax-5d/artifacts/exploratory-4d/4d-333.nf",
+      "bytes": 12898,
+      "sha256": "f19e6c02e51e85add55d48a0e96d93c52b062493888586d0f8b9b9b9ebc5bf3d"
+    },
+    {
+      "source_relative_path": "4d-index3-maxima.jsonl",
+      "bundle_path": "research/rmax-5d/artifacts/exploratory-4d/4d-index3-maxima.jsonl",
+      "bytes": 86901,
+      "sha256": "30ba7034b0b034171d08e4e42f3912e04c720602c31965e2fdaebf815fd8111b"
+    },
+    {
+      "source_relative_path": "4d-index3-maxima.log",
+      "bundle_path": "research/rmax-5d/artifacts/exploratory-4d/4d-index3-maxima.log",
+      "bytes": 278,
+      "sha256": "d168da39363bfd61fb4454f103f548b217f0df00b63706ac90d07ea94d95cfc3"
+    },
+    {
+      "source_relative_path": "4d-reference-rminimal.cws",
+      "bundle_path": "research/rmax-5d/artifacts/exploratory-4d/4d-reference-rminimal.cws",
+      "bytes": 6396,
+      "sha256": "d30d81447b3e766252abacd077c3c1ac15087be07bea53741c3c21605cf50496"
+    },
+    {
+      "source_relative_path": "4d-rminimal.cws",
+      "bundle_path": "research/rmax-5d/artifacts/exploratory-4d/4d-rminimal.cws",
+      "bytes": 6400,
+      "sha256": "ec508b31269103bf9325cf67d8cd01eea3abf4a480cd10d1f2c586639ea6ff53"
+    },
+    {
+      "source_relative_path": "4d-sublattice.bin",
+      "bundle_path": "research/rmax-5d/artifacts/exploratory-4d/4d-sublattice.bin",
+      "bytes": 1406,
+      "sha256": "af4a4b83f5658ec2c528a28a24f520cae35631f9bbab7c561a1eb184e3fa35f2"
+    },
+    {
+      "source_relative_path": "4d-sublattice.log",
+      "bundle_path": "research/rmax-5d/artifacts/exploratory-4d/4d-sublattice.log",
+      "bytes": 27814,
+      "sha256": "bdf942875e98e83a6ca69a9f0e991f14d579755779b58ed5b95622fca894f285"
+    },
+    {
+      "source_relative_path": "4d-sublattice.nf",
+      "bundle_path": "research/rmax-5d/artifacts/exploratory-4d/4d-sublattice.nf",
+      "bytes": 12887,
+      "sha256": "41394306e60a7d9f617b2677c437c34c8097b26d75a6d7e7e5a661ba284dae11"
+    },
+    {
+      "source_relative_path": "rmax4d-validation/index3.jsonl",
+      "bundle_path": "research/rmax-5d/artifacts/rmax4d-validation/index3.jsonl",
+      "bytes": 141623,
+      "sha256": "bf44e4c0b61eaec6e68b8a3c19ddedbc20e62ab6690e4bbd1a43c49e4a31497a"
+    },
+    {
+      "source_relative_path": "rmax4d-validation/maximal-340.jsonl",
+      "bundle_path": "research/rmax-5d/artifacts/rmax4d-validation/maximal-340.jsonl",
+      "bytes": 50227,
+      "sha256": "b16528fe9471388b26b3877a193b7f16fb13dde46be176e4fa0856756efcbb1c"
+    },
+    {
+      "source_relative_path": "rmax4d-validation/rminimal.cws",
+      "bundle_path": "research/rmax-5d/artifacts/rmax4d-validation/rminimal.cws",
+      "bytes": 6400,
+      "sha256": "ec508b31269103bf9325cf67d8cd01eea3abf4a480cd10d1f2c586639ea6ff53"
+    },
+    {
+      "source_relative_path": "rmax4d-validation/summary.json",
+      "bundle_path": "research/rmax-5d/artifacts/rmax4d-validation/summary.json",
+      "bytes": 1000,
+      "sha256": "eb611706847082ee4b0341aa9379eac55586146403244c6b6e9b3de5c2e09d4a"
+    },
+    {
+      "source_relative_path": "rmax4d-validation/unchanged.bin",
+      "bundle_path": "research/rmax-5d/artifacts/rmax4d-validation/unchanged.bin",
+      "bytes": 1406,
+      "sha256": "af4a4b83f5658ec2c528a28a24f520cae35631f9bbab7c561a1eb184e3fa35f2"
+    },
+    {
+      "source_relative_path": "rmax4d-validation/unchanged.log",
+      "bundle_path": "research/rmax-5d/artifacts/rmax4d-validation/unchanged.log",
+      "bytes": 27828,
+      "sha256": "5ecbe05650ef07b09386aca00c4b4ec7677338f2ef145a98f9be5a16c0055b39"
+    },
+    {
+      "source_relative_path": "rmax4d-validation/unchanged.nf",
+      "bundle_path": "research/rmax-5d/artifacts/rmax4d-validation/unchanged.nf",
+      "bytes": 12898,
+      "sha256": "f19e6c02e51e85add55d48a0e96d93c52b062493888586d0f8b9b9b9ebc5bf3d"
+    },
+    {
+      "source_relative_path": "ws-profile/backend128/Coord.c",
+      "bundle_path": "research/rmax-5d/ws-profile/backend128/Coord.c",
+      "bytes": 38916,
+      "sha256": "e497a4ee99ae2cfe8fcd25b919799e5cfa99edb6f83d043e3c77379ba9152eef"
+    },
+    {
+      "source_relative_path": "ws-profile/backend128/Global.h",
+      "bundle_path": "research/rmax-5d/ws-profile/backend128/Global.h",
+      "bytes": 21290,
+      "sha256": "099ec806fac7d34d67af958cc87d70e27419db5f1937c119d4bdf8aad6d4382a"
+    },
+    {
+      "source_relative_path": "ws-profile/backend128/Polynf.c",
+      "bundle_path": "research/rmax-5d/ws-profile/backend128/Polynf.c",
+      "bytes": 164892,
+      "sha256": "44208c6193088bc8a74d5caf151551a34919b344125dc081ff1e450c135febad"
+    },
+    {
+      "source_relative_path": "ws-profile/backend128/Rat.c",
+      "bundle_path": "research/rmax-5d/ws-profile/backend128/Rat.c",
+      "bytes": 11309,
+      "sha256": "e25c51ff17e01a269dcf5a211c7d4799d4f68065f272440af819e675f4697875"
+    },
+    {
+      "source_relative_path": "ws-profile/backend128/Subadd.c",
+      "bundle_path": "research/rmax-5d/ws-profile/backend128/Subadd.c",
+      "bytes": 66451,
+      "sha256": "d6034083b66905adb55e52b7327c9b9841749f114138790ee0791bc4adb011da"
+    },
+    {
+      "source_relative_path": "ws-profile/backend128/Subdb.c",
+      "bundle_path": "research/rmax-5d/ws-profile/backend128/Subdb.c",
+      "bytes": 95665,
+      "sha256": "4dc40e8f34c6c698630780be72d9796a88cbf3a04b792ed983bb77609621d2d8"
+    },
+    {
+      "source_relative_path": "ws-profile/backend128/Subpoly.c",
+      "bundle_path": "research/rmax-5d/ws-profile/backend128/Subpoly.c",
+      "bytes": 59943,
+      "sha256": "867690b64709376f3de85e62b9be907ca5316c2cf9ad27170f02ea1964b26c7c"
+    },
+    {
+      "source_relative_path": "ws-profile/backend128/Subpoly.h",
+      "bundle_path": "research/rmax-5d/ws-profile/backend128/Subpoly.h",
+      "bytes": 9540,
+      "sha256": "35d72ade27abbe036d3f08b825a27d84f94b5b5d97cbf958570d061b05f773f3"
+    },
+    {
+      "source_relative_path": "ws-profile/backend128/Vertex.c",
+      "bundle_path": "research/rmax-5d/ws-profile/backend128/Vertex.c",
+      "bytes": 46798,
+      "sha256": "ea516fdc9edf39a86051146931d702f0b081296c6499c8e7c5e6979ea0b16d90"
+    },
+    {
+      "source_relative_path": "ws-profile/backend128/class.c",
+      "bundle_path": "research/rmax-5d/ws-profile/backend128/class.c",
+      "bytes": 18002,
+      "sha256": "5991e17515b5b9230ea903df58b1d89abf5750e32a5786d75e24c37dcede43d5"
+    },
+    {
+      "source_relative_path": "ws-profile/branch-validation.json",
+      "bundle_path": "research/rmax-5d/ws-profile/branch-validation.json",
+      "bytes": 6876,
+      "sha256": "5faddfa4ab2285dbd2372a1fc3c73abd18f7789b5766a1199792cf89c82281a8"
+    },
+    {
+      "source_relative_path": "ws-profile/certificates.json",
+      "bundle_path": "research/rmax-5d/ws-profile/certificates.json",
+      "bytes": 78812,
+      "sha256": "b01fc00dff2423b0559982b3b41b326a77acf0067cdb6babdaa0d1ed0fa58005"
+    },
+    {
+      "source_relative_path": "ws-profile/certificates.py",
+      "bundle_path": "research/rmax-5d/ws-profile/certificates.py",
+      "bytes": 3172,
+      "sha256": "e22e4856920151eeafe2948b62cbf8a3247564185ace7a53932e41ee2ab2c015"
+    },
+    {
+      "source_relative_path": "ws-profile/class-128",
+      "bundle_path": "research/rmax-5d/ws-profile/class-128",
+      "bytes": 1629904,
+      "sha256": "de943a575d474dd60f4c27693acc27d379a1e45cce9663ca036ce77bd56ab229"
+    },
+    {
+      "source_relative_path": "ws-profile/class-counted",
+      "bundle_path": "research/rmax-5d/ws-profile/class-counted",
+      "bytes": 1630880,
+      "sha256": "86ef816ab87ad83827ad9ec2b1fff0a483ee13d2cd676d460f49e64701fba9a6"
+    },
+    {
+      "source_relative_path": "ws-profile/cleanup.json",
+      "bundle_path": "research/rmax-5d/ws-profile/cleanup.json",
+      "bytes": 145,
+      "sha256": "611a9b323e6fd5485731510027ebfa139f9be920f9f1dada8fbca890c71cf3e0"
+    },
+    {
+      "source_relative_path": "ws-profile/concise.json",
+      "bundle_path": "research/rmax-5d/ws-profile/concise.json",
+      "bytes": 7919,
+      "sha256": "27fec376dcdb893e715f584e5548d08ab3ffaa7e96213bb2126069e636ddf0eb"
+    },
+    {
+      "source_relative_path": "ws-profile/counted-build.log",
+      "bundle_path": "research/rmax-5d/ws-profile/counted-build.log",
+      "bytes": 23856,
+      "sha256": "9f9c3d6465f03c30083cf3dfcb069185e7877c3b5cf4961dd2f519a961c48653"
+    },
+    {
+      "source_relative_path": "ws-profile/counts.c",
+      "bundle_path": "research/rmax-5d/ws-profile/counts.c",
+      "bytes": 1008,
+      "sha256": "5ee5c8526ebbdaa6f0ac8f57a82fd6a93affc738772975b67be2786922e29117"
+    },
+    {
+      "source_relative_path": "ws-profile/cover.jsonl",
+      "bundle_path": "research/rmax-5d/ws-profile/cover.jsonl",
+      "bytes": 34497,
+      "sha256": "5e1a16c45c9e240add08bb7359910d71abc1a91b2755ccd419e35d03df8f69b9"
+    },
+    {
+      "source_relative_path": "ws-profile/determinants.jsonl",
+      "bundle_path": "research/rmax-5d/ws-profile/determinants.jsonl",
+      "bytes": 30538,
+      "sha256": "8b90e53194991158713058a5b9e60c9b215b5c574bc5202b9214ebc06da0f8b2"
+    },
+    {
+      "source_relative_path": "ws-profile/export_results.py",
+      "bundle_path": "research/rmax-5d/ws-profile/export_results.py",
+      "bytes": 3146,
+      "sha256": "398034f1d43de56851ba1d91b028fdc72817f559b23e9e97871e616fe5992bcd"
+    },
+    {
+      "source_relative_path": "ws-profile/extend_sample.py",
+      "bundle_path": "research/rmax-5d/ws-profile/extend_sample.py",
+      "bytes": 3340,
+      "sha256": "585204e747ab8ec47b7ab0aa8e51a32d5174a4ced887042cdf2ae3a547b4bc02"
+    },
+    {
+      "source_relative_path": "ws-profile/hull-build.log",
+      "bundle_path": "research/rmax-5d/ws-profile/hull-build.log",
+      "bytes": 6213,
+      "sha256": "45e5f4baeb88cc6ab01d21ae7e9637d107f6fc62993f206d670c4d9302715354"
+    },
+    {
+      "source_relative_path": "ws-profile/hull.c",
+      "bundle_path": "research/rmax-5d/ws-profile/hull.c",
+      "bytes": 899,
+      "sha256": "a40cdbb2f8db71bab45e84322a3578a126631606cfe0e5a895cf5f56d38ef9e3"
+    },
+    {
+      "source_relative_path": "ws-profile/hull.so",
+      "bundle_path": "research/rmax-5d/ws-profile/hull.so",
+      "bytes": 359408,
+      "sha256": "69c346231ce75f96f7e27640286852eb07c0be9ed71f322d31b1144c67438b3d"
+    },
+    {
+      "source_relative_path": "ws-profile/inventory.json",
+      "bundle_path": "research/rmax-5d/ws-profile/inventory.json",
+      "bytes": 8142,
+      "sha256": "c87c1f78993bbb4556fc1884a8fed91f3d8ea14017b8944004234b679e0ec5d7"
+    },
+    {
+      "source_relative_path": "ws-profile/lattice-build.log",
+      "bundle_path": "research/rmax-5d/ws-profile/lattice-build.log",
+      "bytes": 10025,
+      "sha256": "2d6c1cc1f1918a86d3b93ed98ff0b6f5fb7e88d818d66fe29ad61251816daea1"
+    },
+    {
+      "source_relative_path": "ws-profile/lattice-tree.jsonl",
+      "bundle_path": "research/rmax-5d/ws-profile/lattice-tree.jsonl",
+      "bytes": 6665,
+      "sha256": "4f455cb752db7ba52e63a25432adc8589e5da9a64a5885a22409157647b8f0dc"
+    },
+    {
+      "source_relative_path": "ws-profile/lattice_runs.py",
+      "bundle_path": "research/rmax-5d/ws-profile/lattice_runs.py",
+      "bytes": 1783,
+      "sha256": "f8facfa74bad0011a7b6fc070c916acb0c95e8d6ab117057530c02401ac34a8f"
+    },
+    {
+      "source_relative_path": "ws-profile/lattice_tree.py",
+      "bundle_path": "research/rmax-5d/ws-profile/lattice_tree.py",
+      "bytes": 4408,
+      "sha256": "37a72041ea575358c3013eebcdf82ac102fad46972d775cedcde742b740bd607"
+    },
+    {
+      "source_relative_path": "ws-profile/lattices",
+      "bundle_path": "research/rmax-5d/ws-profile/lattices",
+      "bytes": 1186736,
+      "sha256": "d1008756ce14a2ab66b1d6b3401d82d9ff086ea0c78fbbffd3e50ce9257ae137"
+    },
+    {
+      "source_relative_path": "ws-profile/lattices.c",
+      "bundle_path": "research/rmax-5d/ws-profile/lattices.c",
+      "bytes": 3166,
+      "sha256": "b9c2137af6f3ecd25d00253ff1d8301d52f598370332573b21eee6b06a2ac194"
+    },
+    {
+      "source_relative_path": "ws-profile/lattices.jsonl",
+      "bundle_path": "research/rmax-5d/ws-profile/lattices.jsonl",
+      "bytes": 13029285,
+      "sha256": "e1b453e575e157a07d0e042d53f056ca1d38c20f85527cba555f237651d1bb50"
+    },
+    {
+      "source_relative_path": "ws-profile/maximality-crash.gdb.txt",
+      "bundle_path": "research/rmax-5d/ws-profile/maximality-crash.gdb.txt",
+      "bytes": 3511,
+      "sha256": "56013dfb73154c723b9790934b5bd0e20975a4d7670d573830c24ed25db5aa6a"
+    },
+    {
+      "source_relative_path": "ws-profile/maximality-crash.input",
+      "bundle_path": "research/rmax-5d/ws-profile/maximality-crash.input",
+      "bytes": 86,
+      "sha256": "7ac9ce02c3c6282340f8dcabacbd069ba2e8ca4eeed6acfb4d94bde83e33e9de"
+    },
+    {
+      "source_relative_path": "ws-profile/maximality-crash.json",
+      "bundle_path": "research/rmax-5d/ws-profile/maximality-crash.json",
+      "bytes": 123,
+      "sha256": "6b5c46b2a478bb799af51d0feb680e37377f7b73f5c473ab765f7e27b444c943"
+    },
+    {
+      "source_relative_path": "ws-profile/maximality-default-stack.jsonl",
+      "bundle_path": "research/rmax-5d/ws-profile/maximality-default-stack.jsonl",
+      "bytes": 9893,
+      "sha256": "7c5d2d53b8c29ab6cda89cbb64ba0199af24374d324b57cf40249866acbb1243"
+    },
+    {
+      "source_relative_path": "ws-profile/maximality-stack256.jsonl",
+      "bundle_path": "research/rmax-5d/ws-profile/maximality-stack256.jsonl",
+      "bytes": 13339,
+      "sha256": "3ad6b3134a641205fab82139767acd9cd161cebb41fb844934c2c4ce420fcf1b"
+    },
+    {
+      "source_relative_path": "ws-profile/maximality-wide128.jsonl",
+      "bundle_path": "research/rmax-5d/ws-profile/maximality-wide128.jsonl",
+      "bytes": 3244,
+      "sha256": "d6d0552565ee868708b2f08245da41e469ca1002ddf36c4d387e97e7d07b4343"
+    },
+    {
+      "source_relative_path": "ws-profile/maximality.jsonl",
+      "bundle_path": "research/rmax-5d/ws-profile/maximality.jsonl",
+      "bytes": 9893,
+      "sha256": "7c5d2d53b8c29ab6cda89cbb64ba0199af24374d324b57cf40249866acbb1243"
+    },
+    {
+      "source_relative_path": "ws-profile/native",
+      "bundle_path": "research/rmax-5d/ws-profile/native",
+      "bytes": 1188136,
+      "sha256": "90713f47475ea192b8b6d1c033bc29b3ad3eac896f7b8ce3989fcc6603f65c1e"
+    },
+    {
+      "source_relative_path": "ws-profile/native-cover.jsonl",
+      "bundle_path": "research/rmax-5d/ws-profile/native-cover.jsonl",
+      "bytes": 60731,
+      "sha256": "b2da944837200792d0080834fabc7d30141156b1accc1dbe2dbe2a9899433750"
+    },
+    {
+      "source_relative_path": "ws-profile/native.c",
+      "bundle_path": "research/rmax-5d/ws-profile/native.c",
+      "bytes": 4128,
+      "sha256": "b821272cede113e8d302d6f353ff402ea086613e1b86b50e6ceaf5eaa1855595"
+    },
+    {
+      "source_relative_path": "ws-profile/native.jsonl",
+      "bundle_path": "research/rmax-5d/ws-profile/native.jsonl",
+      "bytes": 803942,
+      "sha256": "c24d0e0b40ab49e7a8e00a5d04dc6d19af8b909c0dd268f769cd4763fa8409dd"
+    },
+    {
+      "source_relative_path": "ws-profile/native_cover.py",
+      "bundle_path": "research/rmax-5d/ws-profile/native_cover.py",
+      "bytes": 6577,
+      "sha256": "b34f1679128caac9813e79f6232bcc316061c37fb98348c295f21a597354afc4"
+    },
+    {
+      "source_relative_path": "ws-profile/native_runs.py",
+      "bundle_path": "research/rmax-5d/ws-profile/native_runs.py",
+      "bytes": 2717,
+      "sha256": "1d3c2dc67454235b9a2d87d8afb111d7bbe0c1b6ee651d8d9cf16b8a8bdc362f"
+    },
+    {
+      "source_relative_path": "ws-profile/partition-cover.jsonl",
+      "bundle_path": "research/rmax-5d/ws-profile/partition-cover.jsonl",
+      "bytes": 18036,
+      "sha256": "2fdbc3f42924350deb26231691009e6c051a84edacde563b5bce68939783bbf9"
+    },
+    {
+      "source_relative_path": "ws-profile/provenance.json",
+      "bundle_path": "research/rmax-5d/ws-profile/provenance.json",
+      "bytes": 608,
+      "sha256": "aec1420141b1af62eb07d9532422707e53aafa3372e317647021cc90fbee0a5a"
+    },
+    {
+      "source_relative_path": "ws-profile/random-cover.jsonl",
+      "bundle_path": "research/rmax-5d/ws-profile/random-cover.jsonl",
+      "bytes": 56667,
+      "sha256": "9a4535bc07e8464585d03fed1fb70d17dd861f9eb65d162d1455f6c014ba1861"
+    },
+    {
+      "source_relative_path": "ws-profile/random_cover.py",
+      "bundle_path": "research/rmax-5d/ws-profile/random_cover.py",
+      "bytes": 1002,
+      "sha256": "73c95f7a9a94d27c089523369baac48de19d324ec1299de60345043275f36971"
+    },
+    {
+      "source_relative_path": "ws-profile/sample.json",
+      "bundle_path": "research/rmax-5d/ws-profile/sample.json",
+      "bytes": 334753,
+      "sha256": "8586a8c2ae991bbc7a4804b51744a93475be87985c017b5ea70b4041584bd10c"
+    },
+    {
+      "source_relative_path": "ws-profile/sample.py",
+      "bundle_path": "research/rmax-5d/ws-profile/sample.py",
+      "bytes": 6141,
+      "sha256": "b615ec4a89ee2d69b9490690a4e7f53de4cc98d078d9d0d77d339e5f5e85a133"
+    },
+    {
+      "source_relative_path": "ws-profile/searches.py",
+      "bundle_path": "research/rmax-5d/ws-profile/searches.py",
+      "bytes": 9529,
+      "sha256": "3eba5c08f54b3c15cab82968d27b124d78747a3463e299d2dfc39c2ac97a15a5"
+    },
+    {
+      "source_relative_path": "ws-profile/summarize.py",
+      "bundle_path": "research/rmax-5d/ws-profile/summarize.py",
+      "bytes": 8791,
+      "sha256": "9daa3f85285bf659f12938cf0fba3eb10dd2b5918aa5fc6ea4f4e2866dce6ae8"
+    },
+    {
+      "source_relative_path": "ws-profile/summary.json",
+      "bundle_path": "research/rmax-5d/ws-profile/summary.json",
+      "bytes": 879537,
+      "sha256": "2e5e41169ecfa9950fdd10e840a8dfefcf40c3c6fe720f670668c76ca5269812"
+    },
+    {
+      "source_relative_path": "ws-profile/summary.log",
+      "bundle_path": "research/rmax-5d/ws-profile/summary.log",
+      "bytes": 7919,
+      "sha256": "a0da127fcb8b8cb5a0c4d00f5400bec96dd11c73187858fe906fe162fefe52f9"
+    },
+    {
+      "source_relative_path": "ws-profile/validation.json",
+      "bundle_path": "research/rmax-5d/ws-profile/validation.json",
+      "bytes": 91,
+      "sha256": "d799b29f96772af61ba05a1da64e8d26d74ae8b7a2dd2a0469f6829fe4e1fa21"
+    },
+    {
+      "source_relative_path": "ws-profile/wide-build.log",
+      "bundle_path": "research/rmax-5d/ws-profile/wide-build.log",
+      "bytes": 38571,
+      "sha256": "c24747c38fd68d947105985f14fff2138daa564dbf2917e00c11486536164776"
+    },
+    {
+      "source_relative_path": "ws-profile/wrapper-timing.json",
+      "bundle_path": "research/rmax-5d/ws-profile/wrapper-timing.json",
+      "bytes": 662,
+      "sha256": "83039d833293ea1e5555d63553f58a5ba9f8a9a01503b52d9181882ba7bf3d2d"
+    }
+  ]
+}
